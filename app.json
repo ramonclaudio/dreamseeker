@@ -7,9 +7,13 @@
     "icon": "./assets/images/icon.png",
     "scheme": "expostarterapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ramonclaudio.expo-starter-app",
+      "appleTeamId": "SWH9LXWCC3",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +26,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
@@ -42,7 +47,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "autolinkingModuleResolution": true
     },
     "extra": {
       "router": {},
@@ -50,6 +56,12 @@
         "projectId": "25943fb2-b13d-44f0-958a-c941bd37a7a0"
       }
     },
-    "owner": "ramonclaudio"
+    "owner": "ramonclaudio",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/25943fb2-b13d-44f0-958a-c941bd37a7a0"
+    }
   }
 }
