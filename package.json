@@ -5,12 +5,15 @@
   "scripts": {
     "start": "expo start --clear",
     "dev": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
     "ios": "expo run:ios",
+    "ios:device": "expo run:ios --device",
+    "android": "expo run:android",
     "web": "expo start --web",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "reset-project": "node ./scripts/reset-project.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -48,5 +51,10 @@
     "eslint-config-expo": "10.0.1-canary-20251223-b83b31e",
     "typescript": "~5.9.3"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "install": {
+      "exclude": ["react-native"]
+    }
+  }
 }
