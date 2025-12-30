@@ -1,7 +1,5 @@
 module.exports = function (api) {
-  const platform = api.caller((caller) => (caller ? caller.platform : 'ios'));
-  api.cache.invalidate(() => platform);
-
+  api.cache(true);
   return {
     presets: ['babel-preset-expo'],
   };
