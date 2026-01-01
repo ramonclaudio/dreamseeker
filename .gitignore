@@ -36,6 +36,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# nativewind
+nativewind-output.js
+
 app-example
 
 # generated native folders
