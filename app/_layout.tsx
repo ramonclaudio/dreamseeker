@@ -1,5 +1,6 @@
 import '../global.css';
 
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -10,6 +11,12 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+// Initialize Convex client
+const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
+const convex = convexUrl
+  ? new ConvexReactClient(convexUrl, { unsavedChangesWarning: false })
+  : null;
 
 // Error boundary for root-level errors
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
@@ -104,7 +111,7 @@ export default function RootLayout() {
     return null;
   }
 
-  return (
+  const content = (
     <KeyboardProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
@@ -116,4 +123,11 @@ export default function RootLayout() {
       </ThemeProvider>
     </KeyboardProvider>
   );
+
+  // Wrap with ConvexProvider if configured
+  if (convex) {
+    return <ConvexProvider client={convex}>{content}</ConvexProvider>;
+  }
+
+  return content;
 }
