@@ -1,12 +1,10 @@
 // https://docs.expo.dev/guides/using-eslint/
-const { defineConfig } = require('eslint/config');
+const { defineConfig, globalIgnores } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 const reactCompiler = require('eslint-plugin-react-compiler');
 
 module.exports = defineConfig([
+  globalIgnores(['dist/*', '.expo/*']),
   expoConfig,
   reactCompiler.configs.recommended,
-  {
-    ignores: ['dist/*'],
-  },
 ]);
