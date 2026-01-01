@@ -3,8 +3,8 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start --clear",
-    "dev": "expo start",
+    "start": "expo start --dev-client",
+    "dev": "expo start --dev-client",
     "ios": "expo run:ios",
     "ios:device": "expo run:ios --device",
     "android": "expo run:android",
@@ -62,6 +62,7 @@
     "eas-build-cache-provider": "^16.4.2",
     "eslint": "^9.39.2",
     "eslint-config-expo": "10.0.1-canary-20251223-b83b31e",
+    "expo-atlas": "^0.4.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3"
