@@ -16,6 +16,11 @@
     "prebuild:clean": "expo prebuild --clean",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "analyze": "EXPO_ATLAS=true npx expo export",
+    "analyze:ios": "EXPO_ATLAS=true npx expo export -p ios",
+    "analyze:android": "EXPO_ATLAS=true npx expo export -p android",
+    "analyze:web": "EXPO_ATLAS=true npx expo export -p web",
+    "atlas": "npx expo-atlas .expo/atlas.jsonl",
     "reset-project": "node ./scripts/reset-project.js"
   },
   "dependencies": {
