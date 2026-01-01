@@ -20,6 +20,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       'expostarterapp://',
       // Development origins
       'exp://',
+      'http://localhost:8081',
       ...(siteUrl ? [siteUrl] : []),
     ],
     database: authComponent.adapter(ctx),
