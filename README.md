@@ -53,17 +53,18 @@ npm run start     # Terminal 2: app (subsequent)
 ## Environment Variables
 
 **Client (.env.local):**
-- `EXPO_PUBLIC_CONVEX_URL` - Convex cloud URL
-- `EXPO_PUBLIC_CONVEX_SITE_URL` - Convex site URL
-- `EXPO_PUBLIC_SITE_URL` - Your app URL (for email links)
+- `CONVEX_DEPLOYMENT` - Deployment name (e.g., `dev:amiable-seahorse-506`)
+- `EXPO_PUBLIC_CONVEX_URL` - Convex cloud URL (`.convex.cloud`)
+- `EXPO_PUBLIC_CONVEX_SITE_URL` - Convex site URL (`.convex.site`)
+- `EXPO_PUBLIC_SITE_URL` - App URL for email links (`http://localhost:8081`)
 
-**Server (Convex Dashboard):**
-- `BETTER_AUTH_SECRET` - Auth encryption key (required)
-- `SITE_URL` - Public app URL (required)
-- `RESEND_API_KEY` - From resend.com (required)
-- `RESEND_FROM_EMAIL` - Verified sender (required)
-- `RESEND_TEST_MODE` - Set `false` for production
-- `RESEND_WEBHOOK_SECRET` - For bounce tracking
+**Server (Convex Dashboard → Settings → Environment Variables):**
+- `BETTER_AUTH_SECRET` - Auth encryption key
+- `SITE_URL` - App URL (same as `EXPO_PUBLIC_SITE_URL`)
+- `RESEND_API_KEY` - From resend.com/api-keys
+- `RESEND_FROM_EMAIL` - Verified sender domain
+- `RESEND_TEST_MODE` - `false` for production (optional)
+- `RESEND_WEBHOOK_SECRET` - From resend.com/webhooks (optional)
 
 ## Production
 
