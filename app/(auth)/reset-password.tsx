@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,28 +9,35 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 
-export default function SignUpScreen() {
+export default function ResetPasswordScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
+  const { token } = useLocalSearchParams<{ token?: string }>();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) {
+      setError('Invalid or expired reset link. Please request a new one.');
+    }
+  }, [token]);
 
   const clearError = () => setError(null);
 
-  const handleSignUp = async () => {
+  const handleResetPassword = async () => {
     setError(null);
 
-    if (!name.trim() || !email.trim() || !password) {
+    if (!password || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
@@ -40,22 +47,32 @@ export default function SignUpScreen() {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!token) {
+      setError('Invalid reset link. Please request a new one.');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await authClient.signUp.email({
-        name: name.trim(),
-        email: email.trim(),
-        password,
+      const response = await authClient.resetPassword({
+        newPassword: password,
+        token,
       });
 
       if (response.error) {
-        // Provide user-friendly error messages
-        const message = response.error.message ?? 'Sign up failed';
-        if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
-          setError('An account with this email already exists');
+        const message = response.error.message ?? 'Failed to reset password';
+        if (message.toLowerCase().includes('expired') || message.toLowerCase().includes('invalid')) {
+          setError('This reset link has expired. Please request a new one.');
         } else {
           setError(message);
         }
+      } else {
+        setIsSuccess(true);
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');
@@ -63,6 +80,25 @@ export default function SignUpScreen() {
       setIsLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.successContent}>
+          <Text style={[styles.title, { color: colors.text }]}>Password reset!</Text>
+          <Text style={[styles.subtitle, { color: colors.icon }]}>
+            Your password has been successfully reset. You can now sign in with your
+            new password.
+          </Text>
+          <Pressable
+            style={[styles.button, { backgroundColor: colors.tint }]}
+            onPress={() => router.replace('/sign-in')}>
+            <Text style={styles.buttonText}>Sign In</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -72,9 +108,9 @@ export default function SignUpScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Create account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Reset password</Text>
           <Text style={[styles.subtitle, { color: colors.icon }]}>
-            Sign up to get started
+            Enter your new password below
           </Text>
         </View>
 
@@ -86,57 +122,36 @@ export default function SignUpScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Name</Text>
+            <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
             <TextInput
               style={[
                 styles.input,
                 { backgroundColor: colors.card, color: colors.text },
               ]}
-              placeholder="Your name"
-              placeholderTextColor={colors.icon}
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                clearError();
-              }}
-              autoComplete="name"
-              autoCorrect={false}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text },
-              ]}
-              placeholder="you@example.com"
-              placeholderTextColor={colors.icon}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                clearError();
-              }}
-              autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
-              autoCorrect={false}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text },
-              ]}
-              placeholder="At least 8 characters"
+              placeholder="Enter new password"
               placeholderTextColor={colors.icon}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
+                clearError();
+              }}
+              secureTextEntry
+              autoComplete="new-password"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Confirm Password</Text>
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: colors.card, color: colors.text },
+              ]}
+              placeholder="Confirm new password"
+              placeholderTextColor={colors.icon}
+              value={confirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
                 clearError();
               }}
               secureTextEntry
@@ -149,23 +164,12 @@ export default function SignUpScreen() {
               styles.button,
               { backgroundColor: colors.tint, opacity: isLoading ? 0.7 : 1 },
             ]}
-            onPress={handleSignUp}
+            onPress={handleResetPassword}
             disabled={isLoading}>
             <Text style={styles.buttonText}>
-              {isLoading ? 'Creating account...' : 'Sign Up'}
+              {isLoading ? 'Resetting...' : 'Reset Password'}
             </Text>
           </Pressable>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.icon }]}>
-            Already have an account?{' '}
-          </Text>
-          <Link href="/sign-in" asChild>
-            <Pressable>
-              <Text style={[styles.linkText, { color: colors.tint }]}>Sign In</Text>
-            </Pressable>
-          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -180,6 +184,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
+  },
+  successContent: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    gap: 16,
   },
   header: {
     marginBottom: 32,
@@ -229,18 +239,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  footerText: {
-    fontSize: 14,
-  },
-  linkText: {
-    fontSize: 14,
     fontWeight: '600',
   },
 });

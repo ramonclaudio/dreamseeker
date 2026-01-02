@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -23,10 +22,13 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignIn = async () => {
+    setError(null);
+
     if (!email.trim() || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      setError('Please enter email and password');
       return;
     }
 
@@ -38,10 +40,10 @@ export default function SignInScreen() {
       });
 
       if (response.error) {
-        Alert.alert('Error', response.error.message ?? 'Sign in failed');
+        setError(response.error.message ?? 'Invalid email or password');
       }
     } catch {
-      Alert.alert('Error', 'An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +63,12 @@ export default function SignInScreen() {
           </Text>
         </View>
 
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
         <View style={styles.form}>
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>Email</Text>
@@ -68,11 +76,15 @@ export default function SignInScreen() {
               style={[
                 styles.input,
                 { backgroundColor: colors.card, color: colors.text },
+                error && styles.inputError,
               ]}
               placeholder="you@example.com"
               placeholderTextColor={colors.icon}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                setError(null);
+              }}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -81,16 +93,29 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+            <View style={styles.passwordHeader}>
+              <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+              <Link href="/forgot-password" asChild>
+                <Pressable>
+                  <Text style={[styles.forgotText, { color: colors.tint }]}>
+                    Forgot password?
+                  </Text>
+                </Pressable>
+              </Link>
+            </View>
             <TextInput
               style={[
                 styles.input,
                 { backgroundColor: colors.card, color: colors.text },
+                error && styles.inputError,
               ]}
               placeholder="Enter your password"
               placeholderTextColor={colors.icon}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                setError(null);
+              }}
               secureTextEntry
               autoComplete="password"
             />
@@ -144,6 +169,19 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
   },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    textAlign: 'center',
+  },
   form: {
     gap: 20,
   },
@@ -154,10 +192,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  passwordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  forgotText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
   input: {
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
+  },
+  inputError: {
+    borderWidth: 1,
+    borderColor: '#ef4444',
   },
   button: {
     borderRadius: 12,
