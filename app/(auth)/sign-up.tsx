@@ -20,6 +20,7 @@ export default function SignUpScreen() {
   const colors = Colors[colorScheme];
 
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,8 +31,19 @@ export default function SignUpScreen() {
   const handleSignUp = async () => {
     setError(null);
 
-    if (!name.trim() || !email.trim() || !password) {
+    if (!name.trim() || !username.trim() || !email.trim() || !password) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    const trimmedUsername = username.trim().toLowerCase();
+    if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
+      setError('Username must be 3-20 characters');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
+      setError('Username can only contain letters, numbers, underscores, and hyphens');
       return;
     }
 
@@ -42,10 +54,12 @@ export default function SignUpScreen() {
 
     setIsLoading(true);
     try {
-      const response = await authClient.signUp.email({
+      // Username plugin extends signUp.email to accept username field
+      const response = await (authClient.signUp.email as Function)({
         name: name.trim(),
         email: email.trim(),
         password,
+        username: trimmedUsername,
       });
 
       if (response.error) {
@@ -100,6 +114,26 @@ export default function SignUpScreen() {
                 clearError();
               }}
               autoComplete="name"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Username</Text>
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: colors.card, color: colors.text },
+              ]}
+              placeholder="3-20 characters"
+              placeholderTextColor={colors.icon}
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text);
+                clearError();
+              }}
+              autoCapitalize="none"
+              autoComplete="username-new"
               autoCorrect={false}
             />
           </View>
