@@ -1,4 +1,5 @@
 import { createClient, type GenericCtx } from '@convex-dev/better-auth';
+import { requireActionCtx } from '@convex-dev/better-auth/utils';
 import { convex, crossDomain } from '@convex-dev/better-auth/plugins';
 import { betterAuth, type BetterAuthOptions } from 'better-auth/minimal';
 import { expo } from '@better-auth/expo';
@@ -6,6 +7,7 @@ import { components } from './_generated/api';
 import { DataModel } from './_generated/dataModel';
 import { query } from './_generated/server';
 import authConfig from './auth.config';
+import { sendEmailVerification, sendResetPassword } from './email';
 
 // The component client has methods needed for integrating Convex with Better Auth,
 // as well as helper methods for general use.
@@ -14,11 +16,15 @@ export const authComponent = createClient<DataModel>(components.betterAuth);
 // Site URL for web support (set in Convex dashboard)
 const siteUrl = process.env.SITE_URL;
 
+const ONE_MINUTE = 60;
+const ONE_HOUR = 60 * 60;
+const ONE_DAY = ONE_HOUR * 24;
+const SEVEN_DAYS = ONE_DAY * 7;
+
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
   return betterAuth({
     trustedOrigins: [
       'expostarterapp://',
-      // Development origins
       'exp://',
       'http://localhost:8081',
       ...(siteUrl ? [siteUrl] : []),
@@ -27,6 +33,49 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
+      // Password requirements: 8-128 characters (Better Auth default)
+      minPasswordLength: 8,
+      maxPasswordLength: 128,
+      // Token expires in 1 hour (3600 seconds)
+      resetPasswordTokenExpiresIn: ONE_HOUR,
+      // Revoke all sessions when password is reset via email link (security best practice)
+      revokeSessionsOnPasswordReset: true,
+      sendResetPassword: async ({ user, url }) => {
+        await sendResetPassword(requireActionCtx(ctx), {
+          to: user.email,
+          url,
+        });
+      },
+    },
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }) => {
+        await sendEmailVerification(requireActionCtx(ctx), {
+          to: user.email,
+          url,
+        });
+      },
+      sendOnSignUp: false,
+      autoSignInAfterVerification: true,
+    },
+    session: {
+      expiresIn: SEVEN_DAYS,
+      updateAge: ONE_DAY,
+      cookieCache: {
+        enabled: true,
+        maxAge: ONE_MINUTE * 5,
+      },
+    },
+    rateLimit: {
+      enabled: true,
+      window: ONE_MINUTE,
+      max: 10,
+      customRules: {
+        '/sign-in/email': { window: ONE_MINUTE * 15, max: 5 },
+        '/sign-up/email': { window: ONE_HOUR, max: 3 },
+        '/forgot-password': { window: ONE_HOUR, max: 3 },
+        '/reset-password': { window: ONE_MINUTE * 15, max: 5 },
+        '/change-password': { window: ONE_MINUTE * 15, max: 5 },
+      },
     },
     plugins: [
       expo(),
@@ -40,10 +89,6 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    try {
-      return await authComponent.getAuthUser(ctx);
-    } catch {
-      return null;
-    }
+    return await authComponent.safeGetAuthUser(ctx);
   },
 });

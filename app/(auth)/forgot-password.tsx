@@ -9,53 +9,42 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 
-export default function SignUpScreen() {
+const siteUrl = process.env.EXPO_PUBLIC_SITE_URL;
+
+export default function ForgotPasswordScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const clearError = () => setError(null);
-
-  const handleSignUp = async () => {
+  const handleForgotPassword = async () => {
     setError(null);
 
-    if (!name.trim() || !email.trim() || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+    if (!email.trim()) {
+      setError('Please enter your email address');
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await authClient.signUp.email({
-        name: name.trim(),
+      const response = await authClient.requestPasswordReset({
         email: email.trim(),
-        password,
+        redirectTo: `${siteUrl}/reset-password`,
       });
 
       if (response.error) {
-        // Provide user-friendly error messages
-        const message = response.error.message ?? 'Sign up failed';
-        if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
-          setError('An account with this email already exists');
-        } else {
-          setError(message);
-        }
+        setError(response.error.message ?? 'Failed to send reset email');
+      } else {
+        setIsSubmitted(true);
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');
@@ -63,6 +52,27 @@ export default function SignUpScreen() {
       setIsLoading(false);
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.successContent}>
+          <Text style={[styles.title, { color: colors.text }]}>Check your email</Text>
+          <Text style={[styles.subtitle, { color: colors.icon }]}>
+            We&apos;ve sent a password reset link to {email}
+          </Text>
+          <Text style={[styles.hint, { color: colors.icon }]}>
+            If you don&apos;t see it, check your spam folder.
+          </Text>
+          <Pressable
+            style={[styles.button, { backgroundColor: colors.tint }]}
+            onPress={() => router.replace('/sign-in')}>
+            <Text style={styles.buttonText}>Back to Sign In</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -72,9 +82,9 @@ export default function SignUpScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Create account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Forgot password?</Text>
           <Text style={[styles.subtitle, { color: colors.icon }]}>
-            Sign up to get started
+            Enter your email and we&apos;ll send you a reset link
           </Text>
         </View>
 
@@ -85,25 +95,6 @@ export default function SignUpScreen() {
         )}
 
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Name</Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text },
-              ]}
-              placeholder="Your name"
-              placeholderTextColor={colors.icon}
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                clearError();
-              }}
-              autoComplete="name"
-              autoCorrect={false}
-            />
-          </View>
-
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>Email</Text>
             <TextInput
@@ -116,7 +107,7 @@ export default function SignUpScreen() {
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
-                clearError();
+                setError(null);
               }}
               autoCapitalize="none"
               autoComplete="email"
@@ -125,41 +116,22 @@ export default function SignUpScreen() {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.card, color: colors.text },
-              ]}
-              placeholder="At least 8 characters"
-              placeholderTextColor={colors.icon}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                clearError();
-              }}
-              secureTextEntry
-              autoComplete="new-password"
-            />
-          </View>
-
           <Pressable
             style={[
               styles.button,
               { backgroundColor: colors.tint, opacity: isLoading ? 0.7 : 1 },
             ]}
-            onPress={handleSignUp}
+            onPress={handleForgotPassword}
             disabled={isLoading}>
             <Text style={styles.buttonText}>
-              {isLoading ? 'Creating account...' : 'Sign Up'}
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
             </Text>
           </Pressable>
         </View>
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.icon }]}>
-            Already have an account?{' '}
+            Remember your password?{' '}
           </Text>
           <Link href="/sign-in" asChild>
             <Pressable>
@@ -181,6 +153,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
+  successContent: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    gap: 16,
+  },
   header: {
     marginBottom: 32,
   },
@@ -191,6 +169,10 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
+  },
+  hint: {
+    fontSize: 14,
+    marginTop: 8,
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',

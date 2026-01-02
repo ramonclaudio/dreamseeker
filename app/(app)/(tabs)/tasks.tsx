@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
+import { useConvexAuth } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -66,8 +67,10 @@ export default function TasksScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const [newTaskText, setNewTaskText] = useState('');
+  const { isAuthenticated, isLoading } = useConvexAuth();
 
-  const tasks = useQuery(api.tasks.list);
+  // Skip query until authenticated to avoid "Unauthorized" errors during auth loading
+  const tasks = useQuery(api.tasks.list, isAuthenticated ? {} : 'skip');
   const createTask = useMutation(api.tasks.create);
   const toggleTask = useMutation(api.tasks.toggle);
   const deleteTask = useMutation(api.tasks.remove);
@@ -78,7 +81,7 @@ export default function TasksScreen() {
     setNewTaskText('');
   };
 
-  if (tasks === undefined) {
+  if (isLoading || tasks === undefined) {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.tint} />
