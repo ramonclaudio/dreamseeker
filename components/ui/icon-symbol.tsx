@@ -12,6 +12,9 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   checklist: 'checklist',
   'gearshape.fill': 'settings',
+  'lock.fill': 'lock',
+  'rectangle.portrait.and.arrow.right': 'logout',
+  'trash.fill': 'delete',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
