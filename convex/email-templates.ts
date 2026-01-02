@@ -1,0 +1,36 @@
+/**
+ * Email HTML templates for transactional emails
+ * Extracted for maintainability and potential future migration to Resend dashboard templates
+ */
+
+const baseStyles = {
+  container: 'font-family: sans-serif; max-width: 600px; margin: 0 auto;',
+  button:
+    'display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;',
+  muted: 'color: #666; font-size: 14px;',
+  small: 'color: #666; font-size: 12px;',
+};
+
+export const resetPasswordTemplate = (url: string): string => `
+<div style="${baseStyles.container}">
+  <h2>Reset your password</h2>
+  <p>Click the button below to reset your password. This link will expire in 1 hour.</p>
+  <a href="${url}" style="${baseStyles.button}">
+    Reset Password
+  </a>
+  <p style="${baseStyles.muted}">If you didn't request this, you can safely ignore this email.</p>
+  <p style="${baseStyles.small}">Or copy this link: ${url}</p>
+</div>
+`;
+
+export const emailVerificationTemplate = (url: string): string => `
+<div style="${baseStyles.container}">
+  <h2>Verify your email</h2>
+  <p>Click the button below to verify your email address.</p>
+  <a href="${url}" style="${baseStyles.button}">
+    Verify Email
+  </a>
+  <p style="${baseStyles.muted}">If you didn't create an account, you can safely ignore this email.</p>
+  <p style="${baseStyles.small}">Or copy this link: ${url}</p>
+</div>
+`;
