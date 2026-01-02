@@ -11,6 +11,7 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   checklist: 'checklist',
+  'gearshape.fill': 'settings',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
