@@ -1,7 +1,7 @@
 import { Resend } from '@convex-dev/resend';
 import { components } from './_generated/api';
 import { ActionCtx } from './_generated/server';
-import { resetPasswordTemplate, emailVerificationTemplate } from './email-templates';
+import { resetPasswordTemplate, emailVerificationTemplate } from './email_templates';
 
 // testMode: false = production (sends to real addresses)
 // testMode: true = development (only allows @resend.dev test addresses)
