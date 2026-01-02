@@ -2,7 +2,7 @@
 
 Expo SDK 55 + React 19 + Convex + Better Auth + Resend.
 
-Production-ready authentication starter with email/password, password reset, and real-time backend.
+Production-ready authentication starter with email/password, username support, password reset, and real-time backend.
 
 ## Stack
 
@@ -19,6 +19,7 @@ Production-ready authentication starter with email/password, password reset, and
 ## Features
 
 - **Email/Password Auth** - Sign up, sign in, sign out
+- **Username Support** - Sign up with username, sign in with email or username
 - **Password Reset** - Forgot password flow with email verification
 - **Change Password** - Authenticated password change
 - **Protected Routes** - Automatic redirects based on auth state
@@ -104,8 +105,8 @@ npm run start        # Subsequent runs (just Metro)
 
 | Flow | Route | Description |
 |------|-------|-------------|
-| Sign In | `/sign-in` | Email/password login |
-| Sign Up | `/sign-up` | Create new account |
+| Sign In | `/sign-in` | Email or username login |
+| Sign Up | `/sign-up` | Create account with username |
 | Forgot Password | `/forgot-password` | Request reset email |
 | Reset Password | `/reset-password` | Set new password (from email link) |
 | Change Password | Settings modal | Change password when logged in |
