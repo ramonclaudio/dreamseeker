@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { Platform, StyleSheet, Pressable } from 'react-native';
+import { useQuery } from 'convex/react';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -9,14 +10,15 @@ import { Link } from 'expo-router';
 import { authClient } from '@/lib/auth-client';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { api } from '@/convex/_generated/api';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
-  const { data: session } = authClient.useSession();
+  const user = useQuery(api.auth.getCurrentUser);
 
-  const handleSignOut = async () => {
-    await authClient.signOut();
+  const handleSignOut = () => {
+    authClient.signOut();
   };
 
   return (
@@ -30,7 +32,7 @@ export default function HomeScreen() {
       }>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">
-          {session?.user?.name ? `Hi, ${session.user.name}!` : 'Welcome!'}
+          {user?.name ? `Hi, ${user.name}!` : 'Welcome!'}
         </ThemedText>
         <HelloWave />
       </ThemedView>
