@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -24,15 +23,20 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const clearError = () => setError(null);
 
   const handleSignUp = async () => {
+    setError(null);
+
     if (!name.trim() || !email.trim() || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
     if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters');
+      setError('Password must be at least 8 characters');
       return;
     }
 
@@ -45,10 +49,16 @@ export default function SignUpScreen() {
       });
 
       if (response.error) {
-        Alert.alert('Error', response.error.message ?? 'Sign up failed');
+        // Provide user-friendly error messages
+        const message = response.error.message ?? 'Sign up failed';
+        if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
+          setError('An account with this email already exists');
+        } else {
+          setError(message);
+        }
       }
     } catch {
-      Alert.alert('Error', 'An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +78,12 @@ export default function SignUpScreen() {
           </Text>
         </View>
 
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
         <View style={styles.form}>
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text }]}>Name</Text>
@@ -79,7 +95,10 @@ export default function SignUpScreen() {
               placeholder="Your name"
               placeholderTextColor={colors.icon}
               value={name}
-              onChangeText={setName}
+              onChangeText={(text) => {
+                setName(text);
+                clearError();
+              }}
               autoComplete="name"
               autoCorrect={false}
             />
@@ -95,7 +114,10 @@ export default function SignUpScreen() {
               placeholder="you@example.com"
               placeholderTextColor={colors.icon}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                clearError();
+              }}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -113,7 +135,10 @@ export default function SignUpScreen() {
               placeholder="At least 8 characters"
               placeholderTextColor={colors.icon}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                clearError();
+              }}
               secureTextEntry
               autoComplete="new-password"
             />
@@ -166,6 +191,19 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    textAlign: 'center',
   },
   form: {
     gap: 20,
