@@ -11,7 +11,7 @@ import authConfig from './auth.config';
 // as well as helper methods for general use.
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
-// Site URL for web support (optional)
+// Site URL for web support (set in Convex dashboard)
 const siteUrl = process.env.SITE_URL;
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
@@ -36,10 +36,14 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
   } satisfies BetterAuthOptions);
 };
 
-// Get the current authenticated user
+// Get the current authenticated user (returns null if unauthenticated)
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    return authComponent.getAuthUser(ctx);
+    try {
+      return await authComponent.getAuthUser(ctx);
+    } catch {
+      return null;
+    }
   },
 });

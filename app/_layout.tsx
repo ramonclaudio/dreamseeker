@@ -21,6 +21,8 @@ if (!convexUrl) {
 }
 
 const convex = new ConvexReactClient(convexUrl, {
+  // Pause queries until the user is authenticated
+  expectAuth: true,
   unsavedChangesWarning: false,
 });
 
@@ -73,7 +75,7 @@ const errorStyles = StyleSheet.create({
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: '(app)',
+  initialRouteName: '(auth)',
 };
 
 export default function RootLayout() {
@@ -86,8 +88,6 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const colorScheme = useColorScheme();
-  const { data: session, isPending } = authClient.useSession();
-  const isAuthenticated = !!session;
 
   // Screen tracking for analytics
   const pathname = usePathname();
@@ -100,25 +100,15 @@ function RootNavigator() {
   }, [pathname, params]);
 
   useEffect(() => {
-    if (!isPending) {
-      SplashScreen.hideAsync();
-    }
-  }, [isPending]);
-
-  if (isPending) {
-    return null;
-  }
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
     <KeyboardProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Protected guard={isAuthenticated}>
-            <Stack.Screen name="(app)" />
-          </Stack.Protected>
-          <Stack.Protected guard={!isAuthenticated}>
-            <Stack.Screen name="(auth)" />
-          </Stack.Protected>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(app)" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
