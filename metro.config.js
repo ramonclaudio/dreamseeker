@@ -4,6 +4,9 @@ const { withNativewind } = require('nativewind/metro');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
+// Enable package exports for Better Auth
+config.resolver.unstable_enablePackageExports = true;
+
 // Production optimizations
 config.transformer.minifierConfig = {
   compress: {
