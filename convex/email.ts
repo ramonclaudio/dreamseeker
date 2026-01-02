@@ -1,6 +1,6 @@
-import { Resend } from '@convex-dev/resend';
-import { components } from './_generated/api';
-import { ActionCtx } from './_generated/server';
+import { Resend, vOnEmailEventArgs } from '@convex-dev/resend';
+import { components, internal } from './_generated/api';
+import { ActionCtx, internalMutation } from './_generated/server';
 import { resetPasswordTemplate, emailVerificationTemplate } from './email_templates';
 
 // testMode: false = production (sends to real addresses)
@@ -8,8 +8,16 @@ import { resetPasswordTemplate, emailVerificationTemplate } from './email_templa
 // Set RESEND_TEST_MODE=false in Convex dashboard for production
 const isTestMode = process.env.RESEND_TEST_MODE !== 'false';
 
-export const resend = new Resend(components.resend, {
+// Site URL for unsubscribe links (required - set in Convex dashboard)
+const siteUrl = process.env.SITE_URL;
+if (!siteUrl) {
+  throw new Error('SITE_URL environment variable is required. Set it in the Convex dashboard.');
+}
+
+export const resend: Resend = new Resend(components.resend, {
   testMode: isTestMode,
+  webhookSecret: process.env.RESEND_WEBHOOK_SECRET,
+  onEmailEvent: internal.email.handleEmailEvent,
 });
 
 const APP_NAME = 'Expo Starter App';
@@ -25,6 +33,7 @@ type EmailOptions = {
 
 /**
  * Send an email with error handling, idempotency, and custom headers
+ * Includes List-Unsubscribe headers for Gmail/Yahoo compliance (Feb 2024 requirement)
  * @throws Error if email fails after logging
  */
 const sendEmail = async (ctx: ActionCtx, options: EmailOptions) => {
@@ -32,8 +41,13 @@ const sendEmail = async (ctx: ActionCtx, options: EmailOptions) => {
 
   // Add X-Entity-Ref-ID to prevent Gmail threading on similar email types
   const entityRefId = idempotencyKey ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  // Build headers with unsubscribe support (Gmail/Yahoo requirement since Feb 2024)
+  // Note: For transactional auth emails, unsubscribe is optional but improves deliverability
   const emailHeaders: Array<{ name: string; value: string }> = [
     { name: 'X-Entity-Ref-ID', value: entityRefId },
+    { name: 'List-Unsubscribe', value: `<${siteUrl}/unsubscribe?email=${encodeURIComponent(to)}>` },
+    { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },
     ...headers,
   ];
 
@@ -97,3 +111,46 @@ export const sendEmailVerification = async (
     idempotencyKey,
   });
 };
+
+/**
+ * Handle email delivery events from Resend webhooks
+ * Tracks bounces and complaints for deliverability monitoring
+ */
+export const handleEmailEvent = internalMutation({
+  args: vOnEmailEventArgs,
+  handler: async (_ctx, { id, event }) => {
+    const eventType = event.type;
+
+    // Log all events for debugging (can be removed in production)
+    console.log(`[Email] Event ${eventType} for email ${id}`);
+
+    // Handle bounces - indicates delivery failure
+    if (eventType === 'email.bounced') {
+      const bounce = event.data.bounce;
+      console.warn('[Email] Bounce detected:', {
+        emailId: id,
+        type: bounce?.type,
+        message: bounce?.message,
+        recipient: event.data.to?.[0],
+      });
+      // Future: Add to suppression list table to prevent re-sending
+    }
+
+    // Handle spam complaints - critical for domain reputation
+    if (eventType === 'email.complained') {
+      console.error('[Email] Spam complaint received:', {
+        emailId: id,
+        recipient: event.data.to?.[0],
+      });
+      // Future: Add to suppression list and alert
+    }
+
+    // Handle delivery failures
+    if (eventType === 'email.failed') {
+      console.error('[Email] Delivery failed:', {
+        emailId: id,
+        recipient: event.data.to?.[0],
+      });
+    }
+  },
+});
