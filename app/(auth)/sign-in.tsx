@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Link } from 'expo-router';
 
-import { authClient } from '@/lib/auth-client';
+import { authClient, signInWithUsername } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { authStyles as styles } from '@/constants/auth-styles';
@@ -19,7 +19,7 @@ export default function SignInScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,20 +27,22 @@ export default function SignInScreen() {
   const handleSignIn = async () => {
     setError(null);
 
-    if (!email.trim() || !password) {
-      setError('Please enter email and password');
+    const trimmed = identifier.trim();
+    if (!trimmed || !password) {
+      setError('Please enter email/username and password');
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await authClient.signIn.email({
-        email: email.trim(),
-        password,
-      });
+      // Detect email vs username by checking for @
+      const isEmail = trimmed.includes('@');
+      const response = isEmail
+        ? await authClient.signIn.email({ email: trimmed, password })
+        : await signInWithUsername({ username: trimmed.toLowerCase(), password });
 
       if (response.error) {
-        setError(response.error.message ?? 'Invalid email or password');
+        setError(response.error.message ?? 'Invalid credentials');
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');
@@ -71,23 +73,22 @@ export default function SignInScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Email or Username</Text>
             <TextInput
               style={[
                 styles.input,
                 { backgroundColor: colors.card, color: colors.text },
                 error && styles.inputError,
               ]}
-              placeholder="you@example.com"
+              placeholder="you@example.com or username"
               placeholderTextColor={colors.icon}
-              value={email}
+              value={identifier}
               onChangeText={(text) => {
-                setEmail(text);
+                setIdentifier(text);
                 setError(null);
               }}
               autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
+              autoComplete="username"
               autoCorrect={false}
             />
           </View>
