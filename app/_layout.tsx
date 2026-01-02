@@ -1,22 +1,30 @@
 import '../global.css';
 
-import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { ConvexReactClient } from 'convex/react';
+import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 
+import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 // Initialize Convex client
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-const convex = convexUrl
-  ? new ConvexReactClient(convexUrl, { unsavedChangesWarning: false })
-  : null;
+if (!convexUrl) {
+  throw new Error('EXPO_PUBLIC_CONVEX_URL is required');
+}
+
+const convex = new ConvexReactClient(convexUrl, {
+  // Pause queries until the user is authenticated
+  expectAuth: true,
+  unsavedChangesWarning: false,
+});
 
 // Error boundary for root-level errors
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
@@ -67,67 +75,44 @@ const errorStyles = StyleSheet.create({
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  initialRouteName: '(auth)',
 };
 
 export default function RootLayout() {
+  return (
+    <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+      <RootNavigator />
+    </ConvexBetterAuthProvider>
+  );
+}
+
+function RootNavigator() {
   const colorScheme = useColorScheme();
-  const [appIsReady, setAppIsReady] = useState(false);
 
   // Screen tracking for analytics
   const pathname = usePathname();
   const params = useGlobalSearchParams();
 
   useEffect(() => {
-    // Track screen views - integrate with your analytics provider
-    // Example: analytics.track({ pathname, params });
     if (__DEV__) {
       console.log('[Screen]', pathname, params);
     }
   }, [pathname, params]);
 
   useEffect(() => {
-    async function prepare() {
-      try {
-        // Pre-load fonts, make API calls, etc. here
-        // await Font.loadAsync({ ... });
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setAppIsReady(true);
-      }
-    }
-
-    prepare();
+    SplashScreen.hideAsync();
   }, []);
 
-  useEffect(() => {
-    if (appIsReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
-
-  if (!appIsReady) {
-    return null;
-  }
-
-  const content = (
+  return (
     <KeyboardProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(app)" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
     </KeyboardProvider>
   );
-
-  // Wrap with ConvexProvider if configured
-  if (convex) {
-    return <ConvexProvider client={convex}>{content}</ConvexProvider>;
-  }
-
-  return content;
 }
