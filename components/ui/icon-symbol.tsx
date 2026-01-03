@@ -12,9 +12,12 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   checklist: 'checklist',
   'gearshape.fill': 'settings',
+  'person.fill': 'person',
+  'person.crop.circle': 'account-circle',
   'lock.fill': 'lock',
   'rectangle.portrait.and.arrow.right': 'logout',
   'trash.fill': 'delete',
+  'pencil': 'edit',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
