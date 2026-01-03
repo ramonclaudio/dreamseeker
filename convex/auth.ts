@@ -31,6 +31,14 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       ...(siteUrl ? [siteUrl] : []),
     ],
     database: authComponent.adapter(ctx),
+    user: {
+      changeEmail: {
+        enabled: true,
+        // Update email immediately without verification for starter app simplicity
+        // In production, set to false and implement proper verification flow
+        updateEmailWithoutVerification: true,
+      },
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
