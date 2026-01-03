@@ -17,7 +17,10 @@ const MAPPING = {
   'lock.fill': 'lock',
   'rectangle.portrait.and.arrow.right': 'logout',
   'trash.fill': 'delete',
-  'pencil': 'edit',
+  pencil: 'edit',
+  'camera.fill': 'photo-camera',
+  'photo.fill': 'photo',
+  'xmark.circle.fill': 'cancel',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
