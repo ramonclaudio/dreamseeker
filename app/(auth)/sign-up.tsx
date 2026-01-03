@@ -67,6 +67,8 @@ export default function SignUpScreen() {
         const message = response.error.message ?? 'Sign up failed';
         if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
           setError('An account with this email already exists');
+        } else if (message.toLowerCase().includes('already taken')) {
+          setError('Username is already taken');
         } else {
           setError(message);
         }
