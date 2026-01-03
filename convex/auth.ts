@@ -5,7 +5,7 @@ import { betterAuth, type BetterAuthOptions } from 'better-auth/minimal';
 import { username } from 'better-auth/plugins';
 import { expo } from '@better-auth/expo';
 import { components } from './_generated/api';
-import { DataModel } from './_generated/dataModel';
+import { DataModel, Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 import authConfig from './auth.config';
 import { sendEmailVerification, sendResetPassword } from './email';
@@ -100,9 +100,28 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 };
 
 // Get the current authenticated user (returns null if unauthenticated)
+// Resolves storage IDs to signed URLs for avatar images
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    return await authComponent.safeGetAuthUser(ctx);
+    const user = await authComponent.safeGetAuthUser(ctx);
+    if (!user) return null;
+
+    // Check if image is a Convex storage ID (no slashes or http)
+    // Storage IDs are alphanumeric strings like "kg2cvh2rkja8gxvestcdeaze517yhpxz"
+    const isStorageId =
+      user.image && !user.image.includes('/') && !user.image.startsWith('http');
+
+    if (isStorageId) {
+      try {
+        const imageUrl = await ctx.storage.getUrl(user.image as Id<'_storage'>);
+        return { ...user, image: imageUrl, imageStorageId: user.image };
+      } catch {
+        // Invalid storage ID, return user without image
+        return { ...user, image: null, imageStorageId: null };
+      }
+    }
+
+    return { ...user, imageStorageId: null };
   },
 });
