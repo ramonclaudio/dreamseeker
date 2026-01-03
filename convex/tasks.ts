@@ -65,7 +65,10 @@ export const remove = mutation({
   args: { id: v.id('tasks') },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
-    await getOwnedTask(ctx, args.id, userId);
+    const task = await ctx.db.get(args.id);
+    // Idempotent: silently succeed if task already deleted
+    if (!task) return;
+    if (task.userId !== userId) throw new Error('Forbidden');
     await ctx.db.delete(args.id);
   },
 });
