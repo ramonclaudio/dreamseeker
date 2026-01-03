@@ -8,9 +8,13 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
-  Image,
+  Alert,
+  ActionSheetIOS,
+  ActivityIndicator,
 } from 'react-native';
-import { useQuery } from 'convex/react';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import { useQuery, useMutation } from 'convex/react';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,6 +23,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { authClient } from '@/lib/auth-client';
 import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
 
 type ProfileFieldProps = {
   label: string;
@@ -317,11 +322,14 @@ export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const user = useQuery(api.auth.getCurrentUser);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
+  const deleteFile = useMutation(api.storage.deleteFile);
 
   const [showEditName, setShowEditName] = useState(false);
   const [showEditUsername, setShowEditUsername] = useState(false);
   const [showEditEmail, setShowEditEmail] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const handleUpdateName = async (name: string) => {
     const { error } = await authClient.updateUser({ name });
@@ -329,7 +337,6 @@ export default function ProfileScreen() {
   };
 
   const handleUpdateUsername = async (username: string) => {
-    // Validate username format (3-20 chars, matching server config)
     if (username.length < 3) {
       throw new Error('Username must be at least 3 characters');
     }
@@ -351,6 +358,138 @@ export default function ProfileScreen() {
     if (error) throw new Error(error.message ?? 'Failed to update email');
   };
 
+  const pickImage = async (useCamera: boolean) => {
+    // Request permissions
+    if (useCamera) {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera permission is required to take photos.');
+        return;
+      }
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Photo library permission is required to select photos.');
+        return;
+      }
+    }
+
+    const result = useCamera
+      ? await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        })
+      : await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    await uploadAvatar(result.assets[0].uri);
+  };
+
+  const uploadAvatar = async (uri: string) => {
+    setIsUploadingAvatar(true);
+    const oldImageStorageId = user?.imageStorageId ?? null;
+
+    try {
+      // Get upload URL from Convex
+      const uploadUrl = await generateUploadUrl();
+
+      // Fetch the image as a blob
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Upload to Convex storage
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': blob.type || 'image/jpeg' },
+        body: blob,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const { storageId } = await uploadResponse.json();
+
+      // Update user profile with storage ID (resolved to URL in getCurrentUser)
+      const { error } = await authClient.updateUser({ image: storageId });
+      if (error) throw new Error(error.message ?? 'Failed to update profile image');
+
+      // Clean up old avatar from storage
+      if (oldImageStorageId) {
+        try {
+          await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> });
+        } catch {
+          // Ignore cleanup errors - old file may already be deleted
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to upload image');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    setIsUploadingAvatar(true);
+    const oldImageStorageId = user?.imageStorageId ?? null;
+
+    try {
+      const { error } = await authClient.updateUser({ image: '' });
+      if (error) throw new Error(error.message ?? 'Failed to remove profile image');
+
+      // Clean up old avatar from storage
+      if (oldImageStorageId) {
+        try {
+          await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to remove image');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const showAvatarOptions = () => {
+    const options = user?.image
+      ? ['Choose from Library', 'Take Photo', 'Remove Photo', 'Cancel']
+      : ['Choose from Library', 'Take Photo', 'Cancel'];
+    const destructiveButtonIndex = user?.image ? 2 : undefined;
+    const cancelButtonIndex = user?.image ? 3 : 2;
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          destructiveButtonIndex,
+          cancelButtonIndex,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) pickImage(false);
+          else if (buttonIndex === 1) pickImage(true);
+          else if (buttonIndex === 2 && user?.image) removeAvatar();
+        }
+      );
+    } else {
+      Alert.alert('Profile Photo', 'Choose an option', [
+        { text: 'Choose from Library', onPress: () => pickImage(false) },
+        { text: 'Take Photo', onPress: () => pickImage(true) },
+        ...(user?.image ? [{ text: 'Remove Photo', style: 'destructive' as const, onPress: removeAvatar }] : []),
+        { text: 'Cancel', style: 'cancel' as const },
+      ]);
+    }
+  };
+
   const avatarInitial = user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
 
   return (
@@ -365,13 +504,37 @@ export default function ProfileScreen() {
         {user && (
           <>
             <View style={styles.avatarSection}>
-              {user.image ? (
-                <Image source={{ uri: user.image }} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
-                  <ThemedText style={styles.avatarText}>{avatarInitial}</ThemedText>
+              <Pressable
+                onPress={showAvatarOptions}
+                disabled={isUploadingAvatar}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+                <View style={styles.avatarContainer}>
+                  {user.image ? (
+                    <Image
+                      source={{ uri: user.image }}
+                      style={styles.avatar}
+                      contentFit="cover"
+                      transition={200}
+                    />
+                  ) : (
+                    <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
+                      <ThemedText style={styles.avatarText}>{avatarInitial}</ThemedText>
+                    </View>
+                  )}
+                  {isUploadingAvatar ? (
+                    <View style={styles.avatarOverlay}>
+                      <ActivityIndicator color="#fff" size="large" />
+                    </View>
+                  ) : (
+                    <View style={[styles.avatarBadge, { backgroundColor: colors.tint }]}>
+                      <IconSymbol name="camera.fill" size={14} color="#fff" />
+                    </View>
+                  )}
                 </View>
-              )}
+              </Pressable>
+              <ThemedText style={[styles.avatarHint, { color: colors.icon }]}>
+                Tap to change photo
+              </ThemedText>
             </View>
 
             <View style={styles.section}>
@@ -481,6 +644,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
   },
+  avatarContainer: {
+    position: 'relative',
+  },
   avatar: {
     width: 100,
     height: 100,
@@ -492,6 +658,33 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: '600',
     color: '#fff',
+  },
+  avatarOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  avatarHint: {
+    fontSize: 13,
+    marginTop: 8,
   },
   section: {
     marginTop: 24,
