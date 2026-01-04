@@ -8,6 +8,7 @@ import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
+import { AppearanceMode, useAppearance } from '@/lib/appearance';
 
 type SettingsItemProps = {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -54,9 +55,58 @@ function SettingsSection({ title, children }: SettingsSectionProps) {
   );
 }
 
+const APPEARANCE_OPTIONS: { value: AppearanceMode; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+
+type AppearancePickerProps = {
+  mode: AppearanceMode;
+  onModeChange: (mode: AppearanceMode) => void;
+  colors: (typeof Colors)['light'];
+};
+
+function AppearancePicker({ mode, onModeChange, colors }: AppearancePickerProps) {
+  return (
+    <View style={styles.appearanceContainer}>
+      <View style={styles.appearanceRow}>
+        <IconSymbol name="moon.fill" size={22} color={colors.mutedForeground} />
+        <ThemedText style={styles.settingsItemLabel}>Appearance</ThemedText>
+      </View>
+      <View style={[styles.segmentedControl, { backgroundColor: colors.muted }]}>
+        {APPEARANCE_OPTIONS.map((option) => {
+          const isSelected = mode === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.segment,
+                isSelected && [styles.segmentSelected, { backgroundColor: colors.background }],
+              ]}
+              onPress={() => {
+                haptics.light();
+                onModeChange(option.value);
+              }}>
+              <ThemedText
+                style={[
+                  styles.segmentText,
+                  { color: isSelected ? colors.foreground : colors.mutedForeground },
+                ]}>
+                {option.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
+  const { mode, setMode } = useAppearance();
 
   const handleSignOut = () => {
     haptics.medium();
@@ -91,6 +141,10 @@ export default function SettingsScreen() {
       <ThemedView style={styles.header}>
         <ThemedText type="title">Settings</ThemedText>
       </ThemedView>
+
+      <SettingsSection title="Appearance">
+        <AppearancePicker mode={mode} onModeChange={setMode} colors={colors} />
+      </SettingsSection>
 
       <SettingsSection title="Account">
         <SettingsItem
@@ -155,5 +209,36 @@ const styles = StyleSheet.create({
   },
   settingsItemLabel: {
     fontSize: 16,
+  },
+  appearanceContainer: {
+    padding: 16,
+    gap: 12,
+  },
+  appearanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: Radius.md,
+    padding: 3,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: Radius.sm,
+  },
+  segmentSelected: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
