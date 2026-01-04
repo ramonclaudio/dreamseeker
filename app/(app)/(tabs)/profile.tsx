@@ -18,10 +18,12 @@ import { useQuery, useMutation } from 'convex/react';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { authClient } from '@/lib/auth-client';
+import { haptics } from '@/lib/haptics';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -37,14 +39,14 @@ function ProfileField({ label, value, onPress, colors }: ProfileFieldProps) {
     <Pressable
       style={({ pressed }) => [
         styles.field,
-        { backgroundColor: colors.card, opacity: pressed ? 0.7 : 1 },
+        { opacity: pressed ? 0.7 : 1 },
       ]}
       onPress={onPress}>
       <View style={styles.fieldContent}>
-        <ThemedText style={[styles.fieldLabel, { color: colors.icon }]}>{label}</ThemedText>
+        <ThemedText style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</ThemedText>
         <ThemedText style={styles.fieldValue}>{value || 'Not set'}</ThemedText>
       </View>
-      <IconSymbol name="pencil" size={18} color={colors.icon} />
+      <IconSymbol name="pencil" size={18} color={colors.mutedForeground} />
     </Pressable>
   );
 }
@@ -109,11 +111,11 @@ function EditModal({
         style={[styles.modalContainer, { backgroundColor: colors.background }]}>
         <View style={styles.modalHeader}>
           <Pressable onPress={handleClose} hitSlop={8}>
-            <ThemedText style={{ color: colors.tint }}>Cancel</ThemedText>
+            <ThemedText style={{ color: colors.mutedForeground }}>Cancel</ThemedText>
           </Pressable>
           <ThemedText type="subtitle">{title}</ThemedText>
           <Pressable onPress={handleSave} hitSlop={8} disabled={isLoading}>
-            <ThemedText style={{ color: colors.tint, opacity: isLoading ? 0.5 : 1 }}>
+            <ThemedText style={{ color: colors.foreground, fontWeight: '600', opacity: isLoading ? 0.5 : 1 }}>
               {isLoading ? 'Saving...' : 'Save'}
             </ThemedText>
           </Pressable>
@@ -129,9 +131,9 @@ function EditModal({
           <View style={styles.inputGroup}>
             <ThemedText style={styles.inputLabel}>{label}</ThemedText>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
+              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder={placeholder}
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={value}
               onChangeText={(text) => {
                 setValue(text);
@@ -230,7 +232,7 @@ function ChangePasswordModal({
         style={[styles.modalContainer, { backgroundColor: colors.background }]}>
         <View style={styles.modalHeader}>
           <Pressable onPress={handleClose} hitSlop={8}>
-            <ThemedText style={{ color: colors.tint }}>Cancel</ThemedText>
+            <ThemedText style={{ color: colors.mutedForeground }}>Cancel</ThemedText>
           </Pressable>
           <ThemedText type="subtitle">Change Password</ThemedText>
           <View style={{ width: 50 }} />
@@ -252,9 +254,9 @@ function ChangePasswordModal({
           <View style={styles.inputGroup}>
             <ThemedText style={styles.inputLabel}>Current Password</ThemedText>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
+              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter current password"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={currentPassword}
               onChangeText={(text) => {
                 setCurrentPassword(text);
@@ -268,9 +270,9 @@ function ChangePasswordModal({
           <View style={styles.inputGroup}>
             <ThemedText style={styles.inputLabel}>New Password</ThemedText>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
+              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter new password"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={newPassword}
               onChangeText={(text) => {
                 setNewPassword(text);
@@ -284,9 +286,9 @@ function ChangePasswordModal({
           <View style={styles.inputGroup}>
             <ThemedText style={styles.inputLabel}>Confirm New Password</ThemedText>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
+              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Confirm new password"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={confirmPassword}
               onChangeText={(text) => {
                 setConfirmPassword(text);
@@ -300,16 +302,16 @@ function ChangePasswordModal({
           <Pressable
             style={[
               styles.button,
-              { backgroundColor: colors.tint, opacity: isLoading || success ? 0.7 : 1 },
+              { backgroundColor: colors.primary, opacity: isLoading || success ? 0.7 : 1 },
             ]}
             onPress={handleChangePassword}
             disabled={isLoading || success}>
-            <ThemedText style={styles.buttonText}>
+            <ThemedText style={[styles.buttonText, { color: colors.primaryForeground }]}>
               {isLoading ? 'Changing...' : 'Change Password'}
             </ThemedText>
           </Pressable>
 
-          <ThemedText style={[styles.hint, { color: colors.icon }]}>
+          <ThemedText style={[styles.hint, { color: colors.mutedForeground }]}>
             For security, you will remain signed in on this device. All other sessions will be signed out.
           </ThemedText>
         </ScrollView>
@@ -333,29 +335,41 @@ export default function ProfileScreen() {
 
   const handleUpdateName = async (name: string) => {
     const { error } = await authClient.updateUser({ name });
-    if (error) throw new Error(error.message ?? 'Failed to update name');
+    if (error) {
+      haptics.error();
+      throw new Error(error.message ?? 'Failed to update name');
+    }
+    haptics.success();
   };
 
   const handleUpdateUsername = async (username: string) => {
     if (username.length < 3) {
+      haptics.error();
       throw new Error('Username must be at least 3 characters');
     }
     if (username.length > 20) {
+      haptics.error();
       throw new Error('Username must be at most 20 characters');
     }
     const { error } = await authClient.updateUser({ username });
     if (error) {
+      haptics.error();
       const message = error.message ?? '';
       if (message.toLowerCase().includes('already taken')) {
         throw new Error('Username is already taken');
       }
       throw new Error(message || 'Failed to update username');
     }
+    haptics.success();
   };
 
   const handleUpdateEmail = async (newEmail: string) => {
     const { error } = await authClient.changeEmail({ newEmail });
-    if (error) throw new Error(error.message ?? 'Failed to update email');
+    if (error) {
+      haptics.error();
+      throw new Error(error.message ?? 'Failed to update email');
+    }
+    haptics.success();
   };
 
   const pickImage = async (useCamera: boolean) => {
@@ -517,66 +531,80 @@ export default function ProfileScreen() {
                       transition={200}
                     />
                   ) : (
-                    <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
-                      <ThemedText style={styles.avatarText}>{avatarInitial}</ThemedText>
+                    <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+                      <ThemedText style={[styles.avatarText, { color: colors.primaryForeground }]}>{avatarInitial}</ThemedText>
                     </View>
                   )}
                   {isUploadingAvatar ? (
                     <View style={styles.avatarOverlay}>
-                      <ActivityIndicator color="#fff" size="large" />
+                      <ActivityIndicator color={colors.primaryForeground} size="large" />
                     </View>
                   ) : (
-                    <View style={[styles.avatarBadge, { backgroundColor: colors.tint }]}>
-                      <IconSymbol name="camera.fill" size={14} color="#fff" />
+                    <View style={[styles.avatarBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+                      <IconSymbol name="camera.fill" size={14} color={colors.primaryForeground} />
                     </View>
                   )}
                 </View>
               </Pressable>
-              <ThemedText style={[styles.avatarHint, { color: colors.icon }]}>
+              <ThemedText style={[styles.avatarHint, { color: colors.mutedForeground }]}>
                 Tap to change photo
               </ThemedText>
             </View>
 
             <View style={styles.section}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.icon }]}>Account Info</ThemedText>
-              <View style={[styles.fieldGroup, { borderColor: colors.card }]}>
+              <ThemedText style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Account Info</ThemedText>
+              <GlassCard style={styles.fieldGroup}>
                 <ProfileField
                   label="Name"
                   value={user.name || ''}
-                  onPress={() => setShowEditName(true)}
+                  onPress={() => {
+                    haptics.selection();
+                    setShowEditName(true);
+                  }}
                   colors={colors}
                 />
                 <View style={[styles.fieldDivider, { backgroundColor: colors.background }]} />
                 <ProfileField
                   label="Username"
                   value={user.username ? `@${user.username}` : ''}
-                  onPress={() => setShowEditUsername(true)}
+                  onPress={() => {
+                    haptics.selection();
+                    setShowEditUsername(true);
+                  }}
                   colors={colors}
                 />
                 <View style={[styles.fieldDivider, { backgroundColor: colors.background }]} />
                 <ProfileField
                   label="Email"
                   value={user.email || ''}
-                  onPress={() => setShowEditEmail(true)}
+                  onPress={() => {
+                    haptics.selection();
+                    setShowEditEmail(true);
+                  }}
                   colors={colors}
                 />
-              </View>
+              </GlassCard>
             </View>
 
             <View style={styles.section}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.icon }]}>Security</ThemedText>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.securityItem,
-                  { backgroundColor: colors.card, opacity: pressed ? 0.7 : 1 },
-                ]}
-                onPress={() => setShowChangePassword(true)}>
-                <View style={styles.securityItemLeft}>
-                  <IconSymbol name="lock.fill" size={22} color={colors.icon} />
-                  <ThemedText style={styles.securityItemLabel}>Change Password</ThemedText>
-                </View>
-                <IconSymbol name="chevron.right" size={16} color={colors.icon} />
-              </Pressable>
+              <ThemedText style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Security</ThemedText>
+              <GlassCard style={styles.fieldGroup}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.securityItem,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                  onPress={() => {
+                    haptics.selection();
+                    setShowChangePassword(true);
+                  }}>
+                  <View style={styles.securityItemLeft}>
+                    <IconSymbol name="lock.fill" size={22} color={colors.mutedForeground} />
+                    <ThemedText style={styles.securityItemLabel}>Change Password</ThemedText>
+                  </View>
+                  <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+                </Pressable>
+              </GlassCard>
             </View>
 
             <EditModal
@@ -657,7 +685,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: '600',
-    color: '#fff',
   },
   avatarOverlay: {
     position: 'absolute',
@@ -666,7 +693,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: 50,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // overlay for upload indicator
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -680,7 +707,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#fff',
   },
   avatarHint: {
     fontSize: 13,
@@ -749,7 +775,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(128, 128, 128, 0.2)',
+    borderBottomColor: 'rgba(128, 128, 128, 0.2)', // subtle separator, works in light/dark
   },
   modalContent: {
     flex: 1,
@@ -764,46 +790,45 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    borderRadius: 12,
+    borderRadius: Radius.md,
     padding: 16,
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(220, 38, 38, 0.1)', // v4 destructive with alpha
     borderWidth: 1,
-    borderColor: '#ef4444',
-    borderRadius: 12,
+    borderColor: '#dc2626', // v4 destructive
+    borderRadius: Radius.md,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ef4444',
+    color: '#dc2626', // v4 destructive
     fontSize: 14,
     textAlign: 'center',
   },
   successContainer: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    backgroundColor: 'rgba(22, 163, 74, 0.1)', // green-600 with alpha
     borderWidth: 1,
-    borderColor: '#22c55e',
-    borderRadius: 12,
+    borderColor: '#16a34a', // green-600
+    borderRadius: Radius.md,
     padding: 12,
     marginBottom: 16,
   },
   successText: {
-    color: '#22c55e',
+    color: '#16a34a', // green-600
     fontSize: 14,
     textAlign: 'center',
   },
   button: {
-    borderRadius: 12,
+    borderRadius: Radius.md,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   hint: {
     fontSize: 13,
