@@ -126,6 +126,9 @@ constants/
 ├── theme.ts                 # shadcn v4 color tokens
 └── auth-styles.ts           # Auth screen styles
 
+plugins/
+└── with-auto-signing.js     # iOS automatic code signing for device builds
+
 lib/
 ├── auth-client.ts           # Better Auth client (platform-aware)
 ├── haptics.ts               # Haptic feedback utility
@@ -228,8 +231,9 @@ npm run start        # Metro with --clear cache
 npm run web          # Web with --clear cache
 
 # Cache clearing
-npm run clean        # Nuclear: rm node_modules + ios + android, reinstall
+npm run clean        # Nuclear: rm node_modules + ios + android + DerivedData, reinstall
 npm run clean:metro  # Clear watchman + Metro cache
+npm run clean:xcode  # Clear Xcode DerivedData only
 npm run prebuild     # Regenerate native dirs (--clean)
 
 # Quality
