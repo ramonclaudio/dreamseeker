@@ -1,5 +1,8 @@
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useMutation } from 'convex/react';
 
+import { api } from '@/convex/_generated/api';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -109,20 +112,40 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const { mode, setMode } = useAppearance();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteAccount = useMutation(api.users.deleteAccount);
 
   const handleSignOut = () => {
     haptics.medium();
     authClient.signOut();
   };
 
+  const performDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      // Sign out to clear local auth state
+      await authClient.signOut();
+    } catch (error) {
+      setIsDeleting(false);
+      const message = error instanceof Error ? error.message : 'Failed to delete account';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('Error', message);
+      }
+    }
+  };
+
   const handleDeleteAccount = () => {
+    if (isDeleting) return;
     haptics.warning();
     const message =
-      'Are you sure you want to delete your account? This action cannot be undone.';
+      'Are you sure you want to delete your account? This will permanently delete all your data including tasks, sessions, and profile information. This action cannot be undone.';
 
     if (Platform.OS === 'web') {
       if (window.confirm(message)) {
-        authClient.deleteUser();
+        performDeleteAccount();
       }
     } else {
       Alert.alert('Delete Account', message, [
@@ -130,7 +153,7 @@ export default function SettingsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => authClient.deleteUser(),
+          onPress: performDeleteAccount,
         },
       ]);
     }
@@ -158,13 +181,22 @@ export default function SettingsScreen() {
       </SettingsSection>
 
       <SettingsSection title="Danger Zone">
-        <SettingsItem
-          icon="trash.fill"
-          label="Delete Account"
-          onPress={handleDeleteAccount}
-          destructive
-          colors={colors}
-        />
+        {isDeleting ? (
+          <View style={styles.deletingContainer}>
+            <ActivityIndicator color={colors.destructive} />
+            <ThemedText style={[styles.deletingText, { color: colors.destructive }]}>
+              Deleting account...
+            </ThemedText>
+          </View>
+        ) : (
+          <SettingsItem
+            icon="trash.fill"
+            label="Delete Account"
+            onPress={handleDeleteAccount}
+            destructive
+            colors={colors}
+          />
+        )}
       </SettingsSection>
     </ScrollView>
   );
@@ -241,6 +273,17 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 14,
+    fontWeight: '500',
+  },
+  deletingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  deletingText: {
+    fontSize: 16,
     fontWeight: '500',
   },
 });
