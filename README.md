@@ -212,10 +212,27 @@ npx convex deploy
 ## Commands
 
 ```bash
-npm run ios          # iOS dev build
-npm run android      # Android dev build
-npm run start        # Metro bundler
-npm run convex       # Convex dev server
+# Development (two terminals)
+npm run convex       # Terminal 1: Convex backend
+npm run ios          # Terminal 2: Clean prebuild + iOS build
+
+# Build commands (all run prebuild --clean by default)
+npm run ios          # Prebuild + iOS simulator
+npm run ios:device   # Prebuild + iOS physical device
+npm run ios:fast     # Skip prebuild (when native unchanged)
+npm run android      # Prebuild + Android
+npm run android:fast # Skip prebuild
+
+# Dev server
+npm run start        # Metro with --clear cache
+npm run web          # Web with --clear cache
+
+# Cache clearing
+npm run clean        # Nuclear: rm node_modules + ios + android, reinstall
+npm run clean:metro  # Clear watchman + Metro cache
+npm run prebuild     # Regenerate native dirs (--clean)
+
+# Quality
 npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
 npm run test:ci      # Jest
