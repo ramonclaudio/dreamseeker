@@ -563,7 +563,7 @@ export default function ProfileScreen() {
                   }}
                   colors={colors}
                 />
-                <View style={[styles.fieldDivider, { backgroundColor: colors.background }]} />
+                <View style={[styles.fieldDivider, { backgroundColor: colors.border }]} />
                 <ProfileField
                   label="Username"
                   value={user.username ? `@${user.username}` : ''}
@@ -573,7 +573,7 @@ export default function ProfileScreen() {
                   }}
                   colors={colors}
                 />
-                <View style={[styles.fieldDivider, { backgroundColor: colors.background }]} />
+                <View style={[styles.fieldDivider, { backgroundColor: colors.border }]} />
                 <ProfileField
                   label="Email"
                   value={user.email || ''}
