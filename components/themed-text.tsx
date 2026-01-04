@@ -6,10 +6,12 @@ export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  className?: string;
 };
 
 export function ThemedText({
   style,
+  className,
   lightColor,
   darkColor,
   type = 'default',
@@ -20,6 +22,7 @@ export function ThemedText({
 
   return (
     <Text
+      className={className}
       style={[
         { color: type === 'link' ? mutedForeground : color },
         type === 'default' ? styles.default : undefined,
