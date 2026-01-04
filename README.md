@@ -1,106 +1,227 @@
 # Expo Starter App
 
-Production-ready auth for Expo. Email/password + username login, password reset, rate limiting, real-time backend.
+Production-ready Expo starter with auth, real-time backend, and iOS 26 native features.
 
-**Stack:** Expo SDK 55 (canary) · React 19 · Convex · Better Auth · Resend
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Runtime | Expo SDK 55 (canary) · React 19 · React Compiler |
+| Backend | Convex (real-time) · Better Auth · Resend |
+| Styling | NativeWind v5 · Tailwind v4 · shadcn/ui tokens |
+| Native | NativeTabs · SF Symbols · Liquid Glass · Haptics |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│ NativeTabs (iOS system chrome)          │ ← SF Symbols, DynamicColorIOS
+├─────────────────────────────────────────┤
+│ Themed Screens                          │ ← shadcn tokens, StyleSheet
+│ ├─ GlassCard (GlassView→BlurView→View) │
+│ ├─ Colors[colorScheme] pattern          │
+│ └─ Haptic feedback on interactions      │
+├─────────────────────────────────────────┤
+│ Convex Backend                          │ ← Real-time queries/mutations
+│ ├─ Better Auth (sessions, rate limiting)│
+│ └─ Resend (transactional email)         │
+└─────────────────────────────────────────┘
+```
+
+**Theming approach:** NativeWind for CSS variables + dark mode. StyleSheet for layouts. No className-first Tailwind — we use native patterns with consistent theming.
+
+**Native feel:** Blur, haptics, SF Symbols, liquid glass, tab minimize. NOT SwiftUI system colors — custom shadcn theme everywhere for consistency.
 
 ## Features
 
-- Sign up/in with email or username
+- Email/username sign in
 - Password reset via email
-- Protected routes with auto-redirect
-- Rate limiting on auth endpoints
+- Protected routes (auto-redirect)
+- Rate limiting on auth
 - Session persistence (7 day expiry)
-- Email deliverability (SPF/DKIM/DMARC, bounce tracking)
+- Profile with avatar upload (Convex storage)
+- User-scoped tasks (CRUD example)
+- iOS 26 liquid glass tab bar
 
 ## Prerequisites
 
-Before you start, you need:
+- Node.js 18+
+- Xcode 16+ (iOS) or Android Studio
+- [Convex account](https://convex.dev) (free)
+- [Resend account](https://resend.com) (free: 100/day)
+- Verified domain on Resend
 
-1. **Node.js 18+** - [nodejs.org](https://nodejs.org)
-2. **Xcode 16+** (iOS) or **Android Studio** (Android)
-3. **Convex account** - Sign up at [convex.dev](https://convex.dev) (free tier)
-4. **Resend account** - Sign up at [resend.com](https://resend.com) (free: 100 emails/day)
-5. **Verified domain on Resend** - Add and verify your domain at [resend.com/domains](https://resend.com/domains)
-
-> **Note:** Expo Go is not supported. SDK 55 canary requires development builds.
+> Expo Go not supported. SDK 55 canary requires dev builds.
 
 ## Quick Start
 
 ```bash
-# 1. Clone and install
+# Clone
 git clone https://github.com/ramonclaudio/expo-starter-app.git
 cd expo-starter-app
 npm install
 
-# 2. Start Convex (creates deployment, deploys schema + auth)
+# Start Convex (creates deployment, deploys schema)
 npx convex dev
-# Follow prompts to create a new project or link existing one
-# This auto-deploys the database schema and Better Auth config
 
-# 3. Create .env.local (Convex prints these values after setup)
+# Create .env.local (values printed by Convex)
 cat > .env.local << 'EOF'
-CONVEX_DEPLOYMENT=dev:your-deployment-name
+CONVEX_DEPLOYMENT=dev:your-deployment
 EXPO_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 EXPO_PUBLIC_CONVEX_SITE_URL=https://your-deployment.convex.site
 EXPO_PUBLIC_SITE_URL=http://localhost:8081
 EOF
 
-# 4. Set server environment variables
+# Set server env vars
 npx convex env set BETTER_AUTH_SECRET $(openssl rand -base64 32)
 npx convex env set SITE_URL http://localhost:8081
-npx convex env set RESEND_API_KEY re_xxxxxxxxxxxx        # From resend.com/api-keys
-npx convex env set RESEND_FROM_EMAIL noreply@yourdomain.com  # Your verified domain
+npx convex env set RESEND_API_KEY re_xxxx
+npx convex env set RESEND_FROM_EMAIL noreply@yourdomain.com
 
-# 5. Run the app
+# Run
 npm run ios
 ```
 
-## What Gets Deployed
-
-When you run `npx convex dev`, it automatically:
-- Creates your Convex deployment (if new)
-- Deploys database schema (`convex/schema.ts`)
-- Deploys Better Auth tables and config
-- Registers HTTP routes for auth endpoints
-- Sets up email functions and cron jobs
-
-No manual database setup required.
-
 ## Development
 
-Two terminals:
-
 ```bash
-npm run convex    # Terminal 1: backend (watches for changes)
-npm run ios       # Terminal 2: app (first run builds native code)
-npm run start     # Terminal 2: app (subsequent runs, just Metro)
+npm run convex    # Terminal 1: backend (hot reload)
+npm run ios       # Terminal 2: first run (builds native)
+npm run start     # Terminal 2: subsequent (Metro only)
+```
+
+## Project Structure
+
+```
+app/
+├── _layout.tsx              # Root: providers, error boundary
+├── (auth)/                  # Public: sign-in, sign-up, forgot/reset password
+└── (app)/
+    ├── _layout.tsx          # Auth gate: redirects if unauthenticated
+    ├── modal.tsx            # BlurView modal
+    └── (tabs)/
+        ├── _layout.tsx      # NativeTabs + SF Symbols
+        ├── index.tsx        # Home
+        ├── tasks.tsx        # CRUD example
+        ├── explore.tsx      # Parallax scroll
+        ├── profile.tsx      # Avatar upload, edit user
+        └── settings.tsx     # Sign out, delete account
+
+convex/
+├── schema.ts                # Database schema
+├── auth.ts                  # Better Auth config
+├── auth.config.ts           # Auth component registration
+├── http.ts                  # HTTP routes (auth, webhooks)
+├── tasks.ts                 # Example CRUD with auth guards
+├── email.ts                 # Resend integration
+└── storage.ts               # File upload utilities
+
+components/
+├── ui/glass-card.tsx        # GlassView → BlurView → View fallback
+├── themed-text.tsx          # Text with className support
+├── themed-view.tsx          # View with className support
+└── parallax-scroll-view.tsx # Animated blur header
+
+constants/
+├── theme.ts                 # shadcn v4 color tokens
+└── auth-styles.ts           # Auth screen styles
+
+lib/
+├── auth-client.ts           # Better Auth client (platform-aware)
+├── haptics.ts               # Haptic feedback utility
+└── nativewind-interop.ts    # styled() for third-party components
 ```
 
 ## Environment Variables
 
 **Client (.env.local):**
-- `CONVEX_DEPLOYMENT` - Deployment name (e.g., `dev:amiable-seahorse-506`)
-- `EXPO_PUBLIC_CONVEX_URL` - Convex cloud URL (`.convex.cloud`)
-- `EXPO_PUBLIC_CONVEX_SITE_URL` - Convex site URL (`.convex.site`)
-- `EXPO_PUBLIC_SITE_URL` - App URL for email links (`http://localhost:8081`)
+| Var | Description |
+|-----|-------------|
+| `CONVEX_DEPLOYMENT` | `dev:your-deployment` |
+| `EXPO_PUBLIC_CONVEX_URL` | `.convex.cloud` URL |
+| `EXPO_PUBLIC_CONVEX_SITE_URL` | `.convex.site` URL |
+| `EXPO_PUBLIC_SITE_URL` | App URL for email links |
 
-**Server (Convex Dashboard → Settings → Environment Variables):**
-- `BETTER_AUTH_SECRET` - Auth encryption key (required)
-- `SITE_URL` - App URL, same as `EXPO_PUBLIC_SITE_URL` (required)
-- `RESEND_API_KEY` - From [resend.com/api-keys](https://resend.com/api-keys) (required)
-- `RESEND_FROM_EMAIL` - Your verified sender email (required)
-- `RESEND_TEST_MODE` - Set `false` for production (optional)
-- `RESEND_WEBHOOK_SECRET` - From [resend.com/webhooks](https://resend.com/webhooks) (optional)
+**Server (Convex Dashboard):**
+| Var | Description |
+|-----|-------------|
+| `BETTER_AUTH_SECRET` | Auth encryption key |
+| `SITE_URL` | Same as `EXPO_PUBLIC_SITE_URL` |
+| `RESEND_API_KEY` | From resend.com/api-keys |
+| `RESEND_FROM_EMAIL` | Verified sender |
+
+## Auth Pattern
+
+```typescript
+// Convex function with auth guard
+export const list = query({
+  handler: async (ctx) => {
+    const userId = await authComponent.safeGetAuthUser(ctx);
+    if (!userId) return []; // Safe return for queries
+    return ctx.db.query("tasks").filter(...).collect();
+  },
+});
+```
+
+## Theming
+
+Colors defined in `global.css` (CSS variables) and `constants/theme.ts` (runtime access):
+
+```typescript
+const colorScheme = useColorScheme();
+const colors = Colors[colorScheme];
+// colors.background, colors.card, colors.primary, etc.
+```
+
+NativeWind v5 compiles Tailwind → StyleSheet.create. Use `className` when convenient, StyleSheet when you need full control.
+
+## Native Features
+
+**NativeTabs** (iOS 26):
+- SF Symbols with default/selected states
+- `minimizeBehavior="onScrollDown"`
+- DynamicColorIOS for liquid glass adaptation
+
+**GlassCard** fallback chain:
+1. iOS 26+: `GlassView` (liquid glass)
+2. iOS < 26, Web: `BlurView`
+3. Android: Semi-transparent solid
+
+**Haptics:**
+```typescript
+import { haptics } from '@/lib/haptics';
+haptics.light();   // Button press
+haptics.success(); // Form submit
+haptics.error();   // Validation fail
+```
 
 ## Production
 
-**DNS records for email deliverability:**
-
+DNS for email deliverability:
 ```
 @ TXT "v=spf1 include:_spf.resend.com ~all"
-resend._domainkey TXT <value from Resend dashboard>
+resend._domainkey TXT <from Resend dashboard>
 _dmarc TXT "v=DMARC1; p=none;"
 ```
 
-**Webhook (optional):** Point `https://your-deployment.convex.site/resend-webhook` to Resend for bounce/complaint tracking.
+Deploy Convex:
+```bash
+npx convex deploy
+```
+
+## Commands
+
+```bash
+npm run ios          # iOS dev build
+npm run android      # Android dev build
+npm run start        # Metro bundler
+npm run convex       # Convex dev server
+npm run lint         # ESLint
+npm run typecheck    # tsc --noEmit
+npm run test:ci      # Jest
+npm run analyze      # Bundle analysis (Expo Atlas)
+```
+
+## License
+
+MIT
