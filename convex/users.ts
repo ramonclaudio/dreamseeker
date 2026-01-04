@@ -5,13 +5,19 @@ import type { Id } from './_generated/dataModel';
 
 /**
  * Delete the current user's account and all associated data.
- * This includes:
- * - All tasks
- * - Profile image from storage
- * - All sessions
- * - All accounts (credentials)
- * - All verification tokens
- * - The user record itself
+ *
+ * App schema:
+ * - tasks (user's tasks)
+ * - _storage (profile image)
+ *
+ * Better Auth component:
+ * - session, account, verification, twoFactor
+ * - passkey, oauthAccessToken, oauthConsent, oauthApplication
+ * - user (deleted last)
+ *
+ * Not deleted (global/not user-specific):
+ * - jwks (JSON Web Key Sets)
+ * - rateLimit (IP/key-based)
  */
 export const deleteAccount = mutation({
   args: {},
@@ -66,7 +72,10 @@ export const deleteAccount = mutation({
     // 9. Delete OAuth consents if exist
     await deleteAllByField(ctx, 'oauthConsent', 'userId', userId);
 
-    // 10. Finally, delete the user record
+    // 10. Delete OAuth applications created by this user
+    await deleteAllByField(ctx, 'oauthApplication', 'userId', userId);
+
+    // 11. Finally, delete the user record
     await ctx.runMutation(components.betterAuth.adapter.deleteOne, {
       input: {
         model: 'user',
