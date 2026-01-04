@@ -1,4 +1,5 @@
 import '../global.css';
+import '@/lib/nativewind-interop';
 
 import { ConvexReactClient } from 'convex/react';
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';

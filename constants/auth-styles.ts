@@ -1,6 +1,36 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 
-import { Radius } from './theme';
+import { Colors, Radius } from './theme';
+
+/**
+ * Theme-aware error styles for auth screens
+ */
+export function getErrorStyles(colorScheme: 'light' | 'dark'): {
+  container: ViewStyle;
+  text: TextStyle;
+} {
+  const colors = Colors[colorScheme];
+  const isLight = colorScheme === 'light';
+
+  return {
+    container: {
+      backgroundColor: isLight
+        ? 'rgba(220, 38, 38, 0.1)'
+        : 'rgba(248, 113, 113, 0.15)',
+      borderWidth: 1,
+      borderColor: colors.destructive,
+      borderRadius: Radius.md,
+      padding: 12,
+      marginBottom: 16,
+    },
+    text: {
+      color: colors.destructive,
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: 'center',
+    },
+  };
+}
 
 /**
  * Shared styles for auth screens (sign-in, sign-up, forgot-password, reset-password)
@@ -39,20 +69,6 @@ export const authStyles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 8,
   },
-  errorContainer: {
-    backgroundColor: 'rgba(220, 38, 38, 0.1)', // v4 destructive with alpha
-    borderWidth: 1,
-    borderColor: '#dc2626', // v4 destructive
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#dc2626', // v4 destructive
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
   form: {
     gap: 16,
   },
@@ -73,7 +89,6 @@ export const authStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  // shadcn-style input: h-9 (36px) or h-10 (40px), rounded-md, border
   input: {
     height: 44,
     borderRadius: Radius.md,
@@ -81,10 +96,6 @@ export const authStyles = StyleSheet.create({
     paddingHorizontal: 12,
     fontSize: 16,
   },
-  inputError: {
-    borderColor: '#dc2626', // v4 destructive
-  },
-  // shadcn-style button: h-9 (36px) or h-10 (40px), rounded-md
   button: {
     height: 44,
     borderRadius: Radius.md,
