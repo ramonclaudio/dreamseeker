@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -27,6 +28,9 @@ export default function ParallaxScrollView({
   const colorScheme = useColorScheme();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollOffset(scrollRef);
+  const tint = colorScheme === 'dark' ? 'dark' : 'light';
+
+  // Parallax effect for header image
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -44,6 +48,17 @@ export default function ParallaxScrollView({
     };
   });
 
+  // Blur overlay fades in as user scrolls down
+  const blurAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(
+        scrollOffset.value,
+        [0, HEADER_HEIGHT * 0.5, HEADER_HEIGHT],
+        [0, 0.5, 1]
+      ),
+    };
+  });
+
   return (
     <Animated.ScrollView
       ref={scrollRef}
@@ -56,6 +71,12 @@ export default function ParallaxScrollView({
           headerAnimatedStyle,
         ]}>
         {headerImage}
+        {/* Blur overlay that fades in on scroll - iOS and web only */}
+        {Platform.OS !== 'android' && (
+          <Animated.View style={[styles.blurOverlay, blurAnimatedStyle]}>
+            <BlurView intensity={60} tint={tint} style={StyleSheet.absoluteFill} />
+          </Animated.View>
+        )}
       </Animated.View>
       <ThemedView style={styles.content}>{children}</ThemedView>
     </Animated.ScrollView>
@@ -63,12 +84,12 @@ export default function ParallaxScrollView({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
     height: HEADER_HEIGHT,
     overflow: 'hidden',
+  },
+  blurOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   content: {
     flex: 1,
