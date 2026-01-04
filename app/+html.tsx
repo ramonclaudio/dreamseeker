@@ -12,7 +12,7 @@ export default function Root({ children }: PropsWithChildren) {
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#171717" />
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>

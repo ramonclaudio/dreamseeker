@@ -11,6 +11,7 @@ import {
 import { Link } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
+import { haptics } from '@/lib/haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { authStyles as styles } from '@/constants/auth-styles';
@@ -26,43 +27,46 @@ export default function SignUpScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const clearError = () => setError(null);
-
   const handleSignUp = async () => {
+    haptics.light();
     setError(null);
 
     if (!name.trim() || !username.trim() || !email.trim() || !password) {
+      haptics.error();
       setError('Please fill in all fields');
       return;
     }
 
     const trimmedUsername = username.trim().toLowerCase();
     if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
+      haptics.error();
       setError('Username must be 3-20 characters');
       return;
     }
 
     if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
+      haptics.error();
       setError('Username can only contain letters, numbers, underscores, and hyphens');
       return;
     }
 
     if (password.length < 8) {
+      haptics.error();
       setError('Password must be at least 8 characters');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Username plugin extends signUp.email to accept username field
-      const response = await (authClient.signUp.email as Function)({
-        name: name.trim(),
+      const response = await authClient.signUp.email({
         email: email.trim(),
         password,
+        name: name.trim(),
         username: trimmedUsername,
       });
 
       if (response.error) {
+        haptics.error();
         // Provide user-friendly error messages
         const message = response.error.message ?? 'Sign up failed';
         if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
@@ -72,8 +76,11 @@ export default function SignUpScreen() {
         } else {
           setError(message);
         }
+      } else {
+        haptics.success();
       }
     } catch {
+      haptics.error();
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -88,8 +95,8 @@ export default function SignUpScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Create account</Text>
-          <Text style={[styles.subtitle, { color: colors.icon }]}>
+          <Text style={[styles.title, { color: colors.foreground }]}>Create account</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             Sign up to get started
           </Text>
         </View>
@@ -102,37 +109,44 @@ export default function SignUpScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Name</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>Name</Text>
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
+                {
+                  backgroundColor: colors.secondary,
+                  color: colors.foreground,
+                  borderColor: colors.border,
+                },
               ]}
               placeholder="Your name"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={name}
               onChangeText={(text) => {
                 setName(text);
-                clearError();
+                setError(null);
               }}
               autoComplete="name"
-              autoCorrect={false}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Username</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>Username</Text>
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
+                {
+                  backgroundColor: colors.secondary,
+                  color: colors.foreground,
+                  borderColor: colors.border,
+                },
               ]}
               placeholder="3-20 characters"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={username}
               onChangeText={(text) => {
                 setUsername(text);
-                clearError();
+                setError(null);
               }}
               autoCapitalize="none"
               autoComplete="username-new"
@@ -141,65 +155,75 @@ export default function SignUpScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>Email</Text>
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
+                {
+                  backgroundColor: colors.secondary,
+                  color: colors.foreground,
+                  borderColor: colors.border,
+                },
               ]}
               placeholder="you@example.com"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
-                clearError();
+                setError(null);
               }}
+              keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              keyboardType="email-address"
-              autoCorrect={false}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>Password</Text>
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
+                {
+                  backgroundColor: colors.secondary,
+                  color: colors.foreground,
+                  borderColor: colors.border,
+                },
               ]}
               placeholder="At least 8 characters"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
-                clearError();
+                setError(null);
               }}
               secureTextEntry
-              autoComplete="new-password"
+              autoComplete="password-new"
             />
           </View>
 
           <Pressable
             style={[
               styles.button,
-              { backgroundColor: colors.tint, opacity: isLoading ? 0.7 : 1 },
+              {
+                backgroundColor: colors.primary,
+                opacity: isLoading ? 0.7 : 1,
+              },
             ]}
             onPress={handleSignUp}
             disabled={isLoading}>
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
               {isLoading ? 'Creating account...' : 'Sign Up'}
             </Text>
           </Pressable>
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.icon }]}>
+          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
             Already have an account?{' '}
           </Text>
           <Link href="/sign-in" asChild>
             <Pressable>
-              <Text style={[styles.linkText, { color: colors.tint }]}>Sign In</Text>
+              <Text style={[styles.linkText, { color: colors.foreground }]}>Sign In</Text>
             </Pressable>
           </Link>
         </View>
