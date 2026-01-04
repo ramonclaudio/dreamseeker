@@ -11,6 +11,7 @@ import {
 import { Link } from 'expo-router';
 
 import { authClient, signInWithUsername } from '@/lib/auth-client';
+import { haptics } from '@/lib/haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { authStyles as styles } from '@/constants/auth-styles';
@@ -25,10 +26,12 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const handleSignIn = async () => {
+    haptics.light();
     setError(null);
 
     const trimmed = identifier.trim();
     if (!trimmed || !password) {
+      haptics.error();
       setError('Please enter email/username and password');
       return;
     }
@@ -42,9 +45,13 @@ export default function SignInScreen() {
         : await signInWithUsername({ username: trimmed.toLowerCase(), password });
 
       if (response.error) {
+        haptics.error();
         setError(response.error.message ?? 'Invalid credentials');
+      } else {
+        haptics.success();
       }
     } catch {
+      haptics.error();
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -59,8 +66,8 @@ export default function SignInScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Welcome back</Text>
-          <Text style={[styles.subtitle, { color: colors.icon }]}>
+          <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             Sign in to your account
           </Text>
         </View>
@@ -73,15 +80,18 @@ export default function SignInScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Email or Username</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>Email or Username</Text>
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
-                error && styles.inputError,
+                {
+                  backgroundColor: colors.secondary,
+                  color: colors.foreground,
+                  borderColor: error ? colors.destructive : colors.border,
+                },
               ]}
               placeholder="you@example.com or username"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={identifier}
               onChangeText={(text) => {
                 setIdentifier(text);
@@ -95,10 +105,10 @@ export default function SignInScreen() {
 
           <View style={styles.inputContainer}>
             <View style={styles.passwordHeader}>
-              <Text style={[styles.label, { color: colors.text }]}>Password</Text>
+              <Text style={[styles.label, { color: colors.foreground }]}>Password</Text>
               <Link href="/forgot-password" asChild>
                 <Pressable>
-                  <Text style={[styles.forgotText, { color: colors.tint }]}>
+                  <Text style={[styles.forgotText, { color: colors.foreground }]}>
                     Forgot password?
                   </Text>
                 </Pressable>
@@ -107,11 +117,14 @@ export default function SignInScreen() {
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
-                error && styles.inputError,
+                {
+                  backgroundColor: colors.secondary,
+                  color: colors.foreground,
+                  borderColor: error ? colors.destructive : colors.border,
+                },
               ]}
               placeholder="Enter your password"
-              placeholderTextColor={colors.icon}
+              placeholderTextColor={colors.mutedForeground}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -125,23 +138,26 @@ export default function SignInScreen() {
           <Pressable
             style={[
               styles.button,
-              { backgroundColor: colors.tint, opacity: isLoading ? 0.7 : 1 },
+              {
+                backgroundColor: colors.primary,
+                opacity: isLoading ? 0.7 : 1,
+              },
             ]}
             onPress={handleSignIn}
             disabled={isLoading}>
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Text>
           </Pressable>
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.icon }]}>
+          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
             Don&apos;t have an account?{' '}
           </Text>
           <Link href="/sign-up" asChild>
             <Pressable>
-              <Text style={[styles.linkText, { color: colors.tint }]}>Sign Up</Text>
+              <Text style={[styles.linkText, { color: colors.foreground }]}>Sign Up</Text>
             </Pressable>
           </Link>
         </View>
