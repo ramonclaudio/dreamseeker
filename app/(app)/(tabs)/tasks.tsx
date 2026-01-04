@@ -13,8 +13,10 @@ import { useConvexAuth } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
+import { GlassCard } from '@/components/ui/glass-card';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 type Task = Doc<'tasks'>;
 
@@ -32,23 +34,25 @@ function TaskItem({
   const colors = Colors[colorScheme];
 
   return (
-    <View style={[styles.taskItem, { backgroundColor: colors.card }]}>
+    <GlassCard style={styles.taskItem}>
       <Pressable onPress={onToggle} style={styles.taskContent}>
         <View
           style={[
             styles.checkbox,
             {
-              borderColor: colors.tint,
-              backgroundColor: task.isCompleted ? colors.tint : 'transparent',
+              borderColor: colors.primary,
+              backgroundColor: task.isCompleted ? colors.primary : 'transparent',
             },
           ]}>
-          {task.isCompleted && <Text style={styles.checkmark}>✓</Text>}
+          {task.isCompleted && (
+            <Text style={[styles.checkmark, { color: colors.primaryForeground }]}>✓</Text>
+          )}
         </View>
         <Text
           style={[
             styles.taskText,
             {
-              color: colors.text,
+              color: colors.foreground,
               textDecorationLine: task.isCompleted ? 'line-through' : 'none',
               opacity: task.isCompleted ? 0.5 : 1,
             },
@@ -57,9 +61,9 @@ function TaskItem({
         </Text>
       </Pressable>
       <Pressable onPress={onDelete} style={styles.deleteButton}>
-        <Text style={styles.deleteText}>×</Text>
+        <Text style={[styles.deleteText, { color: colors.destructive }]}>×</Text>
       </Pressable>
-    </View>
+    </GlassCard>
   );
 }
 
@@ -77,14 +81,25 @@ export default function TasksScreen() {
 
   const handleAddTask = async () => {
     if (!newTaskText.trim()) return;
+    haptics.medium();
     await createTask({ text: newTaskText.trim() });
     setNewTaskText('');
+  };
+
+  const handleToggleTask = async (id: Task['_id']) => {
+    haptics.selection();
+    await toggleTask({ id });
+  };
+
+  const handleDeleteTask = async (id: Task['_id']) => {
+    haptics.warning();
+    await deleteTask({ id });
   };
 
   if (isLoading || tasks === undefined) {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.tint} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -92,17 +107,17 @@ export default function TasksScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Tasks</Text>
-        <Text style={[styles.subtitle, { color: colors.icon }]}>
+        <Text style={[styles.title, { color: colors.foreground }]}>Tasks</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </Text>
       </View>
 
-      <View style={[styles.inputContainer, { backgroundColor: colors.card }]}>
+      <GlassCard style={styles.inputContainer}>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={[styles.input, { color: colors.foreground }]}
           placeholder="Add a new task..."
-          placeholderTextColor={colors.icon}
+          placeholderTextColor={colors.mutedForeground}
           value={newTaskText}
           onChangeText={setNewTaskText}
           onSubmitEditing={handleAddTask}
@@ -110,11 +125,11 @@ export default function TasksScreen() {
         />
         <Pressable
           onPress={handleAddTask}
-          style={[styles.addButton, { backgroundColor: colors.tint }]}
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
           disabled={!newTaskText.trim()}>
-          <Text style={styles.addButtonText}>Add</Text>
+          <Text style={[styles.addButtonText, { color: colors.primaryForeground }]}>Add</Text>
         </Pressable>
-      </View>
+      </GlassCard>
 
       <FlatList
         data={tasks}
@@ -123,14 +138,14 @@ export default function TasksScreen() {
           <TaskItem
             task={item}
             colorScheme={colorScheme}
-            onToggle={() => toggleTask({ id: item._id })}
-            onDelete={() => deleteTask({ id: item._id })}
+            onToggle={() => handleToggleTask(item._id)}
+            onDelete={() => handleDeleteTask(item._id)}
           />
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.icon }]}>
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
               No tasks yet. Add one above!
             </Text>
           </View>
@@ -165,8 +180,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 20,
     marginBottom: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
   },
   input: {
     flex: 1,
@@ -177,11 +190,12 @@ const styles = StyleSheet.create({
   addButton: {
     paddingHorizontal: 20,
     justifyContent: 'center',
+    borderRadius: Radius.md,
+    margin: 4,
   },
   addButtonText: {
-    color: '#fff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 14,
   },
   listContent: {
     paddingHorizontal: 20,
@@ -193,7 +207,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 8,
-    borderRadius: 12,
   },
   taskContent: {
     flex: 1,
@@ -203,14 +216,13 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 6,
+    borderRadius: Radius.sm,
     borderWidth: 2,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkmark: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -223,7 +235,6 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     fontSize: 24,
-    color: '#ff6b6b',
     fontWeight: '300',
   },
   emptyContainer: {
