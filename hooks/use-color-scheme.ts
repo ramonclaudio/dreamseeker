@@ -1,14 +1,11 @@
-import { useColorScheme as useRNColorScheme } from 'react-native';
+import { useColorScheme as useNwColorScheme } from 'nativewind';
 
 /**
- * Wrapper around React Native's useColorScheme that returns 'light' or 'dark'.
- * Defaults to 'light' when the color scheme is null, undefined, or 'unspecified'.
+ * Wrapper around NativeWind's useColorScheme that returns 'light' or 'dark'.
+ * Respects user's appearance preference when set via AppearanceProvider.
+ * Defaults to 'light' when the color scheme is null or undefined.
  */
 export function useColorScheme(): 'light' | 'dark' {
-  const colorScheme = useRNColorScheme();
-  // Handle null, undefined, and 'unspecified' (RN 0.83+)
-  if (colorScheme === 'dark') {
-    return 'dark';
-  }
-  return 'light';
+  const { colorScheme } = useNwColorScheme();
+  return colorScheme === 'dark' ? 'dark' : 'light';
 }
