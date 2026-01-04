@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   header: {
     paddingTop: 60,
@@ -681,10 +681,14 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   avatarText: {
-    fontSize: 40,
+    fontSize: 36,
+    lineHeight: 36,
     fontWeight: '600',
+    textAlign: 'center',
+    includeFontPadding: false, // Android: remove extra padding
   },
   avatarOverlay: {
     position: 'absolute',

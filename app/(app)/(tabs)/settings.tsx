@@ -65,13 +65,15 @@ type AppearancePickerProps = {
   mode: AppearanceMode;
   onModeChange: (mode: AppearanceMode) => void;
   colors: (typeof Colors)['light'];
+  colorScheme: 'light' | 'dark';
 };
 
-function AppearancePicker({ mode, onModeChange, colors }: AppearancePickerProps) {
+function AppearancePicker({ mode, onModeChange, colors, colorScheme }: AppearancePickerProps) {
+  const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
   return (
     <View style={styles.appearanceContainer}>
       <View style={styles.appearanceRow}>
-        <IconSymbol name="moon.fill" size={22} color={colors.mutedForeground} />
+        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
         <ThemedText style={styles.settingsItemLabel}>Appearance</ThemedText>
       </View>
       <View style={[styles.segmentedControl, { backgroundColor: colors.muted }]}>
@@ -143,7 +145,7 @@ export default function SettingsScreen() {
       </ThemedView>
 
       <SettingsSection title="Appearance">
-        <AppearancePicker mode={mode} onModeChange={setMode} colors={colors} />
+        <AppearancePicker mode={mode} onModeChange={setMode} colors={colors} colorScheme={colorScheme} />
       </SettingsSection>
 
       <SettingsSection title="Account">
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   header: {
     paddingTop: 60,
