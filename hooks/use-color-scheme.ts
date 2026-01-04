@@ -1,11 +1,10 @@
-import { useColorScheme as useNwColorScheme } from 'nativewind';
+import { useAppearance } from '@/providers/appearance-provider';
 
 /**
- * Wrapper around NativeWind's useColorScheme that returns 'light' or 'dark'.
- * Respects user's appearance preference when set via AppearanceProvider.
- * Defaults to 'light' when the color scheme is null or undefined.
+ * Returns 'light' or 'dark' based on current appearance setting.
+ * Triggers re-render when theme changes.
  */
 export function useColorScheme(): 'light' | 'dark' {
-  const { colorScheme } = useNwColorScheme();
-  return colorScheme === 'dark' ? 'dark' : 'light';
+  const { colorScheme } = useAppearance();
+  return colorScheme;
 }

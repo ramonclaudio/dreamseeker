@@ -15,23 +15,30 @@ const Label = NativeTabs.Trigger.Label;
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
 
   // Dynamic colors for iOS liquid glass (adapts to light/dark backgrounds)
   const labelColor =
     Platform.OS === 'ios'
       ? DynamicColorIOS({ dark: 'white', light: 'black' })
-      : Colors[colorScheme].text;
+      : colors.text;
 
   const tintColor =
     Platform.OS === 'ios'
       ? DynamicColorIOS({ dark: 'white', light: 'black' })
-      : Colors[colorScheme].tint;
+      : colors.tint;
+
+  // Web-specific styling (iOS uses liquid glass)
+  const tabBarBg = Platform.OS === 'web' ? colors.card : undefined;
+  const indicatorBg = Platform.OS === 'web' ? colors.muted : undefined;
 
   return (
     <NativeTabs
       minimizeBehavior="onScrollDown"
       labelStyle={{ color: labelColor }}
-      tintColor={tintColor}>
+      tintColor={tintColor}
+      backgroundColor={tabBarBg}
+      indicatorColor={indicatorBg}>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: 'house', selected: 'house.fill' }} />
         <Label>Home</Label>
