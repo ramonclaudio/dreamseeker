@@ -27,6 +27,7 @@ const convex = new ConvexReactClient(convexUrl, {
 });
 
 // Error boundary for root-level errors
+// Uses v4 dark mode colors since errors often occur before theme loads
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
     <View style={errorStyles.container}>
@@ -42,7 +43,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 const errorStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#171717', // v4 dark background
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -50,23 +51,23 @@ const errorStyles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ff6b6b',
+    color: '#b91c1c', // v4 dark destructive
     marginBottom: 12,
   },
   message: {
     fontSize: 14,
-    color: '#888',
+    color: '#a3a3a3', // v4 dark mutedForeground
     textAlign: 'center',
     marginBottom: 24,
   },
   button: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#e5e5e5', // v4 dark primary
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: '#262626', // v4 dark primaryForeground
     fontWeight: '600',
   },
 });
