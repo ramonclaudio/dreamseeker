@@ -14,7 +14,7 @@ import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
-import { authStyles as styles } from '@/constants/auth-styles';
+import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
 
 export default function ResetPasswordScreen() {
   const colorScheme = useColorScheme();
@@ -115,8 +115,8 @@ export default function ResetPasswordScreen() {
         </View>
 
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={getErrorStyles(colorScheme).container}>
+            <Text style={getErrorStyles(colorScheme).text}>{error}</Text>
           </View>
         )}
 
