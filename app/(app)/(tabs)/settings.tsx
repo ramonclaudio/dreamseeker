@@ -8,7 +8,7 @@ import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { AppearanceMode, useAppearance } from '@/lib/appearance';
+import { useAppearance, type AppearanceMode } from '@/providers/appearance-provider';
 
 type SettingsItemProps = {
   icon: Parameters<typeof IconSymbol>[0]['name'];
