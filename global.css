@@ -3,3 +3,69 @@
 @import "tailwindcss/utilities.css";
 
 @import "nativewind/theme";
+
+/*
+ * shadcn/ui v4 color system for NativeWind
+ * Converted from OKLCH to hex - neutral grays (new-york v4)
+ */
+
+@theme {
+  /* Radius - matches v4 --radius: 0.625rem */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  /* Light mode colors (v4 OKLCH converted) */
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+  --color-card: #ffffff;
+  --color-card-foreground: #171717;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #171717;
+  --color-primary: #262626;
+  --color-primary-foreground: #fafafa;
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #262626;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #737373;
+  --color-accent: #f5f5f5;
+  --color-accent-foreground: #262626;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #fafafa;
+  --color-border: #e5e5e5;
+  --color-input: #e5e5e5;
+  --color-ring: #a3a3a3;
+}
+
+/* Dark mode overrides (v4 OKLCH converted) */
+@variant dark {
+  @theme {
+    --color-background: #171717;
+    --color-foreground: #fafafa;
+    --color-card: #262626;
+    --color-card-foreground: #fafafa;
+    --color-popover: #333333;
+    --color-popover-foreground: #fafafa;
+    --color-primary: #e5e5e5;
+    --color-primary-foreground: #262626;
+    --color-secondary: #333333;
+    --color-secondary-foreground: #fafafa;
+    --color-muted: #333333;
+    --color-muted-foreground: #a3a3a3;
+    --color-accent: #404040;
+    --color-accent-foreground: #fafafa;
+    --color-destructive: #f87171;
+    --color-destructive-foreground: #dc2626;
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-input: rgba(255, 255, 255, 0.15);
+    --color-ring: #737373;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+}
