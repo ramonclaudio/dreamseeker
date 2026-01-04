@@ -1,5 +1,4 @@
 import { Platform, StyleSheet, View, type ViewProps } from 'react-native';
-import { BlurView } from 'expo-blur';
 
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -33,32 +32,23 @@ type GlassCardProps = ViewProps & {
   glassStyle?: 'regular' | 'clear';
   /** Enable interactive glass behavior (iOS 26+ only) */
   isInteractive?: boolean;
-  /** Blur intensity for fallback (0-100, default 50) */
-  blurIntensity?: number;
-  /** Disable blur fallback and use solid color instead */
-  disableBlur?: boolean;
 };
 
 /**
  * A card component with glass/blur effects.
  *
- * Rendering hierarchy:
  * - iOS 26+: Liquid glass via expo-glass-effect
- * - iOS < 26, Web: BlurView from expo-blur
- * - Android: Semi-transparent background (BlurView without target)
+ * - All other platforms: Solid card with border
  */
 export function GlassCard({
   children,
   style,
   glassStyle = 'regular',
   isInteractive,
-  blurIntensity = 50,
-  disableBlur = false,
   ...props
 }: GlassCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
-  const tint = colorScheme === 'dark' ? 'dark' : 'light';
 
   // iOS 26+ liquid glass
   const glass = getGlassModule();
@@ -66,7 +56,11 @@ export function GlassCard({
     const { GlassView } = glass;
     return (
       <GlassView
-        style={[styles.card, style]}
+        style={[
+          styles.card,
+          { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+          style,
+        ]}
         glassEffectStyle={glassStyle}
         isInteractive={isInteractive}
         {...props}>
@@ -75,23 +69,15 @@ export function GlassCard({
     );
   }
 
-  // BlurView fallback for iOS < 26 and web
-  // Android gets semi-transparent background (blur requires BlurTargetView setup)
-  if (!disableBlur && Platform.OS !== 'android') {
-    return (
-      <BlurView
-        intensity={blurIntensity}
-        tint={tint}
-        style={[styles.card, style]}
-        {...props}>
-        {children}
-      </BlurView>
-    );
-  }
-
-  // Solid fallback for Android or when blur is disabled
+  // Solid card fallback
   return (
-    <View style={[styles.card, styles.solidCard, { backgroundColor: colors.card }, style]} {...props}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+        style,
+      ]}
+      {...props}>
       {children}
     </View>
   );
@@ -100,57 +86,49 @@ export function GlassCard({
 type GlassContainerProps = ViewProps & {
   /** Spacing between glass elements in the container */
   spacing?: number;
-  /** Blur intensity for fallback (0-100, default 50) */
-  blurIntensity?: number;
 };
 
 /**
  * Container for combining multiple glass elements with a unified effect.
  *
- * Rendering hierarchy:
  * - iOS 26+: GlassContainer from expo-glass-effect
- * - iOS < 26, Web: BlurView from expo-blur
- * - Android: Semi-transparent background
+ * - All other platforms: Solid card with border
  */
 export function GlassCardContainer({
   children,
   style,
   spacing = 10,
-  blurIntensity = 50,
   ...props
 }: GlassContainerProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
-  const tint = colorScheme === 'dark' ? 'dark' : 'light';
 
   // iOS 26+ liquid glass container
   const glass = getGlassModule();
   if (glass && canUseGlass()) {
     const { GlassContainer } = glass;
     return (
-      <GlassContainer spacing={spacing} style={style} {...props}>
+      <GlassContainer
+        spacing={spacing}
+        style={[
+          styles.card,
+          { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+          style,
+        ]}
+        {...props}>
         {children}
       </GlassContainer>
     );
   }
 
-  // BlurView fallback for iOS < 26 and web
-  if (Platform.OS !== 'android') {
-    return (
-      <BlurView
-        intensity={blurIntensity}
-        tint={tint}
-        style={[styles.card, { gap: spacing }, style]}
-        {...props}>
-        {children}
-      </BlurView>
-    );
-  }
-
-  // Solid fallback for Android
+  // Solid card fallback
   return (
     <View
-      style={[styles.card, styles.solidCard, { backgroundColor: colors.card, gap: spacing }, style]}
+      style={[
+        styles.card,
+        { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, gap: spacing },
+        style,
+      ]}
       {...props}>
       {children}
     </View>
@@ -161,9 +139,5 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.lg,
     overflow: 'hidden',
-  },
-  solidCard: {
-    // Slight transparency for Android to hint at glass aesthetic
-    opacity: 0.95,
   },
 });

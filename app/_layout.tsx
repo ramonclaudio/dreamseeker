@@ -14,6 +14,7 @@ import 'react-native-reanimated';
 
 import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AppearanceProvider } from '@/providers/appearance-provider';
 
 // Initialize Convex client
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
@@ -83,7 +84,9 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-      <RootNavigator />
+      <AppearanceProvider>
+        <RootNavigator />
+      </AppearanceProvider>
     </ConvexBetterAuthProvider>
   );
 }
