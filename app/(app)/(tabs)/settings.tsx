@@ -1,40 +1,39 @@
-import { Pressable, ScrollView, StyleSheet, View, Alert, Platform } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { authClient } from '@/lib/auth-client';
+import { haptics } from '@/lib/haptics';
 
 type SettingsItemProps = {
   icon: Parameters<typeof IconSymbol>[0]['name'];
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  colors: (typeof Colors)['light'];
 };
 
-function SettingsItem({ icon, label, onPress, destructive }: SettingsItemProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
-
+function SettingsItem({ icon, label, onPress, destructive, colors }: SettingsItemProps) {
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.settingsItem,
-        { backgroundColor: colors.card, opacity: pressed ? 0.7 : 1 },
-      ]}
+      style={({ pressed }) => [styles.settingsItem, { opacity: pressed ? 0.7 : 1 }]}
       onPress={onPress}>
       <View style={styles.settingsItemLeft}>
         <IconSymbol
           name={icon}
           size={22}
-          color={destructive ? '#ff6b6b' : colors.icon}
+          color={destructive ? colors.destructive : colors.mutedForeground}
         />
-        <ThemedText style={[styles.settingsItemLabel, destructive && styles.destructiveText]}>
+        <ThemedText
+          style={[styles.settingsItemLabel, destructive && { color: colors.destructive }]}>
           {label}
         </ThemedText>
       </View>
+      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
     </Pressable>
   );
 }
@@ -48,7 +47,9 @@ function SettingsSection({ title, children }: SettingsSectionProps) {
   return (
     <View style={styles.section}>
       {title && <ThemedText style={styles.sectionTitle}>{title}</ThemedText>}
-      <View style={styles.sectionContent}>{children}</View>
+      <GlassCard style={styles.sectionContent}>
+        {children}
+      </GlassCard>
     </View>
   );
 }
@@ -58,29 +59,28 @@ export default function SettingsScreen() {
   const colors = Colors[colorScheme];
 
   const handleSignOut = () => {
+    haptics.medium();
     authClient.signOut();
   };
 
   const handleDeleteAccount = () => {
-    const message = 'Are you sure you want to delete your account? This action cannot be undone.';
+    haptics.warning();
+    const message =
+      'Are you sure you want to delete your account? This action cannot be undone.';
 
     if (Platform.OS === 'web') {
       if (window.confirm(message)) {
-        performDeleteAccount();
+        authClient.deleteUser();
       }
     } else {
       Alert.alert('Delete Account', message, [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: performDeleteAccount },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => authClient.deleteUser(),
+        },
       ]);
-    }
-  };
-
-  const performDeleteAccount = async () => {
-    try {
-      await authClient.deleteUser();
-    } catch {
-      Alert.alert('Error', 'Failed to delete account. Please try again.');
     }
   };
 
@@ -97,12 +97,17 @@ export default function SettingsScreen() {
           icon="rectangle.portrait.and.arrow.right"
           label="Sign Out"
           onPress={handleSignOut}
+          colors={colors}
         />
+      </SettingsSection>
+
+      <SettingsSection title="Danger Zone">
         <SettingsItem
           icon="trash.fill"
           label="Delete Account"
           onPress={handleDeleteAccount}
           destructive
+          colors={colors}
         />
       </SettingsSection>
     </ScrollView>
@@ -127,14 +132,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     marginBottom: 8,
-    marginLeft: 12,
+    marginLeft: 4,
     opacity: 0.6,
   },
   sectionContent: {
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     overflow: 'hidden',
   },
   settingsItem: {
@@ -142,8 +147,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(128, 128, 128, 0.2)',
   },
   settingsItemLeft: {
     flexDirection: 'row',
@@ -152,8 +155,5 @@ const styles = StyleSheet.create({
   },
   settingsItemLabel: {
     fontSize: 16,
-  },
-  destructiveText: {
-    color: '#ff6b6b',
   },
 });
