@@ -1,44 +1,71 @@
 import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export default function ModalScreen() {
-  // Check if modal has navigation context (wasn't accessed via direct URL)
-  // On web, if the page was reloaded or navigated to directly, canGoBack() returns false
-  const isPresented = router.canGoBack();
-
+function ModalContent({ isPresented, colors }: { isPresented: boolean; colors: typeof Colors.light }) {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
+    <View style={styles.content}>
+      <ThemedText type="title">Modal</ThemedText>
+      <ThemedText style={{ color: colors.mutedForeground, textAlign: 'center', marginTop: 8 }}>
+        This modal uses a blur background on iOS and web.
+      </ThemedText>
       {isPresented ? (
-        // Modal was opened from within the app - show dismiss link
         <Link href="../" style={styles.link}>
-          <ThemedText type="link">Dismiss modal</ThemedText>
+          <ThemedText type="link">Dismiss</ThemedText>
         </Link>
       ) : (
-        // Modal was accessed directly (e.g., via URL) - navigate to home
         <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen</ThemedText>
+          <ThemedText type="link">Go home</ThemedText>
         </Link>
       )}
-      {/* iOS modal has dark background - adjust status bar to light for visibility */}
+    </View>
+  );
+}
+
+export default function ModalScreen() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
+  const tint = colorScheme === 'dark' ? 'dark' : 'light';
+
+  // Check if modal has navigation context (wasn't accessed via direct URL)
+  const isPresented = router.canGoBack();
+
+  // Android doesn't support blur without BlurTargetView, so use solid background
+  if (Platform.OS === 'android') {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.card }]}>
+        <ModalContent isPresented={isPresented} colors={colors} />
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
+
+  // iOS and web get blur background
+  return (
+    <BlurView intensity={80} tint={tint} style={styles.container}>
+      <ModalContent isPresented={isPresented} colors={colors} />
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </ThemedView>
+    </BlurView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
   },
   link: {
-    marginTop: 15,
+    marginTop: 20,
     paddingVertical: 15,
   },
 });
