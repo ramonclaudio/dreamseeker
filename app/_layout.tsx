@@ -8,9 +8,10 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'e
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -81,12 +82,29 @@ export const unstable_settings = {
   initialRouteName: '(auth)',
 };
 
+// Stripe publishable key (optional - app works without it)
+const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
 export default function RootLayout() {
+  const content = (
+    <AppearanceProvider>
+      <RootNavigator />
+    </AppearanceProvider>
+  );
+
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-      <AppearanceProvider>
-        <RootNavigator />
-      </AppearanceProvider>
+      {Platform.OS !== 'web' && stripePublishableKey ? (
+        <StripeProvider
+          publishableKey={stripePublishableKey}
+          merchantIdentifier="merchant.com.ramonclaudio.expo-starter-app"
+          urlScheme="expostarterapp"
+        >
+          {content}
+        </StripeProvider>
+      ) : (
+        content
+      )}
     </ConvexBetterAuthProvider>
   );
 }
