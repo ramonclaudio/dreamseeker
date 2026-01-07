@@ -79,6 +79,12 @@
           }
         }
       ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "enableGooglePay": true
+        }
+      ],
       "expo-secure-store",
       "./plugins/with-auto-signing"
     ],
