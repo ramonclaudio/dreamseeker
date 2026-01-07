@@ -8,6 +8,7 @@ Production-ready Expo starter with auth, real-time backend, and iOS 26 native fe
 |-------|------|
 | Runtime | Expo SDK 55 (canary) · React 19 · React Compiler |
 | Backend | Convex (real-time) · Better Auth · Resend |
+| Payments | Stripe (@convex-dev/stripe · @stripe/stripe-react-native) |
 | Styling | NativeWind v5 · Tailwind v4 · shadcn/ui tokens |
 | Native | NativeTabs · SF Symbols · Liquid Glass · Haptics |
 
@@ -15,6 +16,7 @@ Production-ready Expo starter with auth, real-time backend, and iOS 26 native fe
 
 - Email/username auth with password reset
 - Protected routes, rate limiting, 7-day sessions
+- Stripe subscriptions with monthly/annual billing toggle
 - Profile with avatar upload, user-scoped tasks (CRUD)
 - Theme toggle (System/Light/Dark) — cross-platform
 - iOS 26 liquid glass tab bar, haptics throughout
@@ -23,7 +25,7 @@ Production-ready Expo starter with auth, real-time backend, and iOS 26 native fe
 ## Prerequisites
 
 - Node.js 18+, Xcode 16+ or Android Studio
-- [Convex](https://convex.dev) + [Resend](https://resend.com) accounts (free tiers)
+- [Convex](https://convex.dev) + [Resend](https://resend.com) + [Stripe](https://stripe.com) accounts (free tiers)
 - Verified domain on Resend
 
 > Expo Go not supported. SDK 55 canary requires dev builds.
@@ -43,6 +45,9 @@ CONVEX_DEPLOYMENT=dev:your-deployment
 EXPO_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 EXPO_PUBLIC_CONVEX_SITE_URL=https://your-deployment.convex.site
 EXPO_PUBLIC_SITE_URL=http://localhost:8081
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxx
+EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_xxxx
+EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID=price_xxxx
 EOF
 
 # Set server env vars
@@ -50,6 +55,8 @@ npx convex env set BETTER_AUTH_SECRET $(openssl rand -base64 32)
 npx convex env set SITE_URL http://localhost:8081
 npx convex env set RESEND_API_KEY re_xxxx
 npx convex env set RESEND_FROM_EMAIL noreply@yourdomain.com
+npx convex env set STRIPE_SECRET_KEY sk_test_xxxx
+npx convex env set STRIPE_WEBHOOK_SECRET whsec_xxxx
 
 # Run (two terminals)
 npm run convex  # Terminal 1
