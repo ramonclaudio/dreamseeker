@@ -14,8 +14,9 @@ import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { useAppearance, type AppearanceMode } from '@/providers/appearance-provider';
 
-// Price ID for Pro plan (set in Stripe Dashboard)
-const PRO_MONTHLY_PRICE_ID = process.env.EXPO_PUBLIC_STRIPE_PRO_PRICE_ID ?? '';
+// Price IDs for Pro plan (set in Stripe Dashboard)
+const PRO_MONTHLY_PRICE_ID = process.env.EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '';
+const PRO_ANNUAL_PRICE_ID = process.env.EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID ?? '';
 
 type SettingsItemProps = {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -112,21 +113,30 @@ function AppearancePicker({ mode, onModeChange, colors, colorScheme }: Appearanc
   );
 }
 
+type BillingPeriod = 'monthly' | 'annual';
+
+const BILLING_OPTIONS: { value: BillingPeriod; label: string; price: string; savings?: string }[] = [
+  { value: 'monthly', label: 'Monthly', price: '$9.99/mo' },
+  { value: 'annual', label: 'Annual', price: '$99.99/yr', savings: 'Save 17%' },
+];
+
 type SubscriptionSectionContentProps = {
   colors: (typeof Colors)['light'];
 };
 
 function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps) {
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const { subscription, isActive, isTrialing, isCanceled, isLoading, loading, subscribe, manageBilling, restore } =
     useSubscription();
 
   const handleUpgrade = async () => {
-    if (!PRO_MONTHLY_PRICE_ID) {
+    const priceId = billingPeriod === 'annual' ? PRO_ANNUAL_PRICE_ID : PRO_MONTHLY_PRICE_ID;
+    if (!priceId) {
       Alert.alert('Not configured', 'Stripe price ID is not configured yet.');
       return;
     }
     haptics.medium();
-    const result = await subscribe(PRO_MONTHLY_PRICE_ID);
+    const result = await subscribe(priceId);
     if (result.error) {
       const message = result.error instanceof Error ? result.error.message : 'Failed to start checkout';
       Alert.alert('Error', message);
@@ -208,7 +218,7 @@ function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps)
     );
   }
 
-  // No subscription - show upgrade
+  // No subscription - show upgrade with billing toggle
   return (
     <View style={styles.subscriptionContainer}>
       <View style={styles.subscriptionHeader}>
@@ -220,6 +230,50 @@ function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps)
       <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
         Upgrade to Pro for unlimited features.
       </ThemedText>
+
+      {/* Billing period toggle */}
+      <View style={[styles.billingToggle, { backgroundColor: colors.muted }]}>
+        {BILLING_OPTIONS.map((option) => {
+          const isSelected = billingPeriod === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.billingOption,
+                isSelected && [styles.billingOptionSelected, { backgroundColor: colors.background }],
+              ]}
+              onPress={() => {
+                haptics.light();
+                setBillingPeriod(option.value);
+              }}>
+              <View style={styles.billingOptionContent}>
+                <ThemedText
+                  style={[
+                    styles.billingOptionLabel,
+                    { color: isSelected ? colors.foreground : colors.mutedForeground },
+                  ]}>
+                  {option.label}
+                </ThemedText>
+                <ThemedText
+                  style={[
+                    styles.billingOptionPrice,
+                    { color: isSelected ? colors.foreground : colors.mutedForeground },
+                  ]}>
+                  {option.price}
+                </ThemedText>
+                {option.savings && (
+                  <View style={[styles.savingsBadge, { backgroundColor: colors.primary + '20' }]}>
+                    <ThemedText style={[styles.savingsText, { color: colors.primary }]}>
+                      {option.savings}
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <Pressable
         style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
         onPress={handleUpgrade}
@@ -448,6 +502,47 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
+    fontWeight: '600',
+  },
+  billingToggle: {
+    flexDirection: 'row',
+    borderRadius: Radius.md,
+    padding: 4,
+    gap: 4,
+  },
+  billingOption: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: Radius.sm,
+    alignItems: 'center',
+  },
+  billingOptionSelected: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  billingOptionContent: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  billingOptionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  billingOptionPrice: {
+    fontSize: 13,
+  },
+  savingsBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+    marginTop: 4,
+  },
+  savingsText: {
+    fontSize: 10,
     fontWeight: '600',
   },
 });
