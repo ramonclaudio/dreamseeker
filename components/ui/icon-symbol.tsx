@@ -25,6 +25,8 @@ const MAPPING = {
   'camera.fill': 'photo-camera',
   'photo.fill': 'photo',
   'xmark.circle.fill': 'cancel',
+  'star.fill': 'star',
+  gift: 'card-giftcard',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
