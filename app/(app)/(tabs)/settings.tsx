@@ -9,9 +9,13 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { useAppearance, type AppearanceMode } from '@/providers/appearance-provider';
+
+// Price ID for Pro plan (set in Stripe Dashboard)
+const PRO_MONTHLY_PRICE_ID = process.env.EXPO_PUBLIC_STRIPE_PRO_PRICE_ID ?? '';
 
 type SettingsItemProps = {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -108,6 +112,126 @@ function AppearancePicker({ mode, onModeChange, colors, colorScheme }: Appearanc
   );
 }
 
+type SubscriptionSectionContentProps = {
+  colors: (typeof Colors)['light'];
+};
+
+function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps) {
+  const { subscription, isActive, isTrialing, isCanceled, isLoading, loading, subscribe, manageBilling, restore } =
+    useSubscription();
+
+  const handleUpgrade = async () => {
+    if (!PRO_MONTHLY_PRICE_ID) {
+      Alert.alert('Not configured', 'Stripe price ID is not configured yet.');
+      return;
+    }
+    haptics.medium();
+    const result = await subscribe(PRO_MONTHLY_PRICE_ID);
+    if (result.error) {
+      const message = result.error instanceof Error ? result.error.message : 'Failed to start checkout';
+      Alert.alert('Error', message);
+    }
+  };
+
+  const handleManage = async () => {
+    haptics.light();
+    await manageBilling();
+  };
+
+  const handleRestore = async () => {
+    haptics.medium();
+    const result = await restore();
+    if (result.error) {
+      const message = result.error instanceof Error ? result.error.message : 'Failed to restore subscription';
+      Alert.alert('Error', message);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.subscriptionContainer}>
+        <ActivityIndicator color={colors.mutedForeground} />
+      </View>
+    );
+  }
+
+  // Active subscription
+  if (isActive) {
+    const periodEnd = subscription?.currentPeriodEnd
+      ? new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()
+      : null;
+
+    return (
+      <View style={styles.subscriptionContainer}>
+        <View style={styles.subscriptionHeader}>
+          <View style={styles.subscriptionInfo}>
+            <IconSymbol name="star.fill" size={22} color={colors.primary} />
+            <ThemedText style={styles.settingsItemLabel}>
+              {isTrialing ? 'Pro (Trial)' : 'Pro Plan'}
+            </ThemedText>
+          </View>
+          <View style={[styles.badge, { backgroundColor: colors.primary + '20' }]}>
+            <ThemedText style={[styles.badgeText, { color: colors.primary }]}>Active</ThemedText>
+          </View>
+        </View>
+
+        {isCanceled ? (
+          <>
+            <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+              Cancels on {periodEnd}
+            </ThemedText>
+            <Pressable
+              style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
+              onPress={handleRestore}
+              disabled={loading}>
+              <ThemedText style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+                {loading ? 'Restoring...' : 'Restore Subscription'}
+              </ThemedText>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+              {isTrialing ? `Trial ends ${periodEnd}` : `Renews ${periodEnd}`}
+            </ThemedText>
+            <Pressable
+              style={[styles.subscriptionButton, { borderColor: colors.border, borderWidth: 1 }]}
+              onPress={handleManage}
+              disabled={loading}>
+              <ThemedText style={[styles.subscriptionButtonText, { color: colors.foreground }]}>
+                {loading ? 'Loading...' : 'Manage Subscription'}
+              </ThemedText>
+            </Pressable>
+          </>
+        )}
+      </View>
+    );
+  }
+
+  // No subscription - show upgrade
+  return (
+    <View style={styles.subscriptionContainer}>
+      <View style={styles.subscriptionHeader}>
+        <View style={styles.subscriptionInfo}>
+          <IconSymbol name="gift" size={22} color={colors.mutedForeground} />
+          <ThemedText style={styles.settingsItemLabel}>Free Plan</ThemedText>
+        </View>
+      </View>
+      <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+        Upgrade to Pro for unlimited features.
+      </ThemedText>
+      <Pressable
+        style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
+        onPress={handleUpgrade}
+        disabled={loading}>
+        <ThemedText style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+          {loading ? 'Loading...' : 'Upgrade to Pro'}
+        </ThemedText>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
@@ -169,6 +293,10 @@ export default function SettingsScreen() {
 
       <SettingsSection title="Appearance">
         <AppearancePicker mode={mode} onModeChange={setMode} colors={colors} colorScheme={colorScheme} />
+      </SettingsSection>
+
+      <SettingsSection title="Subscription">
+        <SubscriptionSectionContent colors={colors} />
       </SettingsSection>
 
       <SettingsSection title="Account">
@@ -285,5 +413,41 @@ const styles = StyleSheet.create({
   deletingText: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  subscriptionContainer: {
+    padding: 16,
+    gap: 12,
+  },
+  subscriptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  subscriptionInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  subscriptionDetail: {
+    fontSize: 14,
+  },
+  subscriptionButton: {
+    paddingVertical: 12,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  subscriptionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
