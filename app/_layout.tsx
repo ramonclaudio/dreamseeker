@@ -3,7 +3,7 @@ import '@/lib/nativewind-interop';
 
 import { ConvexReactClient } from 'convex/react';
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -16,7 +16,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 
 import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { AppearanceProvider } from '@/providers/appearance-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
 import { confettiRef } from '@/lib/confetti';
 
 // Initialize Convex client
@@ -89,9 +89,9 @@ const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
   const content = (
-    <AppearanceProvider>
+    <ThemeProvider>
       <RootNavigator />
-    </AppearanceProvider>
+    </ThemeProvider>
   );
 
   return (
@@ -132,7 +132,7 @@ function RootNavigator() {
 
   return (
     <KeyboardProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(app)" />
@@ -148,7 +148,7 @@ function RootNavigator() {
           fallSpeed={3000}
           explosionSpeed={400}
         />
-      </ThemeProvider>
+      </NavigationThemeProvider>
     </KeyboardProvider>
   );
 }

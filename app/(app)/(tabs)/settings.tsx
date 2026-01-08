@@ -12,7 +12,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useAppearance, type AppearanceMode } from '@/providers/appearance-provider';
+import { useTheme, type ThemeMode } from '@/providers/theme-provider';
 
 type SettingsItemProps = {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -59,29 +59,29 @@ function SettingsSection({ title, children }: SettingsSectionProps) {
   );
 }
 
-const APPEARANCE_OPTIONS: { value: AppearanceMode; label: string }[] = [
+const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
 ];
 
-type AppearancePickerProps = {
-  mode: AppearanceMode;
-  onModeChange: (mode: AppearanceMode) => void;
+type ThemePickerProps = {
+  mode: ThemeMode;
+  onModeChange: (mode: ThemeMode) => void;
   colors: (typeof Colors)['light'];
   colorScheme: 'light' | 'dark';
 };
 
-function AppearancePicker({ mode, onModeChange, colors, colorScheme }: AppearancePickerProps) {
+function ThemePicker({ mode, onModeChange, colors, colorScheme }: ThemePickerProps) {
   const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
   return (
-    <View style={styles.appearanceContainer}>
-      <View style={styles.appearanceRow}>
+    <View style={styles.themeContainer}>
+      <View style={styles.themeRow}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <ThemedText style={styles.settingsItemLabel}>Appearance</ThemedText>
+        <ThemedText style={styles.settingsItemLabel}>Theme</ThemedText>
       </View>
       <View style={[styles.segmentedControl, { backgroundColor: colors.muted }]}>
-        {APPEARANCE_OPTIONS.map((option) => {
+        {THEME_OPTIONS.map((option) => {
           const isSelected = mode === option.value;
           return (
             <Pressable
@@ -258,7 +258,7 @@ function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps)
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
-  const { mode, setMode } = useAppearance();
+  const { mode, setMode } = useTheme();
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteAccount = useMutation(api.users.deleteAccount);
 
@@ -314,8 +314,8 @@ export default function SettingsScreen() {
         <ThemedText type="title">Settings</ThemedText>
       </ThemedView>
 
-      <SettingsSection title="Appearance">
-        <AppearancePicker mode={mode} onModeChange={setMode} colors={colors} colorScheme={colorScheme} />
+      <SettingsSection title="Theme">
+        <ThemePicker mode={mode} onModeChange={setMode} colors={colors} colorScheme={colorScheme} />
       </SettingsSection>
 
       <SettingsSection title="Subscription">
@@ -395,11 +395,11 @@ const styles = StyleSheet.create({
   settingsItemLabel: {
     fontSize: 16,
   },
-  appearanceContainer: {
+  themeContainer: {
     padding: 16,
     gap: 12,
   },
-  appearanceRow: {
+  themeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
