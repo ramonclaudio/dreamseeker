@@ -8,14 +8,16 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'e
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, Dimensions } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 import { authClient } from '@/lib/auth-client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AppearanceProvider } from '@/providers/appearance-provider';
+import { confettiRef } from '@/lib/confetti';
 
 // Initialize Convex client
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
@@ -126,6 +128,8 @@ function RootNavigator() {
     SplashScreen.hideAsync();
   }, []);
 
+  const { width } = Dimensions.get('window');
+
   return (
     <KeyboardProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -135,6 +139,15 @@ function RootNavigator() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
+        <ConfettiCannon
+          ref={confettiRef}
+          count={150}
+          origin={{ x: width / 2, y: -20 }}
+          autoStart={false}
+          fadeOut
+          fallSpeed={3000}
+          explosionSpeed={400}
+        />
       </ThemeProvider>
     </KeyboardProvider>
   );
