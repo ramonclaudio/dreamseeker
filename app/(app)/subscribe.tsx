@@ -113,21 +113,14 @@ export default function SubscribeScreen() {
               setBillingPeriod('annual');
             }}
           >
-            <View style={styles.billingOptionWithBadge}>
-              <ThemedText
-                style={[
-                  styles.billingOptionLabel,
-                  { color: billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground },
-                ]}
-              >
-                Annual
-              </ThemedText>
-              <View style={[styles.savingsBadge, { backgroundColor: colors.primary + '20' }]}>
-                <ThemedText style={[styles.savingsText, { color: colors.primary }]}>
-                  Save 17%
-                </ThemedText>
-              </View>
-            </View>
+            <ThemedText
+              style={[
+                styles.billingOptionLabel,
+                { color: billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground },
+              ]}
+            >
+              Annual
+            </ThemedText>
           </Pressable>
         </View>
 
@@ -201,12 +194,6 @@ export default function SubscribeScreen() {
                     </View>
                   ))}
                 </View>
-
-                {isSelected && !isCurrent && (
-                  <View style={[styles.selectedIndicator, { backgroundColor: colors.primary }]}>
-                    <IconSymbol name="checkmark" size={14} color={colors.primaryForeground} />
-                  </View>
-                )}
               </Pressable>
             );
           })}
@@ -278,9 +265,10 @@ const styles = StyleSheet.create({
   },
   billingOption: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: Radius.md,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   billingOptionSelected: {
     shadowColor: '#000',
@@ -289,21 +277,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  billingOptionWithBadge: {
-    alignItems: 'center',
-    gap: 4,
-  },
   billingOptionLabel: {
     fontSize: 15,
-    fontWeight: '600',
-  },
-  savingsBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: Radius.sm,
-  },
-  savingsText: {
-    fontSize: 10,
     fontWeight: '600',
   },
   tiersContainer: {
@@ -331,11 +306,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   tierName: {
     fontSize: 18,
     fontWeight: '700',
+    lineHeight: 24,
   },
   currentBadge: {
     paddingHorizontal: 8,
@@ -354,6 +330,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 28,
     fontWeight: '700',
+    lineHeight: 34,
   },
   pricePeriod: {
     fontSize: 14,
@@ -373,16 +350,6 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 14,
-  },
-  selectedIndicator: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   subscribeButton: {
     paddingVertical: 16,
