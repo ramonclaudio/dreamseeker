@@ -12,6 +12,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   checklist: 'checklist',
   checkmark: 'check',
+  'checkmark.circle.fill': 'check-circle',
+  xmark: 'close',
   gear: 'settings',
   'gearshape.fill': 'settings',
   'sun.max.fill': 'light-mode',
@@ -26,6 +28,7 @@ const MAPPING = {
   'photo.fill': 'photo',
   'xmark.circle.fill': 'cancel',
   'star.fill': 'star',
+  sparkles: 'auto-awesome',
   gift: 'card-giftcard',
 } as const;
 
