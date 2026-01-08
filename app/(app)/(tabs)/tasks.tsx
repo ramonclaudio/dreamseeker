@@ -76,7 +76,6 @@ export default function TasksScreen() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { canCreateTask, showUpgrade } = useSubscription();
 
-  // Skip query until authenticated to avoid "Unauthorized" errors during auth loading
   const tasks = useQuery(api.tasks.list, isAuthenticated ? {} : 'skip');
   const createTask = useMutation(api.tasks.create);
   const toggleTask = useMutation(api.tasks.toggle);
@@ -84,8 +83,6 @@ export default function TasksScreen() {
 
   const handleAddTask = async () => {
     if (!newTaskText.trim()) return;
-
-    // Check limit before attempting to add
     if (!canCreateTask) {
       haptics.warning();
       showUpgrade();
@@ -97,7 +94,6 @@ export default function TasksScreen() {
       await createTask({ text: newTaskText.trim() });
       setNewTaskText('');
     } catch (error) {
-      // Handle limit error from server
       if (error instanceof Error && error.message === 'LIMIT_REACHED') {
         haptics.warning();
         showUpgrade();
@@ -177,92 +173,23 @@ export default function TasksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    marginTop: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 16,
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-  },
-  addButton: {
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    borderRadius: Radius.md,
-    margin: 4,
-  },
-  addButtonText: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
-  },
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
-  taskContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: Radius.sm,
-    borderWidth: 2,
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkmark: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  taskText: {
-    fontSize: 16,
-    flex: 1,
-  },
-  deleteButton: {
-    padding: 8,
-  },
-  deleteText: {
-    fontSize: 24,
-    fontWeight: '300',
-  },
-  emptyContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-  },
+  container: { flex: 1 },
+  centered: { justifyContent: 'center', alignItems: 'center' },
+  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16 },
+  title: { fontSize: 34, fontWeight: 'bold' },
+  subtitle: { fontSize: 14, marginTop: 4 },
+  inputContainer: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16 },
+  input: { flex: 1, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16 },
+  addButton: { paddingHorizontal: 20, justifyContent: 'center', borderRadius: Radius.md, margin: 4 },
+  addButtonText: { fontWeight: '600', fontSize: 14 },
+  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  taskItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, marginBottom: 8 },
+  taskContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  checkbox: { width: 24, height: 24, borderRadius: Radius.sm, borderWidth: 2, marginRight: 12, justifyContent: 'center', alignItems: 'center' },
+  checkmark: { fontSize: 14, fontWeight: 'bold' },
+  taskText: { fontSize: 16, flex: 1 },
+  deleteButton: { padding: 8 },
+  deleteText: { fontSize: 24, fontWeight: '300' },
+  emptyContainer: { paddingVertical: 40, alignItems: 'center' },
+  emptyText: { fontSize: 16 },
 });

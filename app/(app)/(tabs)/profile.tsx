@@ -27,14 +27,12 @@ import { haptics } from '@/lib/haptics';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 
-type ProfileFieldProps = {
+function ProfileField({ label, value, onPress, colors }: {
   label: string;
   value: string;
   onPress: () => void;
   colors: (typeof Colors)['light'];
-};
-
-function ProfileField({ label, value, onPress, colors }: ProfileFieldProps) {
+}) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -51,7 +49,7 @@ function ProfileField({ label, value, onPress, colors }: ProfileFieldProps) {
   );
 }
 
-type EditModalProps = {
+function EditModal({ visible, onClose, title, label, value: initialValue, onSave, colors, placeholder, keyboardType = 'default', autoCapitalize = 'sentences' }: {
   visible: boolean;
   onClose: () => void;
   title: string;
@@ -62,20 +60,7 @@ type EditModalProps = {
   placeholder?: string;
   keyboardType?: 'default' | 'email-address';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-};
-
-function EditModal({
-  visible,
-  onClose,
-  title,
-  label,
-  value: initialValue,
-  onSave,
-  colors,
-  placeholder,
-  keyboardType = 'default',
-  autoCapitalize = 'sentences',
-}: EditModalProps) {
+}) {
   const [value, setValue] = useState(initialValue);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -373,7 +358,6 @@ export default function ProfileScreen() {
   };
 
   const pickImage = async (useCamera: boolean) => {
-    // Request permissions
     if (useCamera) {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
@@ -410,39 +394,17 @@ export default function ProfileScreen() {
   const uploadAvatar = async (uri: string) => {
     setIsUploadingAvatar(true);
     const oldImageStorageId = user?.imageStorageId ?? null;
-
     try {
-      // Get upload URL from Convex
       const uploadUrl = await generateUploadUrl();
-
-      // Fetch the image as a blob
       const response = await fetch(uri);
       const blob = await response.blob();
-
-      // Upload to Convex storage
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': blob.type || 'image/jpeg' },
-        body: blob,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image');
-      }
-
+      const uploadResponse = await fetch(uploadUrl, { method: 'POST', headers: { 'Content-Type': blob.type || 'image/jpeg' }, body: blob });
+      if (!uploadResponse.ok) throw new Error('Failed to upload image');
       const { storageId } = await uploadResponse.json();
-
-      // Update user profile with storage ID (resolved to URL in getCurrentUser)
       const { error } = await authClient.updateUser({ image: storageId });
       if (error) throw new Error(error.message ?? 'Failed to update profile image');
-
-      // Clean up old avatar from storage
       if (oldImageStorageId) {
-        try {
-          await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> });
-        } catch {
-          // Ignore cleanup errors - old file may already be deleted
-        }
+        try { await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> }); } catch {}
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to upload image');
@@ -454,18 +416,11 @@ export default function ProfileScreen() {
   const removeAvatar = async () => {
     setIsUploadingAvatar(true);
     const oldImageStorageId = user?.imageStorageId ?? null;
-
     try {
       const { error } = await authClient.updateUser({ image: '' });
       if (error) throw new Error(error.message ?? 'Failed to remove profile image');
-
-      // Clean up old avatar from storage
       if (oldImageStorageId) {
-        try {
-          await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> });
-        } catch {
-          // Ignore cleanup errors
-        }
+        try { await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> }); } catch {}
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to remove image');
@@ -657,187 +612,38 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 100,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarText: {
-    fontSize: 36,
-    lineHeight: 36,
-    fontWeight: '600',
-    textAlign: 'center',
-    includeFontPadding: false, // Android: remove extra padding
-  },
-  avatarOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 50,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // overlay for upload indicator
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-  },
-  avatarHint: {
-    fontSize: 13,
-    marginTop: 8,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginLeft: 12,
-  },
-  fieldGroup: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  fieldDivider: {
-    height: 1,
-    marginLeft: 16,
-  },
-  fieldContent: {
-    flex: 1,
-    gap: 4,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-  },
-  fieldValue: {
-    fontSize: 16,
-  },
-  securityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 12,
-  },
-  securityItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  securityItemLabel: {
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(128, 128, 128, 0.2)', // subtle separator, works in light/dark
-  },
-  modalContent: {
-    flex: 1,
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  input: {
-    borderRadius: Radius.md,
-    padding: 16,
-    fontSize: 16,
-  },
-  errorContainer: {
-    backgroundColor: 'rgba(220, 38, 38, 0.1)', // v4 destructive with alpha
-    borderWidth: 1,
-    borderColor: '#dc2626', // v4 destructive
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#dc2626', // v4 destructive
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  successContainer: {
-    backgroundColor: 'rgba(22, 163, 74, 0.1)', // green-600 with alpha
-    borderWidth: 1,
-    borderColor: '#16a34a', // green-600
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
-  },
-  successText: {
-    color: '#16a34a', // green-600
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  button: {
-    borderRadius: Radius.md,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  hint: {
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 16,
-    lineHeight: 18,
-  },
+  container: { flex: 1 },
+  contentContainer: { paddingBottom: 100 },
+  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
+  avatarSection: { alignItems: 'center', paddingVertical: 20 },
+  avatarContainer: { position: 'relative' },
+  avatar: { width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarText: { fontSize: 36, lineHeight: 36, fontWeight: '600', textAlign: 'center', includeFontPadding: false },
+  avatarOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 50, backgroundColor: 'rgba(0, 0, 0, 0.5)', alignItems: 'center', justifyContent: 'center' },
+  avatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 3 },
+  avatarHint: { fontSize: 13, marginTop: 8 },
+  section: { marginTop: 24, paddingHorizontal: 20 },
+  sectionTitle: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8, marginLeft: 12 },
+  fieldGroup: { borderRadius: 12, overflow: 'hidden' },
+  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  fieldDivider: { height: 1, marginLeft: 16 },
+  fieldContent: { flex: 1, gap: 4 },
+  fieldLabel: { fontSize: 12, fontWeight: '500', textTransform: 'uppercase' },
+  fieldValue: { fontSize: 16 },
+  securityItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12 },
+  securityItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  securityItemLabel: { fontSize: 16 },
+  modalContainer: { flex: 1 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128, 128, 128, 0.2)' },
+  modalContent: { flex: 1, padding: 20 },
+  inputGroup: { marginBottom: 20 },
+  inputLabel: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
+  input: { borderRadius: Radius.md, padding: 16, fontSize: 16 },
+  errorContainer: { backgroundColor: 'rgba(220, 38, 38, 0.1)', borderWidth: 1, borderColor: '#dc2626', borderRadius: Radius.md, padding: 12, marginBottom: 16 },
+  errorText: { color: '#dc2626', fontSize: 14, textAlign: 'center' },
+  successContainer: { backgroundColor: 'rgba(22, 163, 74, 0.1)', borderWidth: 1, borderColor: '#16a34a', borderRadius: Radius.md, padding: 12, marginBottom: 16 },
+  successText: { color: '#16a34a', fontSize: 14, textAlign: 'center' },
+  button: { borderRadius: Radius.md, padding: 16, alignItems: 'center', marginTop: 8 },
+  buttonText: { fontSize: 14, fontWeight: '500' },
+  hint: { fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18 },
 });

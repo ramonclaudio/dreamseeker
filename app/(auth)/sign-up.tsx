@@ -67,7 +67,6 @@ export default function SignUpScreen() {
 
       if (response.error) {
         haptics.error();
-        // Provide user-friendly error messages
         const message = response.error.message ?? 'Sign up failed';
         if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
           setError('An account with this email already exists');

@@ -103,13 +103,6 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+  headerImage: { bottom: -90, left: -35, position: 'absolute' },
+  titleContainer: { flexDirection: 'row', gap: 8 },
 });
