@@ -13,10 +13,7 @@ export function UpgradeBanner() {
   const colors = Colors[colorScheme];
   const { tier, taskLimit, tasksRemaining, showUpgrade } = useSubscription();
 
-  // Pro has unlimited - never show banner
   if (tier === 'pro') return null;
-
-  // Only show when near limit (1 or 0 remaining)
   if (tasksRemaining === null || tasksRemaining > 1) return null;
 
   const handlePress = () => {
@@ -54,33 +51,9 @@ export function UpgradeBanner() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    marginHorizontal: 20,
-    marginBottom: 12,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  text: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  action: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderWidth: 1, marginHorizontal: 20, marginBottom: 12 },
+  content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  text: { fontSize: 14, fontWeight: '500' },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actionText: { fontSize: 14, fontWeight: '600' },
 });

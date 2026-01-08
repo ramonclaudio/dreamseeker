@@ -9,14 +9,7 @@ export type ThemedTextProps = TextProps & {
   className?: string;
 };
 
-export function ThemedText({
-  style,
-  className,
-  lightColor,
-  darkColor,
-  type = 'default',
-  ...rest
-}: ThemedTextProps) {
+export function ThemedText({ style, className, lightColor, darkColor, type = 'default', ...rest }: ThemedTextProps) {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
   const mutedForeground = useThemeColor({}, 'mutedForeground');
 
@@ -25,11 +18,7 @@ export function ThemedText({
       className={className}
       style={[
         { color: type === 'link' ? mutedForeground : color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        styles[type],
         style,
       ]}
       {...rest}
@@ -38,27 +27,9 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    // Color is set dynamically via useThemeColor
-  },
+  default: { fontSize: 16, lineHeight: 24 },
+  defaultSemiBold: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
+  title: { fontSize: 32, fontWeight: 'bold', lineHeight: 32 },
+  subtitle: { fontSize: 20, fontWeight: 'bold' },
+  link: { lineHeight: 30, fontSize: 16 },
 });
