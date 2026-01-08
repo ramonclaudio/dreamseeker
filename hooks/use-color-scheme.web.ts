@@ -1,10 +1,10 @@
-import { useAppearance } from '@/providers/appearance-provider';
+import { useTheme } from '@/providers/theme-provider';
 
 /**
- * Web-specific hook that uses our AppearanceProvider context.
- * Returns 'light' or 'dark' based on current appearance setting.
+ * Web-specific hook that uses our ThemeProvider context.
+ * Returns 'light' or 'dark' based on current theme setting.
  */
 export function useColorScheme(): 'light' | 'dark' {
-  const { colorScheme } = useAppearance();
+  const { colorScheme } = useTheme();
   return colorScheme;
 }

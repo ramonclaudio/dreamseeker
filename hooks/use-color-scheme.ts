@@ -1,10 +1,10 @@
-import { useAppearance } from '@/providers/appearance-provider';
+import { useTheme } from '@/providers/theme-provider';
 
 /**
- * Returns 'light' or 'dark' based on current appearance setting.
+ * Returns 'light' or 'dark' based on current theme setting.
  * Triggers re-render when theme changes.
  */
 export function useColorScheme(): 'light' | 'dark' {
-  const { colorScheme } = useAppearance();
+  const { colorScheme } = useTheme();
   return colorScheme;
 }

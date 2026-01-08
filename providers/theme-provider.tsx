@@ -2,9 +2,9 @@ import { useEffect, useState, createContext, useContext, useCallback, type React
 import { Platform, Appearance } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-export type AppearanceMode = 'system' | 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dark';
 
-const STORAGE_KEY = 'appearance-mode';
+const STORAGE_KEY = 'theme';
 
 // Storage abstraction
 const storage = {
@@ -35,7 +35,7 @@ function getSystemScheme(): 'light' | 'dark' {
 }
 
 /** Resolve mode to actual scheme */
-function resolveScheme(mode: AppearanceMode): 'light' | 'dark' {
+function resolveScheme(mode: ThemeMode): 'light' | 'dark' {
   if (mode === 'system') {
     return getSystemScheme();
   }
@@ -43,7 +43,7 @@ function resolveScheme(mode: AppearanceMode): 'light' | 'dark' {
 }
 
 /** Apply color scheme to platform */
-function applyColorScheme(mode: AppearanceMode): void {
+function applyColorScheme(mode: ThemeMode): void {
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
     const isDark = resolveScheme(mode) === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
@@ -56,17 +56,17 @@ function applyColorScheme(mode: AppearanceMode): void {
   }
 }
 
-type AppearanceContextType = {
-  mode: AppearanceMode;
-  setMode: (mode: AppearanceMode) => void;
+type ThemeContextType = {
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode) => void;
   isLoading: boolean;
   colorScheme: 'light' | 'dark';
 };
 
-const AppearanceContext = createContext<AppearanceContextType | null>(null);
+const ThemeContext = createContext<ThemeContextType | null>(null);
 
-export function AppearanceProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<AppearanceMode>('system');
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [mode, setModeState] = useState<ThemeMode>('system');
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(() => resolveScheme('system'));
   const [isLoading, setIsLoading] = useState(true);
 
@@ -76,7 +76,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       try {
         const saved = await storage.get(STORAGE_KEY);
         if (saved && ['system', 'light', 'dark'].includes(saved)) {
-          const savedMode = saved as AppearanceMode;
+          const savedMode = saved as ThemeMode;
           setModeState(savedMode);
           setColorScheme(resolveScheme(savedMode));
           applyColorScheme(savedMode);
@@ -109,7 +109,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     }
   }, [mode]);
 
-  const setMode = useCallback((newMode: AppearanceMode) => {
+  const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
     const resolved = resolveScheme(newMode);
     setColorScheme(resolved);
@@ -118,16 +118,16 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AppearanceContext.Provider value={{ mode, setMode, isLoading, colorScheme }}>
+    <ThemeContext.Provider value={{ mode, setMode, isLoading, colorScheme }}>
       {children}
-    </AppearanceContext.Provider>
+    </ThemeContext.Provider>
   );
 }
 
-export function useAppearance() {
-  const context = useContext(AppearanceContext);
+export function useTheme() {
+  const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useAppearance must be used within AppearanceProvider');
+    throw new Error('useTheme must be used within ThemeProvider');
   }
   return context;
 }
