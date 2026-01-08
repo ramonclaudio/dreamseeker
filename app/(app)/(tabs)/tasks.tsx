@@ -14,7 +14,9 @@ import { useConvexAuth } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { GlassCard } from '@/components/ui/glass-card';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useSubscription } from '@/hooks/use-subscription';
 import { Colors, Radius } from '@/constants/theme';
 import { haptics } from '@/lib/haptics';
 
@@ -72,6 +74,7 @@ export default function TasksScreen() {
   const colors = Colors[colorScheme];
   const [newTaskText, setNewTaskText] = useState('');
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const { canCreateTask, showUpgrade } = useSubscription();
 
   // Skip query until authenticated to avoid "Unauthorized" errors during auth loading
   const tasks = useQuery(api.tasks.list, isAuthenticated ? {} : 'skip');
@@ -81,9 +84,25 @@ export default function TasksScreen() {
 
   const handleAddTask = async () => {
     if (!newTaskText.trim()) return;
+
+    // Check limit before attempting to add
+    if (!canCreateTask) {
+      haptics.warning();
+      showUpgrade();
+      return;
+    }
+
     haptics.medium();
-    await createTask({ text: newTaskText.trim() });
-    setNewTaskText('');
+    try {
+      await createTask({ text: newTaskText.trim() });
+      setNewTaskText('');
+    } catch (error) {
+      // Handle limit error from server
+      if (error instanceof Error && error.message === 'LIMIT_REACHED') {
+        haptics.warning();
+        showUpgrade();
+      }
+    }
   };
 
   const handleToggleTask = async (id: Task['_id']) => {
@@ -112,6 +131,8 @@ export default function TasksScreen() {
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </Text>
       </View>
+
+      <UpgradeBanner />
 
       <GlassCard style={styles.inputContainer}>
         <TextInput

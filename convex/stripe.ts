@@ -11,30 +11,6 @@ const stripeClient = new StripeSubscriptions(components.stripe, {});
 // ============================================================================
 
 /**
- * Get the user's active or trialing subscription
- * Returns null if no active subscription
- */
-export const getActiveSubscription = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-
-    const subscriptions = await ctx.runQuery(
-      components.stripe.public.listSubscriptionsByUserId,
-      { userId: identity.subject }
-    );
-
-    // Find active or trialing subscription
-    return (
-      subscriptions.find(
-        (sub) => sub.status === 'active' || sub.status === 'trialing'
-      ) ?? null
-    );
-  },
-});
-
-/**
  * Get all subscriptions for the current user (including past)
  */
 export const getUserSubscriptions = query({
