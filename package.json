@@ -62,6 +62,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.83.1",
+    "react-native-confetti-cannon": "^1.5.2",
     "react-native-css": "^3.0.1",
     "react-native-gesture-handler": "~2.30.0",
     "react-native-keyboard-controller": "1.20.3",
