@@ -6,63 +6,30 @@ export type ThemeMode = 'system' | 'light' | 'dark';
 
 const STORAGE_KEY = 'theme';
 
-// Storage abstraction
 const storage = {
-  async get(key: string): Promise<string | null> {
-    if (Platform.OS === 'web') {
-      return localStorage.getItem(key);
-    }
-    return SecureStore.getItemAsync(key);
-  },
-  async set(key: string, value: string): Promise<void> {
-    if (Platform.OS === 'web') {
-      localStorage.setItem(key, value);
-      return;
-    }
-    await SecureStore.setItemAsync(key, value);
-  },
+  get: async (key: string) => Platform.OS === 'web' ? localStorage.getItem(key) : SecureStore.getItemAsync(key),
+  set: async (key: string, value: string) => Platform.OS === 'web' ? localStorage.setItem(key, value) : SecureStore.setItemAsync(key, value),
 };
 
-/** Get system color scheme preference */
-function getSystemScheme(): 'light' | 'dark' {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  if (Platform.OS !== 'web') {
-    return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
-  }
+const getSystemScheme = (): 'light' | 'dark' => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (Platform.OS !== 'web') return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
   return 'light';
-}
+};
 
-/** Resolve mode to actual scheme */
-function resolveScheme(mode: ThemeMode): 'light' | 'dark' {
-  if (mode === 'system') {
-    return getSystemScheme();
-  }
-  return mode;
-}
+const resolveScheme = (mode: ThemeMode): 'light' | 'dark' => mode === 'system' ? getSystemScheme() : mode;
 
-/** Apply color scheme to platform */
-function applyColorScheme(mode: ThemeMode): void {
+const applyColorScheme = (mode: ThemeMode) => {
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
     const isDark = resolveScheme(mode) === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
-    return;
+  } else if (Platform.OS !== 'web') {
+    Appearance.setColorScheme(mode === 'system' ? 'unspecified' : mode);
   }
-  if (Platform.OS !== 'web') {
-    const scheme = mode === 'system' ? 'unspecified' : mode;
-    Appearance.setColorScheme(scheme);
-  }
-}
-
-type ThemeContextType = {
-  mode: ThemeMode;
-  setMode: (mode: ThemeMode) => void;
-  isLoading: boolean;
-  colorScheme: 'light' | 'dark';
 };
 
+type ThemeContextType = { mode: ThemeMode; setMode: (mode: ThemeMode) => void; isLoading: boolean; colorScheme: 'light' | 'dark' };
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -70,7 +37,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(() => resolveScheme('system'));
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved preference on mount
   useEffect(() => {
     (async () => {
       try {
@@ -81,53 +47,35 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           setColorScheme(resolveScheme(savedMode));
           applyColorScheme(savedMode);
         }
-      } catch {
-        // Ignore
-      } finally {
-        setIsLoading(false);
-      }
+      } catch { /* ignore */ } finally { setIsLoading(false); }
     })();
   }, []);
 
-  // Listen for system preference changes
   useEffect(() => {
     if (mode !== 'system') return;
-
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handler = (e: MediaQueryListEvent) => {
-        setColorScheme(e.matches ? 'dark' : 'light');
-        applyColorScheme('system');
-      };
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const handler = (e: MediaQueryListEvent) => { setColorScheme(e.matches ? 'dark' : 'light'); applyColorScheme('system'); };
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
     } else if (Platform.OS !== 'web') {
-      const subscription = Appearance.addChangeListener(({ colorScheme: newScheme }) => {
-        setColorScheme(newScheme === 'dark' ? 'dark' : 'light');
-      });
-      return () => subscription.remove();
+      const sub = Appearance.addChangeListener(({ colorScheme: s }) => setColorScheme(s === 'dark' ? 'dark' : 'light'));
+      return () => sub.remove();
     }
   }, [mode]);
 
   const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
-    const resolved = resolveScheme(newMode);
-    setColorScheme(resolved);
+    setColorScheme(resolveScheme(newMode));
     applyColorScheme(newMode);
     storage.set(STORAGE_KEY, newMode).catch(() => {});
   }, []);
 
-  return (
-    <ThemeContext.Provider value={{ mode, setMode, isLoading, colorScheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ mode, setMode, isLoading, colorScheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
-  }
-  return context;
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
 }

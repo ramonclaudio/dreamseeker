@@ -1,18 +1,11 @@
-/**
- * Shared tier configuration
- * Single source of truth for tier keys, names, limits, and features
- * Imported by both backend (convex/) and frontend (constants/)
- */
-
 export const TIER_KEYS = ['free', 'starter', 'plus', 'pro'] as const;
 export type TierKey = (typeof TIER_KEYS)[number];
 
-// Task limits per tier
 export const TIER_LIMITS: Record<TierKey, number | null> = {
   free: 10,
   starter: 50,
   plus: 200,
-  pro: null, // unlimited
+  pro: null,
 };
 
 export const TIER_NAMES: Record<TierKey, string> = {
@@ -22,10 +15,6 @@ export const TIER_NAMES: Record<TierKey, string> = {
   pro: 'Pro',
 };
 
-// Tier order for comparison (index = rank)
-export const TIER_ORDER = TIER_KEYS;
-
-// Next tier for upgrade prompts
 export const NEXT_TIER: Record<TierKey, TierKey | null> = {
   free: 'starter',
   starter: 'plus',
@@ -33,74 +22,21 @@ export const NEXT_TIER: Record<TierKey, TierKey | null> = {
   pro: null,
 };
 
-/**
- * Feature access by tier (like Better Auth's `limits`)
- * Use for gating access to features/pages
- */
 export const TIER_FEATURES = {
-  free: {
-    tasks: 10,
-    history: false,
-    sync: false,
-    customThemes: false,
-    dataExport: false,
-    prioritySupport: false,
-    earlyAccess: false,
-  },
-  starter: {
-    tasks: 50,
-    history: true,
-    sync: true,
-    customThemes: false,
-    dataExport: false,
-    prioritySupport: false,
-    earlyAccess: false,
-  },
-  plus: {
-    tasks: 200,
-    history: true,
-    sync: true,
-    customThemes: true,
-    dataExport: true,
-    prioritySupport: false,
-    earlyAccess: false,
-  },
-  pro: {
-    tasks: Infinity,
-    history: true,
-    sync: true,
-    customThemes: true,
-    dataExport: true,
-    prioritySupport: true,
-    earlyAccess: true,
-  },
+  free: { tasks: 10, history: false, sync: false, customThemes: false, dataExport: false, prioritySupport: false, earlyAccess: false },
+  starter: { tasks: 50, history: true, sync: true, customThemes: false, dataExport: false, prioritySupport: false, earlyAccess: false },
+  plus: { tasks: 200, history: true, sync: true, customThemes: true, dataExport: true, prioritySupport: false, earlyAccess: false },
+  pro: { tasks: Infinity, history: true, sync: true, customThemes: true, dataExport: true, prioritySupport: true, earlyAccess: true },
 } as const;
 
 export type TierFeatures = (typeof TIER_FEATURES)[TierKey];
 export type FeatureKey = keyof TierFeatures;
 
-/**
- * Check if a tier has access to a specific feature
- */
-export function hasFeature(tier: TierKey, feature: FeatureKey): boolean {
-  return Boolean(TIER_FEATURES[tier][feature]);
-}
+export const meetsMinTier = (current: TierKey, min: TierKey) =>
+  TIER_KEYS.indexOf(current) >= TIER_KEYS.indexOf(min);
 
-/**
- * Check if a tier meets or exceeds a minimum tier requirement
- */
-export function meetsMinTier(currentTier: TierKey, minTier: TierKey): boolean {
-  return TIER_ORDER.indexOf(currentTier) >= TIER_ORDER.indexOf(minTier);
-}
+export const hasFeature = (tier: TierKey, feature: FeatureKey) =>
+  Boolean(TIER_FEATURES[tier][feature]);
 
-/**
- * Get the minimum tier required for a feature
- */
-export function getMinTierForFeature(feature: FeatureKey): TierKey {
-  for (const tier of TIER_KEYS) {
-    if (TIER_FEATURES[tier][feature]) {
-      return tier;
-    }
-  }
-  return 'pro'; // Default to highest tier if not found
-}
+export const getMinTierForFeature = (feature: FeatureKey): TierKey =>
+  TIER_KEYS.find(tier => TIER_FEATURES[tier][feature]) ?? 'pro';

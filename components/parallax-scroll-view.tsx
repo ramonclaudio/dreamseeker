@@ -30,7 +30,6 @@ export default function ParallaxScrollView({
   const scrollOffset = useScrollOffset(scrollRef);
   const tint = colorScheme === 'dark' ? 'dark' : 'light';
 
-  // Parallax effect for header image
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -48,7 +47,6 @@ export default function ParallaxScrollView({
     };
   });
 
-  // Blur overlay fades in as user scrolls down
   const blurAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: interpolate(
@@ -71,7 +69,6 @@ export default function ParallaxScrollView({
           headerAnimatedStyle,
         ]}>
         {headerImage}
-        {/* Blur overlay that fades in on scroll - iOS and web only */}
         {Platform.OS !== 'android' && (
           <Animated.View style={[styles.blurOverlay, blurAnimatedStyle]}>
             <BlurView intensity={60} tint={tint} style={StyleSheet.absoluteFill} />
@@ -84,19 +81,7 @@ export default function ParallaxScrollView({
 }
 
 const styles = StyleSheet.create({
-  header: {
-    height: HEADER_HEIGHT,
-    overflow: 'hidden',
-  },
-  blurOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    flex: 1,
-    paddingTop: 32,
-    paddingHorizontal: 32,
-    paddingBottom: 100,
-    gap: 16,
-    overflow: 'hidden',
-  },
+  header: { height: HEADER_HEIGHT, overflow: 'hidden' },
+  blurOverlay: { ...StyleSheet.absoluteFillObject },
+  content: { flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 100, gap: 16, overflow: 'hidden' },
 });

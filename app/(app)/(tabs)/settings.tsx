@@ -14,15 +14,13 @@ import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { useTheme, type ThemeMode } from '@/providers/theme-provider';
 
-type SettingsItemProps = {
+function SettingsItem({ icon, label, onPress, destructive, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
   label: string;
   onPress: () => void;
   destructive?: boolean;
   colors: (typeof Colors)['light'];
-};
-
-function SettingsItem({ icon, label, onPress, destructive, colors }: SettingsItemProps) {
+}) {
   return (
     <Pressable
       style={({ pressed }) => [styles.settingsItem, { opacity: pressed ? 0.7 : 1 }]}
@@ -43,12 +41,7 @@ function SettingsItem({ icon, label, onPress, destructive, colors }: SettingsIte
   );
 }
 
-type SettingsSectionProps = {
-  title?: string;
-  children: React.ReactNode;
-};
-
-function SettingsSection({ title, children }: SettingsSectionProps) {
+function SettingsSection({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
       {title && <ThemedText style={styles.sectionTitle}>{title}</ThemedText>}
@@ -65,14 +58,12 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ];
 
-type ThemePickerProps = {
+function ThemePicker({ mode, onModeChange, colors, colorScheme }: {
   mode: ThemeMode;
   onModeChange: (mode: ThemeMode) => void;
   colors: (typeof Colors)['light'];
   colorScheme: 'light' | 'dark';
-};
-
-function ThemePicker({ mode, onModeChange, colors, colorScheme }: ThemePickerProps) {
+}) {
   const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
   return (
     <View style={styles.themeContainer}>
@@ -109,11 +100,7 @@ function ThemePicker({ mode, onModeChange, colors, colorScheme }: ThemePickerPro
   );
 }
 
-type SubscriptionSectionContentProps = {
-  colors: (typeof Colors)['light'];
-};
-
-function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps) {
+function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light'] }) {
   const {
     tier,
     tierName,
@@ -158,7 +145,6 @@ function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps)
     );
   }
 
-  // Active subscription
   if (isActive) {
     const periodEnd = subscription?.currentPeriodEnd
       ? new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()
@@ -227,7 +213,6 @@ function SubscriptionSectionContent({ colors }: SubscriptionSectionContentProps)
     );
   }
 
-  // No subscription - show upgrade button
   const usageText = taskLimit !== null
     ? `${taskCount}/${taskLimit} tasks used`
     : `${taskCount} tasks`;
@@ -271,7 +256,6 @@ export default function SettingsScreen() {
     setIsDeleting(true);
     try {
       await deleteAccount();
-      // Sign out to clear local auth state
       await authClient.signOut();
     } catch (error) {
       setIsDeleting(false);
@@ -354,130 +338,31 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 100,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginLeft: 4,
-    opacity: 0.6,
-  },
-  sectionContent: {
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-  },
-  settingsItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  settingsItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  settingsItemLabel: {
-    fontSize: 16,
-  },
-  themeContainer: {
-    padding: 16,
-    gap: 12,
-  },
-  themeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  segmentedControl: {
-    flexDirection: 'row',
-    borderRadius: Radius.md,
-    padding: 3,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: Radius.sm,
-  },
-  segmentSelected: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  segmentText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  deletingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    gap: 12,
-  },
-  deletingText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  subscriptionContainer: {
-    padding: 16,
-    gap: 12,
-  },
-  subscriptionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  subscriptionInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  subscriptionDetail: {
-    fontSize: 14,
-  },
-  subscriptionButton: {
-    paddingVertical: 12,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  subscriptionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  buttonFlex: {
-    flex: 1,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  container: { flex: 1 },
+  contentContainer: { paddingBottom: 100 },
+  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
+  section: { marginTop: 24, paddingHorizontal: 20 },
+  sectionTitle: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6 },
+  sectionContent: { borderRadius: Radius.lg, overflow: 'hidden' },
+  settingsItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  settingsItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  settingsItemLabel: { fontSize: 16 },
+  themeContainer: { padding: 16, gap: 12 },
+  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  segmentedControl: { flexDirection: 'row', borderRadius: Radius.md, padding: 3 },
+  segment: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: Radius.sm },
+  segmentSelected: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  segmentText: { fontSize: 14, fontWeight: '500' },
+  deletingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 12 },
+  deletingText: { fontSize: 16, fontWeight: '500' },
+  subscriptionContainer: { padding: 16, gap: 12 },
+  subscriptionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  subscriptionInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  subscriptionDetail: { fontSize: 14 },
+  subscriptionButton: { paddingVertical: 12, borderRadius: Radius.md, alignItems: 'center', marginTop: 4 },
+  subscriptionButtonText: { fontSize: 16, fontWeight: '600' },
+  buttonRow: { flexDirection: 'row', gap: 8 },
+  buttonFlex: { flex: 1 },
+  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm },
+  badgeText: { fontSize: 12, fontWeight: '600' },
 });

@@ -7,13 +7,9 @@ import { resend } from './email';
 
 const http = httpRouter();
 
-// Register Better Auth routes with CORS for web support
 authComponent.registerRoutes(http, createAuth, { cors: true });
-
-// Stripe webhook for payment events (auto-syncs to Convex tables)
 registerStripeRoutes(http, components.stripe);
 
-// Resend webhook for email delivery status
 http.route({
   path: '/resend-webhook',
   method: 'POST',

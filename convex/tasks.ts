@@ -6,52 +6,34 @@ import { components } from './_generated/api';
 import { type TierKey, TIER_LIMITS } from './schema/tiers';
 import { getTierFromPriceId } from './subscriptions';
 
-async function getAuthUserId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
-  const user = await authComponent.safeGetAuthUser(ctx);
-  // Use _id (the auth user's ID), not userId (which requires a separate users table)
-  return user?._id ?? null;
-}
+const getAuthUserId = async (ctx: QueryCtx | MutationCtx) => (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
 
-async function requireAuth(ctx: QueryCtx | MutationCtx): Promise<string> {
+const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
   const userId = await getAuthUserId(ctx);
   if (!userId) throw new Error('Unauthorized');
   return userId;
-}
+};
 
-async function getOwnedTask(ctx: MutationCtx, id: Id<'tasks'>, userId: string) {
+const getOwnedTask = async (ctx: MutationCtx, id: Id<'tasks'>, userId: string) => {
   const task = await ctx.db.get(id);
   if (!task) throw new Error('Task not found');
   if (task.userId !== userId) throw new Error('Forbidden');
   return task;
-}
+};
 
-async function getUserTier(ctx: MutationCtx, userId: string): Promise<TierKey> {
-  const subscriptions = await ctx.runQuery(
-    components.stripe.public.listSubscriptionsByUserId,
-    { userId }
-  );
-
-  const activeSubscription = subscriptions.find(
-    (sub) => sub.status === 'active' || sub.status === 'trialing'
-  );
-
-  return getTierFromPriceId(activeSubscription?.priceId);
-}
+const getUserTier = async (ctx: MutationCtx, userId: string): Promise<TierKey> => {
+  const subscriptions = await ctx.runQuery(components.stripe.public.listSubscriptionsByUserId, { userId });
+  const active = subscriptions.find((sub) => sub.status === 'active' || sub.status === 'trialing');
+  return getTierFromPriceId(active?.priceId);
+};
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    // Use safe auth check - return empty array if not authenticated yet
-    // This prevents errors during the brief window when client thinks it's
-    // authenticated but server session isn't fully synced
+    // Safe auth: return [] if not yet authenticated (prevents race during session sync)
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
-
-    return await ctx.db
-      .query('tasks')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .order('desc')
-      .collect();
+    return await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', userId)).order('desc').collect();
   },
 });
 
@@ -59,28 +41,15 @@ export const create = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
-
-    // Get user's tier and check limit
     const tierKey = await getUserTier(ctx, userId);
     const taskLimit = TIER_LIMITS[tierKey];
 
     if (taskLimit !== null) {
-      const existingTasks = await ctx.db
-        .query('tasks')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .collect();
-
-      if (existingTasks.length >= taskLimit) {
-        throw new Error('LIMIT_REACHED');
-      }
+      const existing = await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', userId)).collect();
+      if (existing.length >= taskLimit) throw new Error('LIMIT_REACHED');
     }
 
-    return await ctx.db.insert('tasks', {
-      userId,
-      text: args.text,
-      isCompleted: false,
-      createdAt: Date.now(),
-    });
+    return await ctx.db.insert('tasks', { userId, text: args.text, isCompleted: false, createdAt: Date.now() });
   },
 });
 
@@ -98,8 +67,7 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
     const task = await ctx.db.get(args.id);
-    // Idempotent: silently succeed if task already deleted
-    if (!task) return;
+    if (!task) return; // Idempotent: already deleted
     if (task.userId !== userId) throw new Error('Forbidden');
     await ctx.db.delete(args.id);
   },

@@ -1,8 +1,3 @@
-/**
- * Email HTML templates for transactional emails
- * Extracted for maintainability and potential future migration to Resend dashboard templates
- */
-
 const baseStyles = {
   container: 'font-family: sans-serif; max-width: 600px; margin: 0 auto;',
   button:
