@@ -4,8 +4,6 @@ import { TierKey, TIER_LIMITS, TIER_NAMES } from './schema/tiers';
 
 export type { TierKey } from './schema/tiers';
 
-// Map Stripe price IDs to tiers
-// Set these in your Convex dashboard environment variables
 const PRICE_TO_TIER: Record<string, TierKey> = {
   [process.env.STRIPE_STARTER_MONTHLY_PRICE_ID ?? '']: 'starter',
   [process.env.STRIPE_STARTER_ANNUAL_PRICE_ID ?? '']: 'starter',
@@ -15,18 +13,9 @@ const PRICE_TO_TIER: Record<string, TierKey> = {
   [process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? '']: 'pro',
 };
 
-export function getTierFromPriceId(priceId: string | undefined): TierKey {
-  if (!priceId) return 'free';
-  return PRICE_TO_TIER[priceId] ?? 'free';
-}
+export const getTierFromPriceId = (priceId: string | undefined): TierKey =>
+  priceId ? (PRICE_TO_TIER[priceId] ?? 'free') : 'free';
 
-// ============================================================================
-// QUERIES
-// ============================================================================
-
-/**
- * Get the user's subscription status including tier and limits
- */
 export const getSubscriptionStatus = query({
   args: {},
   handler: async (ctx) => {
@@ -43,45 +32,28 @@ export const getSubscriptionStatus = query({
       };
     }
 
-    // Get active subscription
-    const subscriptions = await ctx.runQuery(
-      components.stripe.public.listSubscriptionsByUserId,
-      { userId: identity.subject }
-    );
+    const subscriptions = await ctx.runQuery(components.stripe.public.listSubscriptionsByUserId, { userId: identity.subject });
+    const activeSubscription = subscriptions.find((sub) => sub.status === 'active' || sub.status === 'trialing');
 
-    const activeSubscription = subscriptions.find(
-      (sub) => sub.status === 'active' || sub.status === 'trialing'
-    );
-
-    // Determine tier from subscription
     const tierKey = getTierFromPriceId(activeSubscription?.priceId);
     const taskLimit = TIER_LIMITS[tierKey];
 
-    // Count user's tasks
-    const tasks = await ctx.db
-      .query('tasks')
-      .withIndex('by_user', (q) => q.eq('userId', identity.subject))
-      .collect();
-
+    const tasks = await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', identity.subject)).collect();
     const taskCount = tasks.length;
-    const canCreateTask = taskLimit === null || taskCount < taskLimit;
-    const tasksRemaining = taskLimit === null ? null : Math.max(0, taskLimit - taskCount);
 
     return {
       tier: tierKey,
       tierName: TIER_NAMES[tierKey],
       taskLimit,
       taskCount,
-      canCreateTask,
-      tasksRemaining,
-      subscription: activeSubscription
-        ? {
-            id: activeSubscription.stripeSubscriptionId,
-            status: activeSubscription.status,
-            cancelAtPeriodEnd: activeSubscription.cancelAtPeriodEnd,
-            currentPeriodEnd: activeSubscription.currentPeriodEnd,
-          }
-        : null,
+      canCreateTask: taskLimit === null || taskCount < taskLimit,
+      tasksRemaining: taskLimit === null ? null : Math.max(0, taskLimit - taskCount),
+      subscription: activeSubscription ? {
+        id: activeSubscription.stripeSubscriptionId,
+        status: activeSubscription.status,
+        cancelAtPeriodEnd: activeSubscription.cancelAtPeriodEnd,
+        currentPeriodEnd: activeSubscription.currentPeriodEnd,
+      } : null,
     };
   },
 });
