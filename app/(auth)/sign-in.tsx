@@ -38,7 +38,6 @@ export default function SignInScreen() {
 
     setIsLoading(true);
     try {
-      // Detect email vs username by checking for @
       const isEmail = trimmed.includes('@');
       const response = isEmail
         ? await authClient.signIn.email({ email: trimmed, password })

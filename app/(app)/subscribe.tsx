@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Radius } from '@/constants/theme';
-import { PAID_TIERS, TIER_ORDER, TIERS, getPriceId, type TierKey } from '@/constants/subscriptions';
+import { PAID_TIERS, TIER_KEYS, TIERS, getPriceId, type TierKey } from '@/constants/subscriptions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
@@ -58,7 +58,7 @@ export default function SubscribeScreen() {
     }
   };
 
-  const currentTierIndex = TIER_ORDER.indexOf(currentTier);
+  const currentTierIndex = TIER_KEYS.indexOf(currentTier);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -82,7 +82,6 @@ export default function SubscribeScreen() {
           </ThemedText>
         </View>
 
-        {/* Billing Toggle */}
         <View style={[styles.billingToggle, { backgroundColor: colors.muted }]}>
           <Pressable
             style={[
@@ -124,11 +123,10 @@ export default function SubscribeScreen() {
           </Pressable>
         </View>
 
-        {/* Tier Cards */}
         <View style={styles.tiersContainer}>
           {PAID_TIERS.map((tierConfig) => {
             const isSelected = selectedTier === tierConfig.key;
-            const tierIndex = TIER_ORDER.indexOf(tierConfig.key);
+            const tierIndex = TIER_KEYS.indexOf(tierConfig.key);
             const isDowngrade = tierIndex <= currentTierIndex;
             const isCurrent = tierConfig.key === currentTier;
             const pricing = tierConfig.pricing!;
@@ -226,155 +224,37 @@ export default function SubscribeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 20,
-  },
-  heroSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  billingToggle: {
-    flexDirection: 'row',
-    borderRadius: Radius.lg,
-    padding: 4,
-    marginBottom: 20,
-  },
-  billingOption: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  billingOptionSelected: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  billingOptionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  tiersContainer: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  tierCard: {
-    padding: 16,
-    borderRadius: Radius.lg,
-    position: 'relative',
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: -10,
-    right: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
-  },
-  popularText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  tierHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  tierName: {
-    fontSize: 18,
-    fontWeight: '700',
-    lineHeight: 24,
-  },
-  currentBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
-  },
-  currentText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 4,
-  },
-  price: {
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 34,
-  },
-  pricePeriod: {
-    fontSize: 14,
-    marginLeft: 2,
-  },
-  taskLimit: {
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  featuresList: {
-    gap: 8,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  featureText: {
-    fontSize: 14,
-  },
-  subscribeButton: {
-    paddingVertical: 16,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  subscribeButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  restoreButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  restoreText: {
-    fontSize: 14,
-  },
-  footer: {
-    marginTop: 16,
-    paddingHorizontal: 20,
-  },
-  footerText: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingBottom: 8 },
+  closeButton: { padding: 4 },
+  content: { flex: 1 },
+  contentContainer: { paddingHorizontal: 20 },
+  heroSection: { alignItems: 'center', marginBottom: 24 },
+  title: { textAlign: 'center', marginBottom: 8 },
+  subtitle: { textAlign: 'center', fontSize: 16, lineHeight: 22 },
+  billingToggle: { flexDirection: 'row', borderRadius: Radius.lg, padding: 4, marginBottom: 20 },
+  billingOption: { flex: 1, paddingVertical: 12, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  billingOptionSelected: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  billingOptionLabel: { fontSize: 15, fontWeight: '600' },
+  tiersContainer: { gap: 12, marginBottom: 20 },
+  tierCard: { padding: 16, borderRadius: Radius.lg, position: 'relative' },
+  popularBadge: { position: 'absolute', top: -10, right: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.sm },
+  popularText: { fontSize: 11, fontWeight: '600' },
+  tierHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  tierName: { fontSize: 18, fontWeight: '700', lineHeight: 24 },
+  currentBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm },
+  currentText: { fontSize: 11, fontWeight: '600' },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 },
+  price: { fontSize: 28, fontWeight: '700', lineHeight: 34 },
+  pricePeriod: { fontSize: 14, marginLeft: 2 },
+  taskLimit: { fontSize: 14, marginBottom: 12 },
+  featuresList: { gap: 8 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  featureText: { fontSize: 14 },
+  subscribeButton: { paddingVertical: 16, borderRadius: Radius.lg, alignItems: 'center', marginBottom: 12 },
+  subscribeButtonText: { fontSize: 17, fontWeight: '600' },
+  restoreButton: { alignItems: 'center', paddingVertical: 12 },
+  restoreText: { fontSize: 14 },
+  footer: { marginTop: 16, paddingHorizontal: 20 },
+  footerText: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
 });
