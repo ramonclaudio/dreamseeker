@@ -19,20 +19,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { confettiRef } from '@/lib/confetti';
 
-// Initialize Convex client
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-if (!convexUrl) {
-  throw new Error('EXPO_PUBLIC_CONVEX_URL is required');
-}
+if (!convexUrl) throw new Error('EXPO_PUBLIC_CONVEX_URL is required');
 
-const convex = new ConvexReactClient(convexUrl, {
-  // Pause queries until the user is authenticated
-  expectAuth: true,
-  unsavedChangesWarning: false,
-});
+const convex = new ConvexReactClient(convexUrl, { expectAuth: true, unsavedChangesWarning: false });
 
-// Error boundary for root-level errors
-// Uses v4 dark mode colors since errors often occur before theme loads
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
     <View style={errorStyles.container}>
@@ -46,43 +37,16 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 const errorStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#171717', // v4 dark background
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#b91c1c', // v4 dark destructive
-    marginBottom: 12,
-  },
-  message: {
-    fontSize: 14,
-    color: '#a3a3a3', // v4 dark mutedForeground
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  button: {
-    backgroundColor: '#e5e5e5', // v4 dark primary
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#262626', // v4 dark primaryForeground
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#171717', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#b91c1c', marginBottom: 12 },
+  message: { fontSize: 14, color: '#a3a3a3', textAlign: 'center', marginBottom: 24 },
+  button: { backgroundColor: '#e5e5e5', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  buttonText: { color: '#262626', fontWeight: '600' },
 });
 
-// Prevent splash screen from auto-hiding before app is ready
 SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  initialRouteName: '(auth)',
-};
+export const unstable_settings = { initialRouteName: '(auth)' };
 
 export default function RootLayout() {
   return (
@@ -98,20 +62,14 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const colorScheme = useColorScheme();
-
-  // Screen tracking for analytics
   const pathname = usePathname();
   const params = useGlobalSearchParams();
 
   useEffect(() => {
-    if (__DEV__) {
-      console.log('[Screen]', pathname, params);
-    }
+    if (__DEV__) console.log('[Screen]', pathname, params);
   }, [pathname, params]);
 
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+  useEffect(() => { SplashScreen.hideAsync(); }, []);
 
   const { width } = Dimensions.get('window');
 
@@ -124,15 +82,7 @@ function RootNavigator() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
-        <ConfettiCannon
-          ref={confettiRef}
-          count={150}
-          origin={{ x: width / 2, y: -20 }}
-          autoStart={false}
-          fadeOut
-          fallSpeed={3000}
-          explosionSpeed={400}
-        />
+        <ConfettiCannon ref={confettiRef} count={150} origin={{ x: width / 2, y: -20 }} autoStart={false} fadeOut fallSpeed={3000} explosionSpeed={400} />
       </NavigationThemeProvider>
     </KeyboardProvider>
   );
