@@ -36,7 +36,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
       monthly: { amount: '$4.99', priceId: process.env.EXPO_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID ?? '' },
       annual: { amount: '$49.99', priceId: process.env.EXPO_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID ?? '', savings: 'Save 17%' },
     },
-    features: [`${TIER_LIMITS.starter} tasks`, 'Task history', 'Cross-device sync', 'Email support'],
+    features: [`${TIER_LIMITS.starter} tasks`, 'Task history', 'Email support'],
   },
   plus: {
     key: 'plus',
@@ -48,7 +48,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
       monthly: { amount: '$9.99', priceId: process.env.EXPO_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID ?? '' },
       annual: { amount: '$99.99', priceId: process.env.EXPO_PUBLIC_STRIPE_PLUS_ANNUAL_PRICE_ID ?? '', savings: 'Save 17%' },
     },
-    features: [`${TIER_LIMITS.plus} tasks`, 'Everything in Starter', 'Custom themes', 'Data export'],
+    features: [`${TIER_LIMITS.plus} tasks`, 'Everything in Starter', 'Data export'],
     popular: true,
   },
   pro: {
@@ -61,7 +61,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
       monthly: { amount: '$19.99', priceId: process.env.EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '' },
       annual: { amount: '$199.99', priceId: process.env.EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID ?? '', savings: 'Save 17%' },
     },
-    features: ['Unlimited tasks', 'Everything in Plus', 'Priority support', 'Early access to new features'],
+    features: ['Unlimited tasks', 'Everything in Plus', 'Early access to new features'],
   },
 };
 
