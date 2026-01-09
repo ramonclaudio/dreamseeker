@@ -27,6 +27,9 @@ const MAPPING = {
   'star.fill': 'star',
   sparkles: 'auto-awesome',
   gift: 'card-giftcard',
+  'clock.arrow.circlepath': 'history',
+  'paintpalette.fill': 'palette',
+  'square.and.arrow.up': 'ios-share',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

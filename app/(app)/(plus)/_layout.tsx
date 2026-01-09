@@ -1,9 +1,9 @@
 import { Stack } from 'expo-router';
 
-export default function ProLayout() {
+export default function PlusLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="early-access" />
+      <Stack.Screen name="export" />
     </Stack>
   );
 }
