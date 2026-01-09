@@ -1,9 +1,9 @@
 import { Stack } from 'expo-router';
 
-export default function ProLayout() {
+export default function StarterLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="early-access" />
+      <Stack.Screen name="history" />
     </Stack>
   );
 }
