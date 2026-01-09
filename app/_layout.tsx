@@ -1,7 +1,7 @@
 import '../global.css';
 import '@/lib/nativewind-interop';
 
-import { ConvexReactClient } from 'convex/react';
+import { ConvexReactClient, useConvexAuth } from 'convex/react';
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'expo-router';
@@ -64,12 +64,15 @@ function RootNavigator() {
   const colorScheme = useColorScheme();
   const pathname = usePathname();
   const params = useGlobalSearchParams();
+  const { isAuthenticated, isLoading } = useConvexAuth();
 
   useEffect(() => {
     if (__DEV__) console.log('[Screen]', pathname, params);
   }, [pathname, params]);
 
-  useEffect(() => { SplashScreen.hideAsync(); }, []);
+  useEffect(() => {
+    if (!isLoading) SplashScreen.hideAsync();
+  }, [isLoading]);
 
   const { width } = Dimensions.get('window');
 
@@ -77,8 +80,16 @@ function RootNavigator() {
     <KeyboardProvider>
       <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(app)" />
+          {/* Public routes - only when NOT authenticated */}
+          <Stack.Protected guard={!isAuthenticated}>
+            <Stack.Screen name="(auth)" />
+          </Stack.Protected>
+
+          {/* Protected routes - requires authentication */}
+          <Stack.Protected guard={isAuthenticated}>
+            <Stack.Screen name="(app)" />
+          </Stack.Protected>
+
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
