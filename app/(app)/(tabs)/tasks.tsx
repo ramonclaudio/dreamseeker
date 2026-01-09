@@ -9,10 +9,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useQuery, useMutation, useConvexAuth } from 'convex/react';
+import { router } from 'expo-router';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { GlassCard } from '@/components/ui/glass-card';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -73,7 +75,7 @@ export default function TasksScreen() {
   const colors = Colors[colorScheme];
   const [newTaskText, setNewTaskText] = useState('');
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const { canCreateTask, showUpgrade } = useSubscription();
+  const { canCreateTask, canAccess, showUpgrade } = useSubscription();
 
   const tasks = useQuery(api.tasks.list, isAuthenticated ? {} : 'skip');
   const createTask = useMutation(api.tasks.create);
@@ -123,10 +125,22 @@ export default function TasksScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Tasks</Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-        </Text>
+        <View style={styles.headerContent}>
+          <Text style={[styles.title, { color: colors.foreground }]}>Tasks</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+            {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+          </Text>
+        </View>
+        {canAccess('starter') && (
+          <Pressable
+            onPress={() => {
+              haptics.light();
+              router.push('/history');
+            }}
+            style={({ pressed }) => [styles.historyButton, { opacity: pressed ? 0.7 : 1 }]}>
+            <IconSymbol name="clock.arrow.circlepath" size={24} color={colors.mutedForeground} />
+          </Pressable>
+        )}
       </View>
 
       <UpgradeBanner />
@@ -176,7 +190,9 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   contentContainer: { paddingBottom: 100 },
   centered: { justifyContent: 'center', alignItems: 'center' },
-  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16 },
+  header: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16 },
+  headerContent: { flex: 1 },
+  historyButton: { padding: 8, marginBottom: 4 },
   title: { fontSize: 34, fontWeight: 'bold' },
   subtitle: { fontSize: 14, marginTop: 4 },
   inputContainer: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16 },
