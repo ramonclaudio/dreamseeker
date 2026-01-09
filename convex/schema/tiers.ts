@@ -23,10 +23,10 @@ export const NEXT_TIER: Record<TierKey, TierKey | null> = {
 };
 
 export const TIER_FEATURES = {
-  free: { tasks: 10, history: false, sync: false, customThemes: false, dataExport: false, prioritySupport: false, earlyAccess: false },
-  starter: { tasks: 50, history: true, sync: true, customThemes: false, dataExport: false, prioritySupport: false, earlyAccess: false },
-  plus: { tasks: 200, history: true, sync: true, customThemes: true, dataExport: true, prioritySupport: false, earlyAccess: false },
-  pro: { tasks: Infinity, history: true, sync: true, customThemes: true, dataExport: true, prioritySupport: true, earlyAccess: true },
+  free: { tasks: 10, history: false, dataExport: false, earlyAccess: false },
+  starter: { tasks: 50, history: true, dataExport: false, earlyAccess: false },
+  plus: { tasks: 200, history: true, dataExport: true, earlyAccess: false },
+  pro: { tasks: Infinity, history: true, dataExport: true, earlyAccess: true },
 } as const;
 
 export type TierFeatures = (typeof TIER_FEATURES)[TierKey];
