@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useMutation } from 'convex/react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/convex/_generated/api';
 import { ThemedText } from '@/components/themed-text';

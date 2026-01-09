@@ -36,6 +36,16 @@ export const list = query({
   },
 });
 
+export const listCompleted = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+    const tasks = await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', userId)).order('desc').collect();
+    return tasks.filter((task) => task.isCompleted);
+  },
+});
+
 export const create = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
