@@ -4,12 +4,11 @@ import {
   Text,
   TextInput,
   Pressable,
-  FlatList,
+  ScrollView,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useQuery, useMutation } from 'convex/react';
-import { useConvexAuth } from 'convex/react';
+import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -120,7 +119,9 @@ export default function TasksScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.foreground }]}>Tasks</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
@@ -148,32 +149,32 @@ export default function TasksScreen() {
         </Pressable>
       </GlassCard>
 
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <TaskItem
-            task={item}
-            colorScheme={colorScheme}
-            onToggle={() => handleToggleTask(item._id)}
-            onDelete={() => handleDeleteTask(item._id)}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
+      <View style={styles.taskList}>
+        {tasks.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
               No tasks yet. Add one above!
             </Text>
           </View>
-        }
-      />
-    </View>
+        ) : (
+          tasks.map((task) => (
+            <TaskItem
+              key={task._id}
+              task={task}
+              colorScheme={colorScheme}
+              onToggle={() => handleToggleTask(task._id)}
+              onDelete={() => handleDeleteTask(task._id)}
+            />
+          ))
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  contentContainer: { paddingBottom: 100 },
   centered: { justifyContent: 'center', alignItems: 'center' },
   header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16 },
   title: { fontSize: 34, fontWeight: 'bold' },
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16 },
   addButton: { paddingHorizontal: 20, justifyContent: 'center', borderRadius: Radius.md, margin: 4 },
   addButtonText: { fontWeight: '600', fontSize: 14 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  taskList: { paddingHorizontal: 20 },
   taskItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, marginBottom: 8 },
   taskContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   checkbox: { width: 24, height: 24, borderRadius: Radius.sm, borderWidth: 2, marginRight: 12, justifyContent: 'center', alignItems: 'center' },
