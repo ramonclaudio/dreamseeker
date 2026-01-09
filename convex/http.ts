@@ -13,9 +13,7 @@ registerStripeRoutes(http, components.stripe);
 http.route({
   path: '/resend-webhook',
   method: 'POST',
-  handler: httpAction(async (ctx, req) => {
-    return await resend.handleResendEventWebhook(ctx, req);
-  }),
+  handler: httpAction((ctx, req) => resend.handleResendEventWebhook(ctx, req)),
 });
 
 export default http;

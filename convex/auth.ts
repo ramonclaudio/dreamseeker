@@ -10,118 +10,73 @@ import { query } from './_generated/server';
 import authConfig from './auth.config';
 import { sendEmailVerification, sendResetPassword } from './email';
 
-// The component client has methods needed for integrating Convex with Better Auth,
-// as well as helper methods for general use.
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
-// Site URL for web support (set in Convex dashboard)
 const siteUrl = process.env.SITE_URL;
-
 const ONE_MINUTE = 60;
 const ONE_HOUR = 60 * 60;
 const ONE_DAY = ONE_HOUR * 24;
 const SEVEN_DAYS = ONE_DAY * 7;
 
-export const createAuth = (ctx: GenericCtx<DataModel>) => {
-  return betterAuth({
-    trustedOrigins: [
-      'expostarterapp://',
-      'exp://',
-      'http://localhost:8081',
-      ...(siteUrl ? [siteUrl] : []),
-    ],
-    database: authComponent.adapter(ctx),
-    user: {
-      changeEmail: {
-        enabled: true,
-        // Update email immediately without verification for starter app simplicity
-        // In production, set to false and implement proper verification flow
-        updateEmailWithoutVerification: true,
-      },
+export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
+  trustedOrigins: ['expostarterapp://', 'exp://', 'http://localhost:8081', ...(siteUrl ? [siteUrl] : [])],
+  database: authComponent.adapter(ctx),
+  user: { changeEmail: { enabled: true, updateEmailWithoutVerification: true } },
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
+    resetPasswordTokenExpiresIn: ONE_HOUR,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendResetPassword(requireActionCtx(ctx), { to: user.email, url });
     },
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: false,
-      // Password requirements: 8-128 characters (Better Auth default)
-      minPasswordLength: 8,
-      maxPasswordLength: 128,
-      // Token expires in 1 hour (3600 seconds)
-      resetPasswordTokenExpiresIn: ONE_HOUR,
-      // Revoke all sessions when password is reset via email link (security best practice)
-      revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) => {
-        await sendResetPassword(requireActionCtx(ctx), {
-          to: user.email,
-          url,
-        });
-      },
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendEmailVerification(requireActionCtx(ctx), { to: user.email, url });
     },
-    emailVerification: {
-      sendVerificationEmail: async ({ user, url }) => {
-        await sendEmailVerification(requireActionCtx(ctx), {
-          to: user.email,
-          url,
-        });
-      },
-      sendOnSignUp: false,
-      autoSignInAfterVerification: true,
+    sendOnSignUp: false,
+    autoSignInAfterVerification: true,
+  },
+  session: { expiresIn: SEVEN_DAYS, updateAge: ONE_DAY, cookieCache: { enabled: true, maxAge: ONE_MINUTE * 5 } },
+  rateLimit: {
+    enabled: true,
+    window: ONE_MINUTE,
+    max: 10,
+    customRules: {
+      '/sign-in/email': { window: ONE_MINUTE * 15, max: 5 },
+      '/sign-in/username': { window: ONE_MINUTE * 15, max: 5 },
+      '/sign-up/email': { window: ONE_HOUR, max: 3 },
+      '/forgot-password': { window: ONE_HOUR, max: 3 },
+      '/reset-password': { window: ONE_MINUTE * 15, max: 5 },
+      '/change-password': { window: ONE_MINUTE * 15, max: 5 },
     },
-    session: {
-      expiresIn: SEVEN_DAYS,
-      updateAge: ONE_DAY,
-      cookieCache: {
-        enabled: true,
-        maxAge: ONE_MINUTE * 5,
-      },
-    },
-    rateLimit: {
-      enabled: true,
-      window: ONE_MINUTE,
-      max: 10,
-      customRules: {
-        '/sign-in/email': { window: ONE_MINUTE * 15, max: 5 },
-        '/sign-in/username': { window: ONE_MINUTE * 15, max: 5 },
-        '/sign-up/email': { window: ONE_HOUR, max: 3 },
-        '/forgot-password': { window: ONE_HOUR, max: 3 },
-        '/reset-password': { window: ONE_MINUTE * 15, max: 5 },
-        '/change-password': { window: ONE_MINUTE * 15, max: 5 },
-      },
-    },
-    plugins: [
-      expo(),
-      username({
-        minUsernameLength: 3,
-        maxUsernameLength: 20,
-      }),
-      convex({ authConfig }),
-      ...(siteUrl ? [crossDomain({ siteUrl })] : []),
-    ],
-  } satisfies BetterAuthOptions);
-};
+  },
+  plugins: [
+    expo(),
+    username({ minUsernameLength: 3, maxUsernameLength: 20 }),
+    convex({ authConfig }),
+    ...(siteUrl ? [crossDomain({ siteUrl })] : []),
+  ],
+} satisfies BetterAuthOptions);
 
-// Get the current authenticated user (returns null if unauthenticated)
-// Resolves storage IDs to signed URLs for avatar images
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx);
     if (!user) return null;
 
-    // Check if image is a Convex storage ID (no slashes or http)
-    // Storage IDs are alphanumeric strings like "kg2cvh2rkja8gxvestcdeaze517yhpxz"
-    const isStorageId =
-      user.image && !user.image.includes('/') && !user.image.startsWith('http');
-
+    const isStorageId = user.image && !user.image.includes('/') && !user.image.startsWith('http');
     if (isStorageId) {
       try {
         const imageUrl = await ctx.storage.getUrl(user.image as Id<'_storage'>);
         return { ...user, image: imageUrl, imageStorageId: user.image };
       } catch {
-        // Invalid storage ID, return user without image
         return { ...user, image: null, imageStorageId: null };
       }
     }
-
     return { ...user, imageStorageId: null };
   },
 });
