@@ -30,7 +30,6 @@ const getUserTier = async (ctx: MutationCtx, userId: string): Promise<TierKey> =
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    // Safe auth: return [] if not yet authenticated (prevents race during session sync)
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
     return await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', userId)).order('desc').collect();
