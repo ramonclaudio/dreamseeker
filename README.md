@@ -92,9 +92,9 @@ The app uses a 4-tier freemium model. Configure in `convex/schema/tiers.ts`:
 | Tier | Task Limit | Features |
 |------|------------|----------|
 | Free | 10 | Basic task management |
-| Starter | 50 | + History, sync, email support |
-| Plus | 200 | + Custom themes, data export |
-| Pro | Unlimited | + Priority support, early access |
+| Starter | 50 | + History, email support |
+| Plus | 200 | + Data export |
+| Pro | Unlimited | + Early access |
 
 ### Feature Flags
 
@@ -103,10 +103,10 @@ Each tier has feature flags defined in `TIER_FEATURES`:
 ```typescript
 // convex/schema/tiers.ts
 export const TIER_FEATURES = {
-  free: { tasks: 10, history: false, customThemes: false, ... },
-  starter: { tasks: 50, history: true, sync: true, ... },
-  plus: { tasks: 200, customThemes: true, dataExport: true, ... },
-  pro: { tasks: Infinity, prioritySupport: true, earlyAccess: true, ... },
+  free: { tasks: 10, history: false, dataExport: false, ... },
+  starter: { tasks: 50, history: true, ... },
+  plus: { tasks: 200, dataExport: true, ... },
+  pro: { tasks: Infinity, earlyAccess: true, ... },
 };
 ```
 
@@ -210,8 +210,8 @@ function MyComponent() {
   }
 
   // Access feature flags directly
-  if (features.customThemes) {
-    // Show theme customization
+  if (features.dataExport) {
+    // Show data export option
   }
 }
 ```
@@ -292,7 +292,6 @@ function SettingsScreen() {
     <View>
       <BasicSettings />
       {canAccess('starter') && <HistorySettings />}
-      {hasFeature('customThemes') && <ThemeSettings />}
       {features.dataExport && <ExportSettings />}
     </View>
   );
