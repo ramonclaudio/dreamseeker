@@ -15,7 +15,7 @@ const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
 };
 
 const getOwnedTask = async (ctx: MutationCtx, id: Id<'tasks'>, userId: string) => {
-  const task = await ctx.db.get(id);
+  const task = await ctx.db.get("tasks", id);
   if (!task) throw new Error('Task not found');
   if (task.userId !== userId) throw new Error('Forbidden');
   return task;
@@ -67,7 +67,7 @@ export const toggle = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
     const task = await getOwnedTask(ctx, args.id, userId);
-    await ctx.db.patch(args.id, { isCompleted: !task.isCompleted });
+    await ctx.db.patch("tasks", args.id, { isCompleted: !task.isCompleted });
   },
 });
 
@@ -75,9 +75,9 @@ export const remove = mutation({
   args: { id: v.id('tasks') },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
-    const task = await ctx.db.get(args.id);
+    const task = await ctx.db.get("tasks", args.id);
     if (!task) return; // Idempotent: already deleted
     if (task.userId !== userId) throw new Error('Forbidden');
-    await ctx.db.delete(args.id);
+    await ctx.db.delete("tasks", args.id);
   },
 });
