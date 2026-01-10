@@ -1,0 +1,44 @@
+diff --git a/node_modules/convex/dist/cjs/browser/sync/web_socket_manager.js b/node_modules/convex/dist/cjs/browser/sync/web_socket_manager.js
+index 186a8da..887400d 100644
+--- a/node_modules/convex/dist/cjs/browser/sync/web_socket_manager.js
++++ b/node_modules/convex/dist/cjs/browser/sync/web_socket_manager.js
+@@ -130,7 +130,7 @@ class WebSocketManager {
+     this.markConnectionStateDirty();
+   }
+   setupNetworkListener() {
+-    if (typeof window === "undefined") {
++    if (typeof window === "undefined" || typeof window.addEventListener !== "function") {
+       return;
+     }
+     if (this.networkOnlineHandler !== null) {
+@@ -144,7 +144,7 @@ class WebSocketManager {
+     this._logVerbose("network online event listener registered");
+   }
+   cleanupNetworkListener() {
+-    if (this.networkOnlineHandler && typeof window !== "undefined") {
++    if (this.networkOnlineHandler && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+       window.removeEventListener("online", this.networkOnlineHandler);
+       this.networkOnlineHandler = null;
+       this._logVerbose("network online event listener removed");
+diff --git a/node_modules/convex/dist/esm/browser/sync/web_socket_manager.js b/node_modules/convex/dist/esm/browser/sync/web_socket_manager.js
+index 28b6926..7d3c09f 100644
+--- a/node_modules/convex/dist/esm/browser/sync/web_socket_manager.js
++++ b/node_modules/convex/dist/esm/browser/sync/web_socket_manager.js
+@@ -112,7 +112,7 @@ export class WebSocketManager {
+     this.markConnectionStateDirty();
+   }
+   setupNetworkListener() {
+-    if (typeof window === "undefined") {
++    if (typeof window === "undefined" || typeof window.addEventListener !== "function") {
+       return;
+     }
+     if (this.networkOnlineHandler !== null) {
+@@ -126,7 +126,7 @@ export class WebSocketManager {
+     this._logVerbose("network online event listener registered");
+   }
+   cleanupNetworkListener() {
+-    if (this.networkOnlineHandler && typeof window !== "undefined") {
++    if (this.networkOnlineHandler && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+       window.removeEventListener("online", this.networkOnlineHandler);
+       this.networkOnlineHandler = null;
+       this._logVerbose("network online event listener removed");
