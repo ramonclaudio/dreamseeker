@@ -1,11 +1,21 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { Platform } from 'react-native';
+import { Platform, AppState, type AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import * as Application from 'expo-application';
 import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
 import { useMutation } from 'convex/react';
 import { useConvexAuth } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+
+const DEVICE_ID_KEY = 'push_device_id';
+
+let initialNotificationResponse: Notifications.NotificationResponse | null = null;
+const lastResponsePromise = Notifications.getLastNotificationResponseAsync().then((response) => {
+  initialNotificationResponse = response;
+  return response;
+});
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -15,6 +25,21 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
+
+async function getOrCreateDeviceId(): Promise<string> {
+  const stored = await SecureStore.getItemAsync(DEVICE_ID_KEY);
+  if (stored) return stored;
+
+  let deviceId: string;
+  if (Platform.OS === 'ios') {
+    deviceId = (await Application.getIosIdForVendorAsync()) ?? crypto.randomUUID();
+  } else {
+    deviceId = Application.getAndroidId() ?? crypto.randomUUID();
+  }
+
+  await SecureStore.setItemAsync(DEVICE_ID_KEY, deviceId);
+  return deviceId;
+}
 
 async function registerForPushNotificationsAsync(): Promise<string | null> {
   if (!Device.isDevice) {
@@ -31,11 +56,30 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     });
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+  const permissionResponse = await Notifications.getPermissionsAsync();
+  let finalStatus = permissionResponse.status;
 
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
+  // Check iOS-specific status for granular permission handling
+  if (Platform.OS === 'ios' && permissionResponse.ios) {
+    const iosStatus = permissionResponse.ios.status;
+    if (iosStatus === Notifications.IosAuthorizationStatus.DENIED) {
+      if (__DEV__) console.log('[Push] iOS permission denied');
+      return null;
+    }
+    if (iosStatus === Notifications.IosAuthorizationStatus.PROVISIONAL) {
+      if (__DEV__) console.log('[Push] iOS provisional permission - notifications will be silent');
+    }
+  }
+
+  if (finalStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync({
+      ios: {
+        allowAlert: true,
+        allowBadge: true,
+        allowSound: true,
+        allowProvisional: false, // Request full permissions, not provisional
+      },
+    });
     finalStatus = status;
   }
 
@@ -63,54 +107,150 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
 export function usePushNotifications() {
   const { isAuthenticated } = useConvexAuth();
   const savePushToken = useMutation(api.notifications.savePushToken);
-  const tokenSavedRef = useRef(false);
+  const removePushToken = useMutation(api.notifications.removePushToken);
+  const lastTokenRef = useRef<string | null>(null);
+  const registrationInProgress = useRef(false);
 
   const register = useCallback(async () => {
-    if (tokenSavedRef.current) return;
+    if (registrationInProgress.current) return;
+    registrationInProgress.current = true;
 
-    const token = await registerForPushNotificationsAsync();
-    if (!token) return;
+    try {
+      const token = await registerForPushNotificationsAsync();
+      if (!token) return;
 
-    const platform = Platform.OS as 'ios' | 'android';
-    await savePushToken({ token, platform });
-    tokenSavedRef.current = true;
+      if (token !== lastTokenRef.current) {
+        const platform = Platform.OS as 'ios' | 'android';
+        const deviceId = await getOrCreateDeviceId();
+        await savePushToken({ token, platform, deviceId });
+        lastTokenRef.current = token;
+        if (__DEV__) console.log('[Push] Token saved');
+      }
+    } finally {
+      registrationInProgress.current = false;
+    }
   }, [savePushToken]);
 
+  const unregister = useCallback(async () => {
+    if (lastTokenRef.current) {
+      await removePushToken({ token: lastTokenRef.current });
+      lastTokenRef.current = null;
+    }
+  }, [removePushToken]);
+
   useEffect(() => {
-    if (isAuthenticated && !tokenSavedRef.current) {
+    if (isAuthenticated) {
       register();
     }
   }, [isAuthenticated, register]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      tokenSavedRef.current = false;
+    if (!isAuthenticated && lastTokenRef.current) {
+      lastTokenRef.current = null;
     }
   }, [isAuthenticated]);
 
-  return { register };
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleAppStateChange = (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        register();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [isAuthenticated, register]);
+
+  return { register, unregister };
 }
 
 export function useNotificationListeners(
   onNotification?: (notification: Notifications.Notification) => void,
   onResponse?: (response: Notifications.NotificationResponse) => void
 ) {
+  const onNotificationRef = useRef(onNotification);
+  const onResponseRef = useRef(onResponse);
+  const initialHandled = useRef(false);
+
+  useEffect(() => {
+    onNotificationRef.current = onNotification;
+    onResponseRef.current = onResponse;
+  });
+
+  // Handle initial notification response captured at module level
+  useEffect(() => {
+    if (initialHandled.current) return;
+    initialHandled.current = true;
+
+    lastResponsePromise.then((response) => {
+      if (response && onResponseRef.current) {
+        onResponseRef.current(response);
+      }
+    });
+  }, []);
+
   useEffect(() => {
     const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
       if (__DEV__) console.log('[Push] Received:', notification.request.content);
-      onNotification?.(notification);
+      onNotificationRef.current?.(notification);
     });
 
     const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       if (__DEV__) console.log('[Push] Response:', response.notification.request.content.data);
-      onResponse?.(response);
+      onResponseRef.current?.(response);
     });
 
     return () => {
       notificationListener.remove();
       responseListener.remove();
     };
-  }, [onNotification, onResponse]);
+  }, []);
+}
+
+export async function getInitialNotificationResponse(): Promise<Notifications.NotificationResponse | null> {
+  await lastResponsePromise;
+  return initialNotificationResponse;
+}
+
+export async function clearBadge(): Promise<void> {
+  await Notifications.setBadgeCountAsync(0);
+}
+
+export async function getBadgeCount(): Promise<number> {
+  return Notifications.getBadgeCountAsync();
+}
+
+export async function setBadgeCount(count: number): Promise<void> {
+  await Notifications.setBadgeCountAsync(count);
+}
+
+export async function scheduleLocalNotification(
+  title: string,
+  body: string,
+  data?: Record<string, unknown>,
+  delaySeconds = 0
+): Promise<string> {
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      data,
+      sound: 'default',
+    },
+    trigger: delaySeconds > 0
+      ? { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: delaySeconds }
+      : null,
+  });
+}
+
+export async function cancelAllNotifications(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+export async function dismissAllNotifications(): Promise<void> {
+  await Notifications.dismissAllNotificationsAsync();
 }
 
 export { Notifications };
