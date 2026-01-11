@@ -115,7 +115,6 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
     showUpgrade,
     manageBilling,
     restore,
-    canAccess,
   } = useSubscription();
 
   const handleUpgrade = () => {
