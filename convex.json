@@ -1,6 +1,6 @@
 {
-  "typescriptCompiler": "tsgo",
   "bundler": {
     "includeSourcesContent": false
-  }
+  },
+  "typescriptCompiler": "tsgo"
 }

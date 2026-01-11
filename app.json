@@ -86,6 +86,13 @@
         }
       ],
       "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#3b82f6",
+          "defaultChannel": "default"
+        }
+      ],
       "./plugins/with-auto-signing"
     ],
     "experiments": {

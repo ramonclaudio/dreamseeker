@@ -17,6 +17,12 @@ export const deleteAccount = mutation({
       .collect();
     for (const task of tasks) await ctx.db.delete("tasks", task._id);
 
+    const pushTokens = await ctx.db
+      .query('pushTokens')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+    for (const token of pushTokens) await ctx.db.delete("pushTokens", token._id);
+
     if (user.image && !user.image.includes('/') && !user.image.startsWith('http')) {
       try { await ctx.storage.delete(user.image as Id<'_storage'>); } catch {}
     }
