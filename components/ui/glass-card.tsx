@@ -6,6 +6,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 let _glassModule: typeof import('expo-glass-effect') | null = null;
 function getGlassModule() {
   if (_glassModule === null && Platform.OS === 'ios') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     try { _glassModule = require('expo-glass-effect'); } catch { _glassModule = null; }
   }
   return _glassModule;
