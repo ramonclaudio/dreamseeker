@@ -8,7 +8,7 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router }
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, AppState } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -19,7 +19,7 @@ import { StripeProvider } from '@/providers/stripe-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { confettiRef } from '@/lib/confetti';
-import { usePushNotifications, useNotificationListeners } from '@/hooks/use-push-notifications';
+import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 if (!convexUrl) throw new Error('EXPO_PUBLIC_CONVEX_URL is required');
@@ -70,9 +70,11 @@ function useNotificationDeepLink() {
     }
   }, []);
 
+  // Handle initial response captured at module level (before React mount)
   useEffect(() => {
-    const lastResponse = Notifications.getLastNotificationResponse();
-    if (lastResponse) handleNotificationResponse(lastResponse);
+    getInitialNotificationResponse().then((response) => {
+      if (response) handleNotificationResponse(response);
+    });
   }, [handleNotificationResponse]);
 
   useNotificationListeners(undefined, handleNotificationResponse);
@@ -86,6 +88,14 @@ function RootNavigator() {
 
   usePushNotifications();
   useNotificationDeepLink();
+
+  useEffect(() => {
+    clearBadge();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') clearBadge();
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (__DEV__) console.log('[Screen]', pathname, params);
