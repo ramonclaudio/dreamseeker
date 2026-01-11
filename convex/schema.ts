@@ -10,4 +10,14 @@ export default defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_user_completed', ['userId', 'isCompleted']),
+
+  pushTokens: defineTable({
+    userId: v.string(),
+    token: v.string(),
+    platform: v.union(v.literal('ios'), v.literal('android')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_token', ['token']),
 });

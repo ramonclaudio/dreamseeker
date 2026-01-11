@@ -4,20 +4,22 @@ import '@/lib/nativewind-interop';
 import { ConvexReactClient, useConvexAuth } from 'convex/react';
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
-import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps } from 'expo-router';
+import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import * as Notifications from 'expo-notifications';
 
 import { authClient } from '@/lib/auth-client';
 import { StripeProvider } from '@/providers/stripe-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { confettiRef } from '@/lib/confetti';
+import { usePushNotifications, useNotificationListeners } from '@/hooks/use-push-notifications';
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 if (!convexUrl) throw new Error('EXPO_PUBLIC_CONVEX_URL is required');
@@ -60,11 +62,30 @@ export default function RootLayout() {
   );
 }
 
+function useNotificationDeepLink() {
+  const handleNotificationResponse = useCallback((response: Notifications.NotificationResponse) => {
+    const url = response.notification.request.content.data?.url;
+    if (typeof url === 'string') {
+      router.push(url as any);
+    }
+  }, []);
+
+  useEffect(() => {
+    const lastResponse = Notifications.getLastNotificationResponse();
+    if (lastResponse) handleNotificationResponse(lastResponse);
+  }, [handleNotificationResponse]);
+
+  useNotificationListeners(undefined, handleNotificationResponse);
+}
+
 function RootNavigator() {
   const colorScheme = useColorScheme();
   const pathname = usePathname();
   const params = useGlobalSearchParams();
   const { isAuthenticated, isLoading } = useConvexAuth();
+
+  usePushNotifications();
+  useNotificationDeepLink();
 
   useEffect(() => {
     if (__DEV__) console.log('[Screen]', pathname, params);
