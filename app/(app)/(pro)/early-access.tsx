@@ -29,7 +29,7 @@ export default function EarlyAccessScreen() {
           </View>
           <ThemedText style={[styles.title, { color: colors.foreground }]}>Early Access Features</ThemedText>
           <ThemedText style={[styles.description, { color: colors.mutedForeground }]}>
-            As a Pro subscriber, you get early access to new features before they're released to everyone.
+            As a Pro subscriber, you get early access to new features before they&apos;re released to everyone.
           </ThemedText>
         </GlassCard>
 
