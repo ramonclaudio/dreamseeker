@@ -13,12 +13,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Radius, Typography } from '@/constants/theme';
-import { PAID_TIERS, TIER_KEYS, TIERS, getPriceId, type TierKey } from '@/constants/subscriptions';
+import { PAID_TIERS, TIER_KEYS, TIERS, getPriceId, type TierKey, type BillingPeriod } from '@/constants/subscriptions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
-
-type BillingPeriod = 'monthly' | 'annual';
 
 export default function SubscribeScreen() {
   const router = useRouter();
@@ -179,7 +177,7 @@ export default function SubscribeScreen() {
                 </View>
 
                 <Text style={[styles.taskLimit, { color: colors.mutedForeground }]}>
-                  {tierConfig.taskLimitLabel}
+                  {tierConfig.limitLabel}
                 </Text>
 
                 <View style={styles.featuresList}>

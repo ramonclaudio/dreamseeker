@@ -12,11 +12,10 @@ import { Link, router } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
+import { env } from '@/lib/env';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
-
-const siteUrl = process.env.EXPO_PUBLIC_SITE_URL;
 
 export default function ForgotPasswordScreen() {
   const colorScheme = useColorScheme();
@@ -41,7 +40,7 @@ export default function ForgotPasswordScreen() {
     try {
       const response = await authClient.requestPasswordReset({
         email: email.trim(),
-        redirectTo: `${siteUrl}/reset-password`,
+        redirectTo: `${env.siteUrl}/reset-password`,
       });
 
       if (response.error) {

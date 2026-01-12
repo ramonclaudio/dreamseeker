@@ -104,8 +104,8 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
 
         <View style={styles.modalContent}>
           {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+            <View style={[styles.errorContainer, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
+              <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
             </View>
           )}
 
@@ -221,14 +221,14 @@ function ChangePasswordModal({
 
         <ScrollView style={styles.modalContent} keyboardShouldPersistTaps="handled">
           {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+            <View style={[styles.errorContainer, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
+              <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
             </View>
           )}
 
           {success && (
-            <View style={styles.successContainer}>
-              <Text style={styles.successText}>Password changed successfully!</Text>
+            <View style={[styles.successContainer, { backgroundColor: `${colors.success}15`, borderColor: colors.success }]}>
+              <Text style={[styles.successText, { color: colors.success }]}>Password changed successfully!</Text>
             </View>
           )}
 
@@ -529,10 +529,10 @@ const styles = StyleSheet.create({
   inputGroup: { marginBottom: 20 },
   inputLabel: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
   input: { borderRadius: Radius.md, padding: 16, fontSize: 16 },
-  errorContainer: { backgroundColor: 'rgba(220, 38, 38, 0.1)', borderWidth: 1, borderColor: '#dc2626', borderRadius: Radius.md, padding: 12, marginBottom: 16 },
-  errorText: { color: '#dc2626', fontSize: 14, textAlign: 'center' },
-  successContainer: { backgroundColor: 'rgba(22, 163, 74, 0.1)', borderWidth: 1, borderColor: '#16a34a', borderRadius: Radius.md, padding: 12, marginBottom: 16 },
-  successText: { color: '#16a34a', fontSize: 14, textAlign: 'center' },
+  errorContainer: { borderWidth: 1, borderRadius: Radius.md, padding: 12, marginBottom: 16 },
+  errorText: { fontSize: 14, textAlign: 'center' },
+  successContainer: { borderWidth: 1, borderRadius: Radius.md, padding: 12, marginBottom: 16 },
+  successText: { fontSize: 14, textAlign: 'center' },
   button: { borderRadius: Radius.md, padding: 16, alignItems: 'center', marginTop: 8 },
   buttonText: { fontSize: 14, fontWeight: '500' },
   hint: { fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18 },
