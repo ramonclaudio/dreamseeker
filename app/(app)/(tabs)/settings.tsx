@@ -1,18 +1,15 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View, Text } from 'react-native';
 import { useMutation } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, Radius, Typography } from '@/constants/theme';
+import { useColorScheme, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useTheme, type ThemeMode } from '@/providers/theme-provider';
 
 function SettingsItem({ icon, label, onPress, destructive, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -31,20 +28,19 @@ function SettingsItem({ icon, label, onPress, destructive, colors }: {
           size={22}
           color={destructive ? colors.destructive : colors.mutedForeground}
         />
-        <ThemedText
-          style={[styles.settingsItemLabel, destructive && { color: colors.destructive }]}>
+        <Text style={[styles.settingsItemLabel, { color: destructive ? colors.destructive : colors.text }]}>
           {label}
-        </ThemedText>
+        </Text>
       </View>
       <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
     </Pressable>
   );
 }
 
-function SettingsSection({ title, children }: { title?: string; children: React.ReactNode }) {
+function SettingsSection({ title, children, colors }: { title?: string; children: React.ReactNode; colors: (typeof Colors)['light'] }) {
   return (
     <View style={styles.section}>
-      {title && <ThemedText style={styles.sectionTitle}>{title}</ThemedText>}
+      {title && <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>}
       <GlassCard style={styles.sectionContent}>
         {children}
       </GlassCard>
@@ -58,18 +54,18 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ];
 
-function ThemePicker({ mode, onModeChange, colors, colorScheme }: {
+function ThemePicker({ mode, onModeChange, colors }: {
   mode: ThemeMode;
   onModeChange: (mode: ThemeMode) => void;
   colors: (typeof Colors)['light'];
-  colorScheme: 'light' | 'dark';
 }) {
+  const colorScheme = useColorScheme();
   const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
   return (
     <View style={styles.themeContainer}>
       <View style={styles.themeRow}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <ThemedText style={styles.settingsItemLabel}>Theme</ThemedText>
+        <Text style={[styles.settingsItemLabel, { color: colors.text }]}>Theme</Text>
       </View>
       <View style={[styles.segmentedControl, { backgroundColor: colors.muted }]}>
         {THEME_OPTIONS.map((option) => {
@@ -85,13 +81,9 @@ function ThemePicker({ mode, onModeChange, colors, colorScheme }: {
                 haptics.light();
                 onModeChange(option.value);
               }}>
-              <ThemedText
-                style={[
-                  styles.segmentText,
-                  { color: isSelected ? colors.foreground : colors.mutedForeground },
-                ]}>
+              <Text style={[styles.segmentText, { color: isSelected ? colors.foreground : colors.mutedForeground }]}>
                 {option.label}
-              </ThemedText>
+              </Text>
             </Pressable>
           );
         })}
@@ -155,42 +147,42 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
         <View style={styles.subscriptionHeader}>
           <View style={styles.subscriptionInfo}>
             <IconSymbol name="star.fill" size={22} color={colors.primary} />
-            <ThemedText style={styles.settingsItemLabel}>
+            <Text style={[styles.settingsItemLabel, { color: colors.text }]}>
               {isTrialing ? `${tierName} (Trial)` : `${tierName} Plan`}
-            </ThemedText>
+            </Text>
           </View>
           <View style={[styles.badge, { backgroundColor: colors.primary + '20' }]}>
-            <ThemedText style={[styles.badgeText, { color: colors.primary }]}>Active</ThemedText>
+            <Text style={[styles.badgeText, { color: colors.primary }]}>Active</Text>
           </View>
         </View>
 
         {isCanceled ? (
           <>
-            <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+            <Text style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
               Cancels on {periodEnd}
-            </ThemedText>
+            </Text>
             <Pressable
               style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
               onPress={handleRestore}
               disabled={loading}>
-              <ThemedText style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+              <Text style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
                 {loading ? 'Restoring...' : 'Restore Subscription'}
-              </ThemedText>
+              </Text>
             </Pressable>
           </>
         ) : (
           <>
-            <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+            <Text style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
               {isTrialing ? `Trial ends ${periodEnd}` : `Renews ${periodEnd}`}
-            </ThemedText>
+            </Text>
             <View style={styles.buttonRow}>
               {!isPro && (
                 <Pressable
                   style={[styles.subscriptionButton, styles.buttonFlex, { backgroundColor: colors.primary }]}
                   onPress={handleUpgrade}>
-                  <ThemedText style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+                  <Text style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
                     Upgrade
-                  </ThemedText>
+                  </Text>
                 </Pressable>
               )}
               <Pressable
@@ -201,9 +193,9 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
                 ]}
                 onPress={handleManage}
                 disabled={loading}>
-                <ThemedText style={[styles.subscriptionButtonText, { color: colors.foreground }]}>
+                <Text style={[styles.subscriptionButtonText, { color: colors.foreground }]}>
                   {loading ? 'Loading...' : 'Manage'}
-                </ThemedText>
+                </Text>
               </Pressable>
             </View>
           </>
@@ -221,19 +213,19 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
       <View style={styles.subscriptionHeader}>
         <View style={styles.subscriptionInfo}>
           <IconSymbol name="gift" size={22} color={colors.mutedForeground} />
-          <ThemedText style={styles.settingsItemLabel}>{tierName} Plan</ThemedText>
+          <Text style={[styles.settingsItemLabel, { color: colors.text }]}>{tierName} Plan</Text>
         </View>
       </View>
-      <ThemedText style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+      <Text style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
         {usageText} · Upgrade for more features
-      </ThemedText>
+      </Text>
 
       <Pressable
         style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
         onPress={handleUpgrade}>
-        <ThemedText style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+        <Text style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
           Upgrade
-        </ThemedText>
+        </Text>
       </Pressable>
     </View>
   );
@@ -242,7 +234,7 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
-  const { mode, setMode } = useTheme();
+  const { mode, setMode } = useThemeMode();
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteAccount = useMutation(api.users.deleteAccount);
 
@@ -293,19 +285,19 @@ export default function SettingsScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title">Settings</ThemedText>
-      </ThemedView>
+      <View style={styles.header}>
+        <Text style={[Typography.title, { color: colors.text }]}>Settings</Text>
+      </View>
 
-      <SettingsSection title="Theme">
-        <ThemePicker mode={mode} onModeChange={setMode} colors={colors} colorScheme={colorScheme} />
+      <SettingsSection title="Theme" colors={colors}>
+        <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
       </SettingsSection>
 
-      <SettingsSection title="Subscription">
+      <SettingsSection title="Subscription" colors={colors}>
         <SubscriptionSectionContent colors={colors} />
       </SettingsSection>
 
-      <SettingsSection title="Account">
+      <SettingsSection title="Account" colors={colors}>
         <SettingsItem
           icon="rectangle.portrait.and.arrow.right"
           label="Sign Out"
@@ -314,13 +306,13 @@ export default function SettingsScreen() {
         />
       </SettingsSection>
 
-      <SettingsSection title="Danger Zone">
+      <SettingsSection title="Danger Zone" colors={colors}>
         {isDeleting ? (
           <View style={styles.deletingContainer}>
             <ActivityIndicator color={colors.destructive} />
-            <ThemedText style={[styles.deletingText, { color: colors.destructive }]}>
+            <Text style={[styles.deletingText, { color: colors.destructive }]}>
               Deleting account...
-            </ThemedText>
+            </Text>
           </View>
         ) : (
           <SettingsItem

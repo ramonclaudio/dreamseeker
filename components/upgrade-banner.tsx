@@ -1,6 +1,5 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, Text } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Radius } from '@/constants/theme';
 import { NEXT_TIER, TIERS } from '@/constants/subscriptions';
@@ -36,14 +35,14 @@ export function UpgradeBanner() {
     >
       <View style={styles.content}>
         <IconSymbol name="star.fill" size={16} color={colors.primary} />
-        <ThemedText style={[styles.text, { color: colors.primary }]}>
+        <Text style={[styles.text, { color: colors.primary }]}>
           {message}
-        </ThemedText>
+        </Text>
       </View>
       <View style={styles.action}>
-        <ThemedText style={[styles.actionText, { color: colors.primary }]}>
+        <Text style={[styles.actionText, { color: colors.primary }]}>
           Upgrade to {nextTierName}
-        </ThemedText>
+        </Text>
         <IconSymbol name="chevron.right" size={14} color={colors.primary} />
       </View>
     </Pressable>

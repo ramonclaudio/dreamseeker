@@ -1,10 +1,9 @@
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Text } from 'react-native';
 import { router } from 'expo-router';
 
-import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GlassCard } from '@/components/ui/glass-card';
-import { Colors } from '@/constants/theme';
+import { Colors, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function EarlyAccessScreen() {
@@ -15,7 +14,7 @@ export default function EarlyAccessScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={{ width: 60 }} />
-        <ThemedText type="subtitle">Early Access</ThemedText>
+        <Text style={[Typography.subtitle, { color: colors.text }]}>Early Access</Text>
         <Pressable onPress={() => router.back()} hitSlop={8} style={styles.closeButton}>
           <IconSymbol name="xmark" size={20} color={colors.foreground} />
         </Pressable>
@@ -25,16 +24,16 @@ export default function EarlyAccessScreen() {
         <GlassCard style={styles.card}>
           <View style={styles.featureBadge}>
             <IconSymbol name="sparkles" size={16} color={colors.primary} />
-            <ThemedText style={[styles.badgeText, { color: colors.primary }]}>Pro Feature</ThemedText>
+            <Text style={[styles.badgeText, { color: colors.primary }]}>Pro Feature</Text>
           </View>
-          <ThemedText style={[styles.title, { color: colors.foreground }]}>Early Access Features</ThemedText>
-          <ThemedText style={[styles.description, { color: colors.mutedForeground }]}>
+          <Text style={[styles.title, { color: colors.foreground }]}>Early Access Features</Text>
+          <Text style={[styles.description, { color: colors.mutedForeground }]}>
             As a Pro subscriber, you get early access to new features before they&apos;re released to everyone.
-          </ThemedText>
+          </Text>
         </GlassCard>
 
         <GlassCard style={styles.featureList}>
-          <ThemedText style={[styles.featureListTitle, { color: colors.foreground }]}>Coming Soon</ThemedText>
+          <Text style={[styles.featureListTitle, { color: colors.foreground }]}>Coming Soon</Text>
           {[
             'AI-powered task suggestions',
             'Advanced analytics dashboard',
@@ -43,7 +42,7 @@ export default function EarlyAccessScreen() {
           ].map((text) => (
             <View key={text} style={styles.featureItem}>
               <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
-              <ThemedText style={[styles.featureText, { color: colors.foreground }]}>{text}</ThemedText>
+              <Text style={[styles.featureText, { color: colors.foreground }]}>{text}</Text>
             </View>
           ))}
         </GlassCard>

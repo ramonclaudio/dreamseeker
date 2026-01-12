@@ -13,7 +13,7 @@ Building mobile SaaS from scratch means weeks on auth flows, payment integration
 | Runtime | Expo SDK 55 · React 19 · React Compiler |
 | Backend | Convex (real-time) · Better Auth · Resend |
 | Payments | Stripe (@convex-dev/stripe) |
-| Styling | NativeWind v5 · Tailwind v4 |
+| Styling | StyleSheet · Theme system |
 | Native | iOS 26 Liquid Glass · SF Symbols · Haptics |
 
 ## What's Included

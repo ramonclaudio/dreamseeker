@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet, Text } from 'react-native';
 
-import { ThemedText } from './themed-text';
 import { IconSymbol } from './ui/icon-symbol';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -36,10 +35,10 @@ export function TierGate({ children, minTier, feature, fallback, hideOnDeny = fa
           <IconSymbol name="lock.fill" size={20} color={colors.primary} />
         </View>
         <View style={styles.textContainer}>
-          <ThemedText style={styles.title}>{TIER_NAMES[requiredTier]} Feature</ThemedText>
-          <ThemedText style={[styles.description, { color: colors.mutedForeground }]}>
+          <Text style={[styles.title, { color: colors.text }]}>{TIER_NAMES[requiredTier]} Feature</Text>
+          <Text style={[styles.description, { color: colors.mutedForeground }]}>
             Upgrade to {TIER_NAMES[requiredTier]} to unlock
-          </ThemedText>
+          </Text>
         </View>
         <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
       </View>
@@ -62,13 +61,13 @@ export function UpgradePrompt({ feature, minTier, title, description }: {
     <Pressable style={[styles.promptContainer, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={showUpgrade}>
       <IconSymbol name="sparkles" size={24} color={colors.primary} />
       <View style={styles.promptText}>
-        <ThemedText style={styles.promptTitle}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</ThemedText>
-        <ThemedText style={[styles.promptDescription, { color: colors.mutedForeground }]}>
+        <Text style={[styles.promptTitle, { color: colors.text }]}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</Text>
+        <Text style={[styles.promptDescription, { color: colors.mutedForeground }]}>
           {description ?? `Upgrade to ${TIER_NAMES[requiredTier]} to access this and more`}
-        </ThemedText>
+        </Text>
       </View>
       <View style={[styles.upgradeButton, { backgroundColor: colors.primary }]}>
-        <ThemedText style={[styles.upgradeButtonText, { color: colors.primaryForeground }]}>Upgrade</ThemedText>
+        <Text style={[styles.upgradeButtonText, { color: colors.primaryForeground }]}>Upgrade</Text>
       </View>
     </Pressable>
   );
