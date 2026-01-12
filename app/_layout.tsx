@@ -12,15 +12,14 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import * as Notifications from 'expo-notifications';
 
 import { authClient } from '@/lib/auth-client';
+import { env } from '@/lib/env';
 import { StripeProvider } from '@/providers/stripe-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
+import { Colors } from '@/constants/theme';
 
-const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-if (!convexUrl) throw new Error('EXPO_PUBLIC_CONVEX_URL is required');
-
-const convex = new ConvexReactClient(convexUrl, { expectAuth: true, unsavedChangesWarning: false });
+const convex = new ConvexReactClient(env.convexUrl, { expectAuth: true, unsavedChangesWarning: false });
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
@@ -35,11 +34,11 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 const errorStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#171717', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#b91c1c', marginBottom: 12 },
-  message: { fontSize: 14, color: '#a3a3a3', textAlign: 'center', marginBottom: 24 },
-  button: { backgroundColor: '#e5e5e5', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
-  buttonText: { color: '#262626', fontWeight: '600' },
+  container: { flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive, marginBottom: 12 },
+  message: { fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 24 },
+  button: { backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  buttonText: { color: Colors.dark.primaryForeground, fontWeight: '600' },
 });
 
 SplashScreen.preventAutoHideAsync();
