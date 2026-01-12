@@ -9,15 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Text,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from 'convex/react';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Radius } from '@/constants/theme';
+import { Colors, Radius, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAvatarUpload } from '@/hooks/use-avatar-upload';
 import { authClient } from '@/lib/auth-client';
@@ -38,8 +37,8 @@ function ProfileField({ label, value, onPress, colors }: {
       ]}
       onPress={onPress}>
       <View style={styles.fieldContent}>
-        <ThemedText style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</ThemedText>
-        <ThemedText style={styles.fieldValue}>{value || 'Not set'}</ThemedText>
+        <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
+        <Text style={[styles.fieldValue, { color: colors.text }]}>{value || 'Not set'}</Text>
       </View>
       <IconSymbol name="pencil" size={18} color={colors.mutedForeground} />
     </Pressable>
@@ -93,25 +92,25 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
         style={[styles.modalContainer, { backgroundColor: colors.background }]}>
         <View style={styles.modalHeader}>
           <Pressable onPress={handleClose} hitSlop={8}>
-            <ThemedText style={{ color: colors.mutedForeground }}>Cancel</ThemedText>
+            <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
           </Pressable>
-          <ThemedText type="subtitle">{title}</ThemedText>
+          <Text style={[Typography.subtitle, { color: colors.text }]}>{title}</Text>
           <Pressable onPress={handleSave} hitSlop={8} disabled={isLoading}>
-            <ThemedText style={{ color: colors.foreground, fontWeight: '600', opacity: isLoading ? 0.5 : 1 }}>
+            <Text style={{ color: colors.foreground, fontWeight: '600', opacity: isLoading ? 0.5 : 1 }}>
               {isLoading ? 'Saving...' : 'Save'}
-            </ThemedText>
+            </Text>
           </Pressable>
         </View>
 
         <View style={styles.modalContent}>
           {error && (
             <View style={styles.errorContainer}>
-              <ThemedText style={styles.errorText}>{error}</ThemedText>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
 
           <View style={styles.inputGroup}>
-            <ThemedText style={styles.inputLabel}>{label}</ThemedText>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>{label}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder={placeholder}
@@ -214,27 +213,27 @@ function ChangePasswordModal({
         style={[styles.modalContainer, { backgroundColor: colors.background }]}>
         <View style={styles.modalHeader}>
           <Pressable onPress={handleClose} hitSlop={8}>
-            <ThemedText style={{ color: colors.mutedForeground }}>Cancel</ThemedText>
+            <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
           </Pressable>
-          <ThemedText type="subtitle">Change Password</ThemedText>
+          <Text style={[Typography.subtitle, { color: colors.text }]}>Change Password</Text>
           <View style={{ width: 50 }} />
         </View>
 
         <ScrollView style={styles.modalContent} keyboardShouldPersistTaps="handled">
           {error && (
             <View style={styles.errorContainer}>
-              <ThemedText style={styles.errorText}>{error}</ThemedText>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
 
           {success && (
             <View style={styles.successContainer}>
-              <ThemedText style={styles.successText}>Password changed successfully!</ThemedText>
+              <Text style={styles.successText}>Password changed successfully!</Text>
             </View>
           )}
 
           <View style={styles.inputGroup}>
-            <ThemedText style={styles.inputLabel}>Current Password</ThemedText>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Current Password</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter current password"
@@ -250,7 +249,7 @@ function ChangePasswordModal({
           </View>
 
           <View style={styles.inputGroup}>
-            <ThemedText style={styles.inputLabel}>New Password</ThemedText>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>New Password</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter new password"
@@ -266,7 +265,7 @@ function ChangePasswordModal({
           </View>
 
           <View style={styles.inputGroup}>
-            <ThemedText style={styles.inputLabel}>Confirm New Password</ThemedText>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Confirm New Password</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Confirm new password"
@@ -288,14 +287,14 @@ function ChangePasswordModal({
             ]}
             onPress={handleChangePassword}
             disabled={isLoading || success}>
-            <ThemedText style={[styles.buttonText, { color: colors.primaryForeground }]}>
+            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
               {isLoading ? 'Changing...' : 'Change Password'}
-            </ThemedText>
+            </Text>
           </Pressable>
 
-          <ThemedText style={[styles.hint, { color: colors.mutedForeground }]}>
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
             For security, you will remain signed in on this device. All other sessions will be signed out.
-          </ThemedText>
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
@@ -357,9 +356,9 @@ export default function ProfileScreen() {
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.contentContainer}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="title">Profile</ThemedText>
-        </ThemedView>
+        <View style={[styles.header, { backgroundColor: colors.background }]}>
+          <Text style={[Typography.title, { color: colors.text }]}>Profile</Text>
+        </View>
 
         {user && (
           <>
@@ -378,7 +377,7 @@ export default function ProfileScreen() {
                     />
                   ) : (
                     <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-                      <ThemedText style={[styles.avatarText, { color: colors.primaryForeground }]}>{avatarInitial}</ThemedText>
+                      <Text style={[styles.avatarText, { color: colors.primaryForeground }]}>{avatarInitial}</Text>
                     </View>
                   )}
                   {isUploadingAvatar ? (
@@ -392,13 +391,13 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </Pressable>
-              <ThemedText style={[styles.avatarHint, { color: colors.mutedForeground }]}>
+              <Text style={[styles.avatarHint, { color: colors.mutedForeground }]}>
                 Tap to change photo
-              </ThemedText>
+              </Text>
             </View>
 
             <View style={styles.section}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Account Info</ThemedText>
+              <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Account Info</Text>
               <GlassCard style={styles.fieldGroup}>
                 <ProfileField
                   label="Name"
@@ -433,7 +432,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.section}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Security</ThemedText>
+              <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Security</Text>
               <GlassCard style={styles.fieldGroup}>
                 <Pressable
                   style={({ pressed }) => [
@@ -446,7 +445,7 @@ export default function ProfileScreen() {
                   }}>
                   <View style={styles.securityItemLeft}>
                     <IconSymbol name="lock.fill" size={22} color={colors.mutedForeground} />
-                    <ThemedText style={styles.securityItemLabel}>Change Password</ThemedText>
+                    <Text style={[styles.securityItemLabel, { color: colors.text }]}>Change Password</Text>
                   </View>
                   <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
                 </Pressable>

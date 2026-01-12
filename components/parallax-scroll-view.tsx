@@ -1,17 +1,16 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollOffset } from 'react-native-reanimated';
-import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { Colors } from '@/constants/theme';
 
 const H = 250;
 type Props = PropsWithChildren<{ headerImage: ReactElement; headerBackgroundColor: { dark: string; light: string } }>;
 
 export default function ParallaxScrollView({ children, headerImage, headerBackgroundColor }: Props) {
-  const backgroundColor = useThemeColor({}, 'background');
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollOffset(scrollRef);
 
@@ -25,7 +24,7 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
   const blurStyle = useAnimatedStyle(() => ({ opacity: interpolate(scrollOffset.value, [0, H * 0.5, H], [0, 0.5, 1]) }));
 
   return (
-    <Animated.ScrollView ref={scrollRef} style={{ backgroundColor, flex: 1 }} scrollEventThrottle={16}>
+    <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16}>
       <Animated.View style={[styles.header, { backgroundColor: headerBackgroundColor[colorScheme] }, headerStyle]}>
         {headerImage}
         {Platform.OS !== 'android' && (
@@ -34,7 +33,7 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
           </Animated.View>
         )}
       </Animated.View>
-      <ThemedView style={styles.content}>{children}</ThemedView>
+      <View style={[styles.content, { backgroundColor: colors.background }]}>{children}</View>
     </Animated.ScrollView>
   );
 }

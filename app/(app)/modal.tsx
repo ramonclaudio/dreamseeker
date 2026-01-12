@@ -1,20 +1,19 @@
 import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 
-import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
+import { Colors, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: typeof Colors.light }) => (
   <View style={styles.content}>
-    <ThemedText type="title">Modal</ThemedText>
-    <ThemedText style={{ color: colors.mutedForeground, textAlign: 'center', marginTop: 8 }}>
+    <Text style={[Typography.title, { color: colors.text }]}>Modal</Text>
+    <Text style={{ color: colors.mutedForeground, textAlign: 'center', marginTop: 8 }}>
       This modal uses a blur background on iOS and web.
-    </ThemedText>
+    </Text>
     <Link href={isPresented ? '../' : '/'} style={styles.link}>
-      <ThemedText type="link">{isPresented ? 'Dismiss' : 'Go home'}</ThemedText>
+      <Text style={[Typography.link, { color: colors.mutedForeground }]}>{isPresented ? 'Dismiss' : 'Go home'}</Text>
     </Link>
   </View>
 );
