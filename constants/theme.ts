@@ -18,6 +18,8 @@ export const Colors = {
     accentForeground: '#262626',
     destructive: '#dc2626',
     destructiveForeground: '#fafafa',
+    success: '#16a34a',
+    successForeground: '#f0fdf4',
     border: '#e5e5e5',
     input: '#e5e5e5',
     ring: '#a3a3a3',
@@ -44,6 +46,8 @@ export const Colors = {
     accentForeground: '#fafafa',
     destructive: '#f87171',
     destructiveForeground: '#dc2626',
+    success: '#22c55e',
+    successForeground: '#14532d',
     border: 'rgba(255, 255, 255, 0.1)',
     input: 'rgba(255, 255, 255, 0.15)',
     ring: '#737373',
@@ -55,15 +59,16 @@ export const Colors = {
   },
 };
 
-export const Spacing = {
-  0: 0, 0.5: 2, 1: 4, 1.5: 6, 2: 8, 2.5: 10, 3: 12, 3.5: 14, 4: 16, 5: 20,
-  6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 14: 56, 16: 64, 20: 80,
-  24: 96, 28: 112, 32: 128, 36: 144, 40: 160, 44: 176, 48: 192, 52: 208,
-  56: 224, 60: 240, 64: 256, 72: 288, 80: 320, 96: 384,
-};
-
 export const Radius = {
-  none: 0, sm: 6, md: 8, DEFAULT: 10, lg: 10, xl: 14, '2xl': 18, '3xl': 22, full: 9999,
+  none: 0,
+  sm: 6,
+  md: 8,
+  DEFAULT: 10,
+  lg: 10,
+  xl: 14,
+  '2xl': 18,
+  '3xl': 22,
+  full: 9999,
 };
 
 export const Typography = {
