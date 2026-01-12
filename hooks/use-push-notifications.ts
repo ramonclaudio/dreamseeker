@@ -88,7 +88,8 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     return null;
   }
 
-  const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+  // Constants is always defined, expoConfig/easConfig can be null
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
   if (!projectId) {
     if (__DEV__) console.log('[Push] No project ID');
     return null;

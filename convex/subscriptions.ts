@@ -1,16 +1,17 @@
 import { query } from './_generated/server';
 import { components } from './_generated/api';
 import { TierKey, TIER_LIMITS, TIER_NAMES } from './schema/tiers';
+import { env } from './env';
 
 export type { TierKey } from './schema/tiers';
 
 const PRICE_TO_TIER: Record<string, TierKey> = {
-  [process.env.STRIPE_STARTER_MONTHLY_PRICE_ID ?? '']: 'starter',
-  [process.env.STRIPE_STARTER_ANNUAL_PRICE_ID ?? '']: 'starter',
-  [process.env.STRIPE_PLUS_MONTHLY_PRICE_ID ?? '']: 'plus',
-  [process.env.STRIPE_PLUS_ANNUAL_PRICE_ID ?? '']: 'plus',
-  [process.env.STRIPE_PRO_MONTHLY_PRICE_ID ?? '']: 'pro',
-  [process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? '']: 'pro',
+  [env.stripe.starter.monthly]: 'starter',
+  [env.stripe.starter.annual]: 'starter',
+  [env.stripe.plus.monthly]: 'plus',
+  [env.stripe.plus.annual]: 'plus',
+  [env.stripe.pro.monthly]: 'pro',
+  [env.stripe.pro.annual]: 'pro',
 };
 
 export const getTierFromPriceId = (priceId: string | undefined): TierKey =>

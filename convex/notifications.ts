@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { authComponent } from './auth';
 import type { MutationCtx } from './_generated/server';
+import { env } from './env';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
@@ -64,18 +65,12 @@ type RetryableError = {
 };
 
 function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
+  return {
     Accept: 'application/json',
     'Accept-encoding': 'gzip, deflate',
     'Content-Type': 'application/json',
+    Authorization: `Bearer ${env.expo.accessToken}`,
   };
-
-  const accessToken = process.env.EXPO_ACCESS_TOKEN;
-  if (accessToken) {
-    headers['Authorization'] = `Bearer ${accessToken}`;
-  }
-
-  return headers;
 }
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = MAX_RETRIES): Promise<Response> {
