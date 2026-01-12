@@ -66,6 +66,14 @@ export const Radius = {
   none: 0, sm: 6, md: 8, DEFAULT: 10, lg: 10, xl: 14, '2xl': 18, '3xl': 22, full: 9999,
 };
 
+export const Typography = {
+  default: { fontSize: 16, lineHeight: 24 },
+  defaultSemiBold: { fontSize: 16, lineHeight: 24, fontWeight: '600' as const },
+  title: { fontSize: 32, fontWeight: 'bold' as const, lineHeight: 32 },
+  subtitle: { fontSize: 20, fontWeight: 'bold' as const },
+  link: { lineHeight: 30, fontSize: 16 },
+};
+
 export const Fonts = Platform.select({
   ios: { sans: 'system-ui', serif: 'ui-serif', rounded: 'ui-rounded', mono: 'ui-monospace' },
   default: { sans: 'normal', serif: 'serif', rounded: 'normal', mono: 'monospace' },
