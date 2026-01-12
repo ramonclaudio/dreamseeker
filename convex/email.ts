@@ -2,19 +2,15 @@ import { Resend, vOnEmailEventArgs } from '@convex-dev/resend';
 import { components, internal } from './_generated/api';
 import { ActionCtx, internalMutation } from './_generated/server';
 import { resetPasswordTemplate, emailVerificationTemplate } from './email_templates';
-
-const isTestMode = process.env.RESEND_TEST_MODE !== 'false';
-const siteUrl = process.env.SITE_URL;
-if (!siteUrl) throw new Error('SITE_URL environment variable is required');
+import { env } from './env';
 
 export const resend: Resend = new Resend(components.resend, {
-  testMode: isTestMode,
-  webhookSecret: process.env.RESEND_WEBHOOK_SECRET,
+  testMode: env.resend.testMode,
+  webhookSecret: env.resend.webhookSecret,
   onEmailEvent: internal.email.handleEmailEvent,
 });
 
 const APP_NAME = 'Expo Starter App';
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'noreply@example.com';
 
 const sendEmail = async (ctx: ActionCtx, options: {
   to: string;
@@ -27,12 +23,12 @@ const sendEmail = async (ctx: ActionCtx, options: {
   const entityRefId = idempotencyKey ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const emailHeaders: Array<{ name: string; value: string }> = [
     { name: 'X-Entity-Ref-ID', value: entityRefId },
-    { name: 'List-Unsubscribe', value: `<${siteUrl}/unsubscribe?email=${encodeURIComponent(to)}>` },
+    { name: 'List-Unsubscribe', value: `<${env.siteUrl}/unsubscribe?email=${encodeURIComponent(to)}>` },
     { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },
     ...headers,
   ];
   try {
-    return await resend.sendEmail(ctx, { from: `${APP_NAME} <${FROM_EMAIL}>`, to, subject, html, headers: emailHeaders });
+    return await resend.sendEmail(ctx, { from: `${APP_NAME} <${env.resend.fromEmail}>`, to, subject, html, headers: emailHeaders });
   } catch (error) {
     console.error('[Email] Failed:', { to, subject, error: error instanceof Error ? error.message : 'Unknown' });
     throw new Error('Failed to send email. Please try again later.');
