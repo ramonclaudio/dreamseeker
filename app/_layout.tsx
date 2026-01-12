@@ -1,6 +1,3 @@
-import '../global.css';
-import '@/lib/nativewind-interop';
-
 import { ConvexReactClient, useConvexAuth } from 'convex/react';
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
@@ -17,7 +14,6 @@ import * as Notifications from 'expo-notifications';
 import { authClient } from '@/lib/auth-client';
 import { StripeProvider } from '@/providers/stripe-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { ThemeProvider } from '@/providers/theme-provider';
 import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
 
@@ -54,9 +50,7 @@ export default function RootLayout() {
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
       <StripeProvider>
-        <ThemeProvider>
-          <RootNavigator />
-        </ThemeProvider>
+        <RootNavigator />
       </StripeProvider>
     </ConvexBetterAuthProvider>
   );
