@@ -6,13 +6,13 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  Text,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Radius } from '@/constants/theme';
+import { Colors, Radius, Typography } from '@/constants/theme';
 import { PAID_TIERS, TIER_KEYS, TIERS, getPriceId, type TierKey } from '@/constants/subscriptions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -74,12 +74,12 @@ export default function SubscribeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.heroSection}>
-          <ThemedText type="title" style={styles.title}>
+          <Text style={[Typography.title, styles.title, { color: colors.text }]}>
             Choose Your Plan
-          </ThemedText>
-          <ThemedText style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             Unlock more features and boost your productivity.
-          </ThemedText>
+          </Text>
         </View>
 
         <View style={[styles.billingToggle, { backgroundColor: colors.muted }]}>
@@ -93,14 +93,14 @@ export default function SubscribeScreen() {
               setBillingPeriod('monthly');
             }}
           >
-            <ThemedText
+            <Text
               style={[
                 styles.billingOptionLabel,
                 { color: billingPeriod === 'monthly' ? colors.foreground : colors.mutedForeground },
               ]}
             >
               Monthly
-            </ThemedText>
+            </Text>
           </Pressable>
           <Pressable
             style={[
@@ -112,14 +112,14 @@ export default function SubscribeScreen() {
               setBillingPeriod('annual');
             }}
           >
-            <ThemedText
+            <Text
               style={[
                 styles.billingOptionLabel,
                 { color: billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground },
               ]}
             >
               Annual
-            </ThemedText>
+            </Text>
           </Pressable>
         </View>
 
@@ -152,43 +152,43 @@ export default function SubscribeScreen() {
               >
                 {tierConfig.popular && (
                   <View style={[styles.popularBadge, { backgroundColor: colors.primary }]}>
-                    <ThemedText style={[styles.popularText, { color: colors.primaryForeground }]}>
+                    <Text style={[styles.popularText, { color: colors.primaryForeground }]}>
                       Popular
-                    </ThemedText>
+                    </Text>
                   </View>
                 )}
 
                 <View style={styles.tierHeader}>
-                  <ThemedText style={styles.tierName}>{tierConfig.name}</ThemedText>
+                  <Text style={[styles.tierName, { color: colors.text }]}>{tierConfig.name}</Text>
                   {isCurrent && (
                     <View style={[styles.currentBadge, { backgroundColor: colors.muted }]}>
-                      <ThemedText style={[styles.currentText, { color: colors.mutedForeground }]}>
+                      <Text style={[styles.currentText, { color: colors.mutedForeground }]}>
                         Current
-                      </ThemedText>
+                      </Text>
                     </View>
                   )}
                 </View>
 
                 <View style={styles.priceRow}>
-                  <ThemedText style={styles.price}>
+                  <Text style={[styles.price, { color: colors.text }]}>
                     {billingPeriod === 'monthly' ? pricing.monthly.amount : pricing.annual.amount}
-                  </ThemedText>
-                  <ThemedText style={[styles.pricePeriod, { color: colors.mutedForeground }]}>
+                  </Text>
+                  <Text style={[styles.pricePeriod, { color: colors.mutedForeground }]}>
                     /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
-                  </ThemedText>
+                  </Text>
                 </View>
 
-                <ThemedText style={[styles.taskLimit, { color: colors.mutedForeground }]}>
+                <Text style={[styles.taskLimit, { color: colors.mutedForeground }]}>
                   {tierConfig.taskLimitLabel}
-                </ThemedText>
+                </Text>
 
                 <View style={styles.featuresList}>
                   {tierConfig.features.map((feature) => (
                     <View key={feature} style={styles.featureRow}>
                       <IconSymbol name="checkmark" size={14} color={colors.primary} />
-                      <ThemedText style={[styles.featureText, { color: colors.mutedForeground }]}>
+                      <Text style={[styles.featureText, { color: colors.mutedForeground }]}>
                         {feature}
-                      </ThemedText>
+                      </Text>
                     </View>
                   ))}
                 </View>
@@ -202,21 +202,21 @@ export default function SubscribeScreen() {
           onPress={handleSubscribe}
           disabled={loading}
         >
-          <ThemedText style={[styles.subscribeButtonText, { color: colors.primaryForeground }]}>
+          <Text style={[styles.subscribeButtonText, { color: colors.primaryForeground }]}>
             {loading ? 'Loading...' : `Subscribe to ${TIERS[selectedTier].name}`}
-          </ThemedText>
+          </Text>
         </Pressable>
 
         <Pressable onPress={handleRestore} style={styles.restoreButton}>
-          <ThemedText style={[styles.restoreText, { color: colors.mutedForeground }]}>
+          <Text style={[styles.restoreText, { color: colors.mutedForeground }]}>
             Restore Purchases
-          </ThemedText>
+          </Text>
         </Pressable>
 
         <View style={styles.footer}>
-          <ThemedText style={[styles.footerText, { color: colors.mutedForeground }]}>
+          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
             By subscribing, you agree to our Terms of Service and Privacy Policy.
-          </ThemedText>
+          </Text>
         </View>
       </ScrollView>
     </View>

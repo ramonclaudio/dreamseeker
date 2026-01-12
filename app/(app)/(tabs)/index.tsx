@@ -1,17 +1,18 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View, Text, Pressable } from 'react-native';
 import { useQuery } from 'convex/react';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 import { api } from '@/convex/_generated/api';
-import { Colors } from '@/constants/theme';
+import { Colors, Typography } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HomeScreen() {
   const user = useQuery(api.auth.getCurrentUser);
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
 
   return (
     <ParallaxScrollView
@@ -22,66 +23,48 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">
+      <View style={styles.titleContainer}>
+        <Text style={[Typography.title, { color: colors.text }]}>
           {user?.name ? `Hi, ${user.name}!` : 'Welcome!'}
-        </ThemedText>
+        </Text>
         <HelloWave />
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
+      <View style={styles.stepContainer}>
+        <Text style={[Typography.subtitle, { color: colors.text }]}>Step 1: Try it</Text>
+        <Text style={[Typography.default, { color: colors.text }]}>
+          Edit <Text style={Typography.defaultSemiBold}>app/(tabs)/index.tsx</Text> to see changes.
           Press{' '}
-          <ThemedText type="defaultSemiBold">
+          <Text style={Typography.defaultSemiBold}>
             {Platform.select({
               ios: 'cmd + d',
               android: 'cmd + m',
               web: 'F12',
             })}
-          </ThemedText>{' '}
+          </Text>{' '}
           to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
+        </Text>
+      </View>
+      <View style={styles.stepContainer}>
+        <Link href="/modal" asChild>
+          <Pressable>
+            <Text style={[Typography.subtitle, { color: colors.text }]}>Step 2: Explore</Text>
+          </Pressable>
         </Link>
-
-        <ThemedText>
+        <Text style={[Typography.default, { color: colors.text }]}>
           {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
+        </Text>
+      </View>
+      <View style={styles.stepContainer}>
+        <Text style={[Typography.subtitle, { color: colors.text }]}>Step 3: Get a fresh start</Text>
+        <Text style={[Typography.default, { color: colors.text }]}>
           {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+          <Text style={Typography.defaultSemiBold}>npm run reset-project</Text> to get a fresh{' '}
+          <Text style={Typography.defaultSemiBold}>app</Text> directory. This will move the current{' '}
+          <Text style={Typography.defaultSemiBold}>app</Text> to{' '}
+          <Text style={Typography.defaultSemiBold}>app-example</Text>.
+        </Text>
+      </View>
     </ParallaxScrollView>
   );
 }

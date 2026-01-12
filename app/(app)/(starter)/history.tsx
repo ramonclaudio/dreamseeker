@@ -4,9 +4,8 @@ import { useQuery } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors, Radius } from '@/constants/theme';
+import { Colors, Radius, Typography } from '@/constants/theme';
 import { GlassCard } from '@/components/ui/glass-card';
-import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function HistoryScreen() {
@@ -18,7 +17,7 @@ export default function HistoryScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={{ width: 60 }} />
-        <ThemedText type="subtitle">Task History</ThemedText>
+        <Text style={[Typography.subtitle, { color: colors.text }]}>Task History</Text>
         <Pressable onPress={() => router.back()} hitSlop={8} style={styles.closeButton}>
           <IconSymbol name="xmark" size={20} color={colors.foreground} />
         </Pressable>

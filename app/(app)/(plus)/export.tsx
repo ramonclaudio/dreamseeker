@@ -2,9 +2,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { router } from 'expo-router';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { Colors, Typography } from '@/constants/theme';
 import { GlassCard } from '@/components/ui/glass-card';
-import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function ExportScreen() {
@@ -15,7 +14,7 @@ export default function ExportScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={{ width: 60 }} />
-        <ThemedText type="subtitle">Data Export</ThemedText>
+        <Text style={[Typography.subtitle, { color: colors.text }]}>Data Export</Text>
         <Pressable onPress={() => router.back()} hitSlop={8} style={styles.closeButton}>
           <IconSymbol name="xmark" size={20} color={colors.foreground} />
         </Pressable>
