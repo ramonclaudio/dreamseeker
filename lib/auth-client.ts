@@ -6,14 +6,18 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-const scheme = Constants.expoConfig?.scheme as string;
+import { env } from './env';
+
+// scheme from app.json - can be string or string[], library handles both
+const rawScheme = Constants.expoConfig?.scheme;
+const scheme = Array.isArray(rawScheme) ? rawScheme[0] : rawScheme;
 
 const platformPlugins = Platform.OS === 'web'
   ? [crossDomainClient()]
-  : [expoClient({ scheme, storagePrefix: scheme, storage: SecureStore })];
+  : [expoClient({ scheme, storagePrefix: scheme ?? 'better-auth', storage: SecureStore })];
 
 const client = createAuthClient({
-  baseURL: process.env.EXPO_PUBLIC_CONVEX_SITE_URL,
+  baseURL: env.convexSiteUrl,
   plugins: [convexClient(), usernameClient(), ...platformPlugins],
 });
 
