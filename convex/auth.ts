@@ -9,17 +9,16 @@ import { DataModel, Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 import authConfig from './auth.config';
 import { sendEmailVerification, sendResetPassword } from './email';
+import { env } from './env';
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
-
-const siteUrl = process.env.SITE_URL;
 const ONE_MINUTE = 60;
 const ONE_HOUR = 60 * 60;
 const ONE_DAY = ONE_HOUR * 24;
 const SEVEN_DAYS = ONE_DAY * 7;
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
-  trustedOrigins: ['expostarterapp://', 'exp://', 'http://localhost:8081', ...(siteUrl ? [siteUrl] : [])],
+  trustedOrigins: ['expostarterapp://', 'exp://', 'http://localhost:8081', env.siteUrl],
   database: authComponent.adapter(ctx),
   user: { changeEmail: { enabled: true, updateEmailWithoutVerification: true } },
   emailAndPassword: {
@@ -58,7 +57,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
     expo(),
     username({ minUsernameLength: 3, maxUsernameLength: 20 }),
     convex({ authConfig }),
-    ...(siteUrl ? [crossDomain({ siteUrl })] : []),
+    crossDomain({ siteUrl: env.siteUrl }),
   ],
 } satisfies BetterAuthOptions);
 
