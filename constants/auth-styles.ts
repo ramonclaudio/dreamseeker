@@ -36,4 +36,7 @@ export const authStyles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },
   footerText: { fontSize: 14, lineHeight: 20 },
   linkText: { fontSize: 14, fontWeight: '500' },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth },
+  dividerText: { marginHorizontal: 16, fontSize: 14 },
 });
