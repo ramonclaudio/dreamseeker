@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ import { haptics } from '@/lib/haptics';
 
 type Task = Doc<'tasks'>;
 
-function TaskItem({
+const TaskItem = memo(function TaskItem({
   task,
   onToggle,
   onDelete,
@@ -39,7 +39,15 @@ function TaskItem({
 
   return (
     <GlassCard style={styles.taskItem}>
-      <Pressable onPress={onToggle} style={styles.taskContent}>
+      <Pressable
+        onPress={onToggle}
+        style={styles.taskContent}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: task.isCompleted }}
+        accessibilityLabel={`${task.text}, ${task.isCompleted ? 'completed' : 'not completed'}`}
+        accessibilityHint="Double tap to toggle"
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
         <View
           style={[
             styles.checkbox,
@@ -49,7 +57,7 @@ function TaskItem({
             },
           ]}>
           {task.isCompleted && (
-            <Text style={[styles.checkmark, { color: colors.primaryForeground }]}>✓</Text>
+            <Text style={[styles.checkmark, { color: colors.primaryForeground }]} accessibilityElementsHidden>✓</Text>
           )}
         </View>
         <Text
@@ -64,12 +72,19 @@ function TaskItem({
           {task.text}
         </Text>
       </Pressable>
-      <Pressable onPress={onDelete} style={styles.deleteButton}>
-        <Text style={[styles.deleteText, { color: colors.destructive }]}>×</Text>
+      <Pressable
+        onPress={onDelete}
+        style={styles.deleteButton}
+        accessibilityRole="button"
+        accessibilityLabel={`Delete task "${task.text}"`}
+        accessibilityHint="Double tap to delete this task"
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Text style={[styles.deleteText, { color: colors.destructive }]} accessibilityElementsHidden>×</Text>
       </Pressable>
     </GlassCard>
   );
-}
+});
 
 export default function TasksScreen() {
   const colorScheme = useColorScheme();
@@ -147,7 +162,11 @@ export default function TasksScreen() {
               haptics.light();
               router.push('/history');
             }}
-            style={({ pressed }) => [styles.historyButton, { opacity: pressed ? 0.7 : 1 }]}>
+            style={({ pressed }) => [styles.historyButton, { opacity: pressed ? 0.7 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="View completed tasks history"
+            accessibilityHint="Opens a list of your completed tasks"
+          >
             <IconSymbol name="clock.arrow.circlepath" size={24} color={colors.mutedForeground} />
           </Pressable>
         )}
@@ -164,11 +183,18 @@ export default function TasksScreen() {
           onChangeText={setNewTaskText}
           onSubmitEditing={handleAddTask}
           returnKeyType="done"
+          accessibilityLabel="New task input"
+          accessibilityHint="Enter a task description and tap Add or press return"
         />
         <Pressable
           onPress={handleAddTask}
           style={[styles.addButton, { backgroundColor: colors.primary }]}
-          disabled={!newTaskText.trim()}>
+          disabled={!newTaskText.trim()}
+          accessibilityRole="button"
+          accessibilityLabel="Add task"
+          accessibilityState={{ disabled: !newTaskText.trim() }}
+          accessibilityHint="Tap to add the new task"
+        >
           <Text style={[styles.addButtonText, { color: colors.primaryForeground }]}>Add</Text>
         </Pressable>
       </GlassCard>
@@ -197,6 +223,8 @@ export default function TasksScreen() {
       windowSize={5}
       initialNumToRender={10}
       getItemLayout={(_, index) => ({ length: 72, offset: 72 * index, index })}
+      accessibilityRole="list"
+      accessibilityLabel="Task list"
     />
   );
 }
@@ -207,7 +235,7 @@ const styles = StyleSheet.create({
   centered: { justifyContent: 'center', alignItems: 'center' },
   header: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 60, paddingBottom: 16 },
   headerContent: { flex: 1 },
-  historyButton: { padding: 8, marginBottom: 4 },
+  historyButton: { padding: 10, marginBottom: 4, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 34, fontWeight: 'bold' },
   subtitle: { fontSize: 14, marginTop: 4 },
   inputContainer: { flexDirection: 'row', marginBottom: 16 },
@@ -219,7 +247,7 @@ const styles = StyleSheet.create({
   checkbox: { width: 24, height: 24, borderRadius: Radius.sm, borderWidth: 2, marginRight: 12, justifyContent: 'center', alignItems: 'center' },
   checkmark: { fontSize: 14, fontWeight: 'bold' },
   taskText: { fontSize: 16, flex: 1 },
-  deleteButton: { padding: 8 },
+  deleteButton: { padding: 8, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
   deleteText: { fontSize: 24, fontWeight: '300' },
   emptyContainer: { paddingVertical: 40, alignItems: 'center' },
   emptyText: { fontSize: 16 },
