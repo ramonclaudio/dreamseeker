@@ -42,6 +42,7 @@ const errorStyles = StyleSheet.create({
 });
 
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 1000, fade: true });
 
 export const unstable_settings = { initialRouteName: '(auth)' };
 
