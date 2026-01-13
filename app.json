@@ -21,7 +21,8 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app uses the camera to take profile photos.",
-        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile photos."
+        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile photos.",
+        "aps-environment": "production"
       },
       "associatedDomains": [
         "applinks:expo-starter-app.convex.site"

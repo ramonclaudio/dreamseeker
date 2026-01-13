@@ -19,6 +19,7 @@ const optional = (key: string, fallback: string): string =>
 
 export const env = {
   siteUrl: required('SITE_URL'),
+  supportEmail: required('SUPPORT_EMAIL'),
   expo: {
     accessToken: required('EXPO_ACCESS_TOKEN'),
   },
@@ -29,7 +30,7 @@ export const env = {
   resend: {
     fromEmail: required('RESEND_FROM_EMAIL'),
     webhookSecret: required('RESEND_WEBHOOK_SECRET'),
-    testMode: optional('RESEND_TEST_MODE', 'true') !== 'false',
+    testMode: optional('RESEND_TEST_MODE', 'false') !== 'false',
   },
   stripe: {
     starter: {
