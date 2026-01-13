@@ -10,26 +10,21 @@ import { useConvexAuth } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 const DEVICE_ID_KEY = 'push_device_id';
-const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
 
 let initialNotificationResponse: Notifications.NotificationResponse | null = null;
-const lastResponsePromise = isNative
-  ? Notifications.getLastNotificationResponseAsync().then((response) => {
-      initialNotificationResponse = response;
-      return response;
-    })
-  : Promise.resolve(null);
+const lastResponsePromise = Notifications.getLastNotificationResponseAsync().then((response) => {
+  initialNotificationResponse = response;
+  return response;
+});
 
-if (isNative) {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
-}
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 async function getOrCreateDeviceId(): Promise<string> {
   const stored = await SecureStore.getItemAsync(DEVICE_ID_KEY);
@@ -47,8 +42,6 @@ async function getOrCreateDeviceId(): Promise<string> {
 }
 
 async function registerForPushNotificationsAsync(): Promise<string | null> {
-  if (!isNative) return null;
-
   if (!Device.isDevice) {
     if (__DEV__) console.log('[Push] Must use physical device');
     return null;
@@ -200,8 +193,6 @@ export function useNotificationListeners(
   }, []);
 
   useEffect(() => {
-    if (!isNative) return;
-
     const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
       if (__DEV__) console.log('[Push] Received:', notification.request.content);
       onNotificationRef.current?.(notification);
@@ -225,17 +216,14 @@ export async function getInitialNotificationResponse(): Promise<Notifications.No
 }
 
 export async function clearBadge(): Promise<void> {
-  if (!isNative) return;
   await Notifications.setBadgeCountAsync(0);
 }
 
 export async function getBadgeCount(): Promise<number> {
-  if (!isNative) return 0;
   return Notifications.getBadgeCountAsync();
 }
 
 export async function setBadgeCount(count: number): Promise<void> {
-  if (!isNative) return;
   await Notifications.setBadgeCountAsync(count);
 }
 
@@ -245,7 +233,6 @@ export async function scheduleLocalNotification(
   data?: Record<string, unknown>,
   delaySeconds = 0
 ): Promise<string> {
-  if (!isNative) return '';
   return Notifications.scheduleNotificationAsync({
     content: {
       title,
@@ -260,12 +247,10 @@ export async function scheduleLocalNotification(
 }
 
 export async function cancelAllNotifications(): Promise<void> {
-  if (!isNative) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
 export async function dismissAllNotifications(): Promise<void> {
-  if (!isNative) return;
   await Notifications.dismissAllNotificationsAsync();
 }
 
