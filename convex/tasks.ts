@@ -6,6 +6,8 @@ import { components } from './_generated/api';
 import { type TierKey, TIER_LIMITS } from './schema/tiers';
 import { getTierFromPriceId } from './subscriptions';
 
+const MAX_TASK_TEXT_LENGTH = 500;
+
 const getAuthUserId = async (ctx: QueryCtx | MutationCtx) => (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
 
 const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
@@ -50,6 +52,11 @@ export const create = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
+
+    const trimmedText = args.text.trim();
+    if (trimmedText.length === 0) throw new Error('Task text cannot be empty');
+    if (trimmedText.length > MAX_TASK_TEXT_LENGTH) throw new Error(`Task text cannot exceed ${MAX_TASK_TEXT_LENGTH} characters`);
+
     const tierKey = await getUserTier(ctx, userId);
     const taskLimit = TIER_LIMITS[tierKey];
 
@@ -58,7 +65,7 @@ export const create = mutation({
       if (existing.length >= taskLimit) throw new Error('LIMIT_REACHED');
     }
 
-    return await ctx.db.insert('tasks', { userId, text: args.text, isCompleted: false, createdAt: Date.now() });
+    return await ctx.db.insert('tasks', { userId, text: trimmedText, isCompleted: false, createdAt: Date.now() });
   },
 });
 
