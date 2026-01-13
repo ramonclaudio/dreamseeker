@@ -18,12 +18,13 @@ Building mobile SaaS from scratch means weeks on auth flows, payment integration
 
 ## What's Included
 
-- **Auth**: Email/password, password reset, rate limiting, 7-day sessions
+- **Auth**: Email/password with verification, Apple Sign-In, password reset, rate limiting, 7-day sessions
 - **Subscriptions**: Multi-tier system (Free → Starter → Plus → Pro) with feature gating
-- **Payments**: Stripe checkout with monthly/annual toggle, billing portal
+- **Payments**: Stripe checkout with monthly/annual toggle, billing portal, failed payment notifications
 - **Tier Gating**: Hooks and components to protect routes/features by subscription tier
 - **Profile**: Avatar upload, account deletion with full data cleanup
-- **UI**: Theme system (System/Light/Dark), cross-platform
+- **UI**: Theme system (System/Light/Dark), offline banner, cross-platform
+- **Security**: Input validation, authenticated storage endpoints
 
 ## Prerequisites
 
@@ -177,6 +178,27 @@ stripe listen --forward-to https://your-deployment.convex.site/stripe/webhook
 
 Test card: `4242 4242 4242 4242` (any future expiry, any CVC)
 
+## Apple Sign-In Setup (Optional)
+
+Apple Sign-In is pre-configured but requires Apple Developer setup:
+
+1. **Apple Developer Portal**:
+   - Go to Certificates, Identifiers & Profiles → Identifiers
+   - Select your App ID → Enable "Sign In with Apple"
+   - Create a Services ID for web-based authentication
+
+2. **Generate Client Secret**:
+   - Create a private key for Sign In with Apple
+   - Generate a JWT client secret (valid for 6 months max)
+
+3. **Set Environment Variables**:
+   ```bash
+   npx convex env set APPLE_CLIENT_ID your-services-id
+   npx convex env set APPLE_CLIENT_SECRET your-jwt-secret
+   ```
+
+The sign-in button will automatically appear on iOS devices when configured.
+
 ## Tier Gating
 
 Protect routes and features based on subscription tier.
@@ -312,6 +334,8 @@ npm run lint          # ESLint
 ```
 
 ## Production
+
+**Email Verification**: Enabled by default. New users must verify their email before signing in. Configure in `convex/auth.ts` to disable if needed.
 
 **Email DNS** (for deliverability):
 
