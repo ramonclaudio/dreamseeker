@@ -5,7 +5,7 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router }
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, AppState } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, AppState, Platform } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -18,6 +18,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
 import { Colors } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/offline-banner';
 
 const convex = new ConvexReactClient(env.convexUrl, { expectAuth: true, unsavedChangesWarning: false });
 
@@ -32,6 +33,10 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});
 
 const errorStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20 },
@@ -100,25 +105,37 @@ function RootNavigator() {
   }, [isLoading]);
 
   const { width } = Dimensions.get('window');
+  const colors = Colors[colorScheme];
+
+  // Apply background to body on web
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.body.style.backgroundColor = colors.background;
+      document.body.style.color = colors.foreground;
+    }
+  }, [colors.background, colors.foreground]);
 
   return (
     <KeyboardProvider>
       <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          {/* Public routes - only when NOT authenticated */}
-          <Stack.Protected guard={!isAuthenticated}>
-            <Stack.Screen name="(auth)" />
-          </Stack.Protected>
+        <View style={[styles.root, { backgroundColor: colors.background }]}>
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+            {/* Public routes - only when NOT authenticated */}
+            <Stack.Protected guard={!isAuthenticated}>
+              <Stack.Screen name="(auth)" />
+            </Stack.Protected>
 
-          {/* Protected routes - requires authentication */}
-          <Stack.Protected guard={isAuthenticated}>
-            <Stack.Screen name="(app)" />
-          </Stack.Protected>
+            {/* Protected routes - requires authentication */}
+            <Stack.Protected guard={isAuthenticated}>
+              <Stack.Screen name="(app)" />
+            </Stack.Protected>
 
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-        <ConfettiCannon ref={confettiRef} count={150} origin={{ x: width / 2, y: -20 }} autoStart={false} fadeOut fallSpeed={3000} explosionSpeed={400} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+          <OfflineBanner />
+          <ConfettiCannon ref={confettiRef} count={150} origin={{ x: width / 2, y: -20 }} autoStart={false} fadeOut fallSpeed={3000} explosionSpeed={400} />
+        </View>
       </NavigationThemeProvider>
     </KeyboardProvider>
   );
