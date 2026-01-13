@@ -46,7 +46,7 @@ export default function SignInScreen() {
 
       if (response.error) {
         haptics.error();
-        setError(response.error.message ?? 'Invalid credentials');
+        setError('Invalid email/username or password');
       } else {
         haptics.success();
       }
