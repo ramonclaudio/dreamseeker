@@ -8,13 +8,14 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function SignUpScreen() {
   const colorScheme = useColorScheme();
@@ -26,6 +27,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVerification, setShowVerification] = useState(false);
 
   const handleSignUp = async () => {
     haptics.light();
@@ -77,6 +79,7 @@ export default function SignUpScreen() {
         }
       } else {
         haptics.success();
+        setShowVerification(true);
       }
     } catch {
       haptics.error();
@@ -85,6 +88,58 @@ export default function SignUpScreen() {
       setIsLoading(false);
     }
   };
+
+  const handleResendEmail = async () => {
+    haptics.light();
+    setIsLoading(true);
+    try {
+      await authClient.sendVerificationEmail({ email: email.trim() });
+      haptics.success();
+    } catch {
+      haptics.error();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (showVerification) {
+    return (
+      <View style={[styles.container, styles.successContent, { backgroundColor: colors.background }]}>
+        <View style={{ alignItems: 'center', gap: 16 }}>
+          <IconSymbol name="envelope.badge" size={64} color={colors.primary} />
+          <Text style={[styles.title, { color: colors.foreground, textAlign: 'center' }]}>
+            Check your email
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground, textAlign: 'center' }]}>
+            We sent a verification link to{'\n'}
+            <Text style={{ fontWeight: '600', color: colors.foreground }}>{email}</Text>
+          </Text>
+          <Text style={[styles.hint, { color: colors.mutedForeground, textAlign: 'center' }]}>
+            Click the link in your email to verify your account, then sign in.
+          </Text>
+        </View>
+
+        <View style={{ gap: 12, marginTop: 32 }}>
+          <Pressable
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={() => router.replace('/sign-in')}>
+            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
+              Go to Sign In
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.button, { backgroundColor: colors.secondary }]}
+            onPress={handleResendEmail}
+            disabled={isLoading}>
+            <Text style={[styles.buttonText, { color: colors.foreground }]}>
+              {isLoading ? 'Sending...' : 'Resend Email'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
