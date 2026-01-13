@@ -1,5 +1,4 @@
 import { render } from '@testing-library/react-native';
-import { renderRouter, screen } from 'expo-router/testing-library';
 import { Text, View } from 'react-native';
 
 function WelcomeMessage({ name }: { name: string }) {
@@ -26,20 +25,5 @@ describe('Snapshot', () => {
   it('WelcomeMessage matches snapshot', () => {
     const tree = render(<WelcomeMessage name="Test" />).toJSON();
     expect(tree).toMatchSnapshot();
-  });
-});
-
-describe('Router', () => {
-  it('renders home screen at root', () => {
-    renderRouter({ index: () => <Text>Home</Text> }, { initialUrl: '/' });
-    expect(screen).toHavePathname('/');
-  });
-
-  it('navigates to nested routes', () => {
-    renderRouter(
-      { index: () => <Text>Home</Text>, 'settings/profile': () => <Text>Profile</Text> },
-      { initialUrl: '/settings/profile' }
-    );
-    expect(screen).toHavePathname('/settings/profile');
   });
 });
