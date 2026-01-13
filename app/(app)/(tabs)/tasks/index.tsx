@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
   TextInput,
   Pressable,
-  ScrollView,
+  FlatList,
   StyleSheet,
   ActivityIndicator,
+  type ListRenderItem,
 } from 'react-native';
 import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { router } from 'expo-router';
@@ -102,15 +103,26 @@ export default function TasksScreen() {
     }
   };
 
-  const handleToggleTask = async (id: Task['_id']) => {
+  const handleToggleTask = useCallback(async (id: Task['_id']) => {
     haptics.selection();
     await toggleTask({ id });
-  };
+  }, [toggleTask]);
 
-  const handleDeleteTask = async (id: Task['_id']) => {
+  const handleDeleteTask = useCallback(async (id: Task['_id']) => {
     haptics.warning();
     await deleteTask({ id });
-  };
+  }, [deleteTask]);
+
+  const renderItem: ListRenderItem<Task> = useCallback(({ item }) => (
+    <TaskItem
+      task={item}
+      colorScheme={colorScheme}
+      onToggle={() => handleToggleTask(item._id)}
+      onDelete={() => handleDeleteTask(item._id)}
+    />
+  ), [colorScheme, handleToggleTask, handleDeleteTask]);
+
+  const keyExtractor = useCallback((item: Task) => item._id, []);
 
   if (isLoading || tasks === undefined) {
     return (
@@ -120,10 +132,8 @@ export default function TasksScreen() {
     );
   }
 
-  return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.contentContainer}>
+  const ListHeader = (
+    <>
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.foreground }]}>Tasks</Text>
@@ -162,44 +172,48 @@ export default function TasksScreen() {
           <Text style={[styles.addButtonText, { color: colors.primaryForeground }]}>Add</Text>
         </Pressable>
       </GlassCard>
+    </>
+  );
 
-      <View style={styles.taskList}>
-        {tasks.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              No tasks yet. Add one above!
-            </Text>
-          </View>
-        ) : (
-          tasks.map((task) => (
-            <TaskItem
-              key={task._id}
-              task={task}
-              colorScheme={colorScheme}
-              onToggle={() => handleToggleTask(task._id)}
-              onDelete={() => handleDeleteTask(task._id)}
-            />
-          ))
-        )}
-      </View>
-    </ScrollView>
+  const ListEmpty = (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+        No tasks yet. Add one above!
+      </Text>
+    </View>
+  );
+
+  return (
+    <FlatList
+      data={tasks}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.contentContainer}
+      ListHeaderComponent={ListHeader}
+      ListEmptyComponent={ListEmpty}
+      removeClippedSubviews
+      maxToRenderPerBatch={10}
+      windowSize={5}
+      initialNumToRender={10}
+      getItemLayout={(_, index) => ({ length: 72, offset: 72 * index, index })}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  contentContainer: { paddingBottom: 100 },
+  contentContainer: { paddingBottom: 100, paddingHorizontal: 20 },
   centered: { justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16 },
+  header: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 60, paddingBottom: 16 },
   headerContent: { flex: 1 },
   historyButton: { padding: 8, marginBottom: 4 },
   title: { fontSize: 34, fontWeight: 'bold' },
   subtitle: { fontSize: 14, marginTop: 4 },
-  inputContainer: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16 },
+  inputContainer: { flexDirection: 'row', marginBottom: 16 },
   input: { flex: 1, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16 },
   addButton: { paddingHorizontal: 20, justifyContent: 'center', borderRadius: Radius.md, margin: 4 },
   addButtonText: { fontWeight: '600', fontSize: 14 },
-  taskList: { paddingHorizontal: 20 },
   taskItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, marginBottom: 8 },
   taskContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   checkbox: { width: 24, height: 24, borderRadius: Radius.sm, borderWidth: 2, marginRight: 12, justifyContent: 'center', alignItems: 'center' },

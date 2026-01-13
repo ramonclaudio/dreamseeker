@@ -40,6 +40,7 @@ const MAPPING = {
   'doc.plaintext.fill': 'article',
   'arrow.up.right': 'open-in-new',
   'envelope.fill': 'mail',
+  'envelope.badge': 'mail',
   'exclamationmark.bubble.fill': 'report-problem',
   'creditcard.fill': 'credit-card',
 } as const;

@@ -11,6 +11,8 @@ const MAX_BATCH_SIZE = 100;
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000;
 const DEFAULT_TTL = 2419200; // 28 days in seconds
+const MAX_TITLE_LENGTH = 100;
+const MAX_BODY_LENGTH = 500;
 
 const getAuthUserId = async (ctx: MutationCtx) => (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
 
@@ -383,6 +385,9 @@ export const sendPushNotification = action({
     errors: v.optional(v.array(v.string())),
   }),
   handler: async (ctx, args): Promise<SendResult> => {
+    if (args.title.length > MAX_TITLE_LENGTH) throw new Error(`Title cannot exceed ${MAX_TITLE_LENGTH} characters`);
+    if (args.body.length > MAX_BODY_LENGTH) throw new Error(`Body cannot exceed ${MAX_BODY_LENGTH} characters`);
+
     const tokens: PushToken[] = await ctx.runQuery(internal.notifications.getUserTokens, { userId: args.userId });
     if (tokens.length === 0) {
       return { success: false, sent: 0, failed: 0, errors: ['No push tokens for user'] };
