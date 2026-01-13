@@ -6,7 +6,10 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { meetsMinTier, type TierKey } from '@/convex/schema/tiers';
 
-export const unstable_settings = { initialRouteName: '(tabs)' };
+export const unstable_settings = {
+  initialRouteName: '(tabs)',
+  anchor: '(tabs)',
+};
 
 export default function AppLayout() {
   const colorScheme = useColorScheme();
