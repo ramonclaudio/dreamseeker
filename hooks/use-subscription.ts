@@ -1,6 +1,6 @@
 import { useQuery, useAction } from 'convex/react';
 import { useRouter, type Href } from 'expo-router';
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 
 import { api } from '@/convex/_generated/api';
@@ -15,6 +15,7 @@ export function useSubscription() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const status = useQuery(api.subscriptions.getSubscriptionStatus);
+  const tier = (status?.tier ?? 'free') as TierKey;
 
   const previousTierRef = useRef<TierKey | null>(null);
   useEffect(() => {
@@ -34,7 +35,6 @@ export function useSubscription() {
   const getPortalUrl = useAction(api.stripe.getCustomerPortalUrl);
 
   const subscription = status?.subscription;
-  const tier = (status?.tier ?? 'free') as TierKey;
 
   const showUpgrade = useCallback(() => router.push('/subscribe' as Href), [router]);
 
@@ -91,7 +91,10 @@ export function useSubscription() {
     }
   }, [reactivateSub, subscription?.id]);
 
-  return {
+  const canAccess = useCallback((minTier: TierKey) => meetsMinTier(tier, minTier), [tier]);
+  const hasFeatureFn = useCallback((feature: FeatureKey) => hasFeature(tier, feature), [tier]);
+
+  return useMemo(() => ({
     tier,
     tierName: status?.tierName ?? 'Free',
     taskCount: status?.taskCount ?? 0,
@@ -99,8 +102,8 @@ export function useSubscription() {
     canCreateTask: status?.canCreateTask ?? true,
     tasksRemaining: status?.tasksRemaining ?? null,
     features: TIER_FEATURES[tier],
-    canAccess: (minTier: TierKey) => meetsMinTier(tier, minTier),
-    hasFeature: (feature: FeatureKey) => hasFeature(tier, feature),
+    canAccess,
+    hasFeature: hasFeatureFn,
     subscription,
     isActive: subscription?.status === 'active' || subscription?.status === 'trialing',
     isTrialing: subscription?.status === 'trialing',
@@ -112,5 +115,5 @@ export function useSubscription() {
     manageBilling,
     cancel,
     restore,
-  };
+  }), [tier, status, subscription, loading, showUpgrade, subscribe, manageBilling, cancel, restore, canAccess, hasFeatureFn]);
 }
