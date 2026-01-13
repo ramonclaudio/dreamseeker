@@ -18,6 +18,7 @@ export default defineSchema({
     deviceId: v.optional(v.string()),
     lastUsed: v.number(),
     createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
   })
     .index('by_user', ['userId'])
     .index('by_token', ['token']),
