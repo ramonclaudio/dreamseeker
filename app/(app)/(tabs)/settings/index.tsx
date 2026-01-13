@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View, Text } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useMutation } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
@@ -11,11 +12,12 @@ import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 
-function SettingsItem({ icon, label, onPress, destructive, colors }: {
+function SettingsItem({ icon, label, onPress, destructive, showChevron = true, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  showChevron?: boolean;
   colors: (typeof Colors)['light'];
 }) {
   return (
@@ -32,7 +34,7 @@ function SettingsItem({ icon, label, onPress, destructive, colors }: {
           {label}
         </Text>
       </View>
-      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+      {showChevron && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
     </Pressable>
   );
 }
@@ -232,6 +234,7 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const { mode, setMode } = useThemeMode();
@@ -297,11 +300,56 @@ export default function SettingsScreen() {
         <SubscriptionSectionContent colors={colors} />
       </SettingsSection>
 
+      <SettingsSection title="Preferences" colors={colors}>
+        <SettingsItem
+          icon="bell.fill"
+          label="Notifications"
+          onPress={() => {
+            haptics.light();
+            router.navigate('/settings/notifications');
+          }}
+          colors={colors}
+        />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <SettingsItem
+          icon="hand.raised.fill"
+          label="Privacy"
+          onPress={() => {
+            haptics.light();
+            router.navigate('/settings/privacy');
+          }}
+          colors={colors}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Support" colors={colors}>
+        <SettingsItem
+          icon="questionmark.circle.fill"
+          label="Help"
+          onPress={() => {
+            haptics.light();
+            router.navigate('/settings/help');
+          }}
+          colors={colors}
+        />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <SettingsItem
+          icon="info.circle.fill"
+          label="About"
+          onPress={() => {
+            haptics.light();
+            router.navigate('/settings/about');
+          }}
+          colors={colors}
+        />
+      </SettingsSection>
+
       <SettingsSection title="Account" colors={colors}>
         <SettingsItem
           icon="rectangle.portrait.and.arrow.right"
           label="Sign Out"
           onPress={handleSignOut}
+          showChevron={false}
           colors={colors}
         />
       </SettingsSection>
@@ -320,6 +368,7 @@ export default function SettingsScreen() {
             label="Delete Account"
             onPress={handleDeleteAccount}
             destructive
+            showChevron={false}
             colors={colors}
           />
         )}
@@ -356,4 +405,5 @@ const styles = StyleSheet.create({
   buttonFlex: { flex: 1 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm },
   badgeText: { fontSize: 12, fontWeight: '600' },
+  divider: { height: StyleSheet.hairlineWidth, marginLeft: 50 },
 });
