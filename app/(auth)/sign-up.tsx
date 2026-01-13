@@ -52,9 +52,9 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (password.length < 8) {
+    if (password.length < 10) {
       haptics.error();
-      setError('Password must be at least 8 characters');
+      setError('Password must be at least 10 characters');
       return;
     }
 
@@ -69,14 +69,7 @@ export default function SignUpScreen() {
 
       if (response.error) {
         haptics.error();
-        const message = response.error.message ?? 'Sign up failed';
-        if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
-          setError('An account with this email already exists');
-        } else if (message.toLowerCase().includes('already taken')) {
-          setError('Username is already taken');
-        } else {
-          setError(message);
-        }
+        setError('Unable to create account. Please try a different email or username.');
       } else {
         haptics.success();
         setShowVerification(true);
@@ -243,7 +236,7 @@ export default function SignUpScreen() {
                   borderColor: colors.border,
                 },
               ]}
-              placeholder="At least 8 characters"
+              placeholder="At least 10 characters"
               placeholderTextColor={colors.mutedForeground}
               value={password}
               onChangeText={(text) => {

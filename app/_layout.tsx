@@ -17,6 +17,7 @@ import { StripeProvider } from '@/providers/stripe-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
+import { isValidDeepLink } from '@/lib/deep-link';
 import { Colors } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/offline-banner';
 
@@ -64,16 +65,20 @@ export default function RootLayout() {
 function useNotificationDeepLink() {
   const handleNotificationResponse = useCallback((response: Notifications.NotificationResponse) => {
     const url = response.notification.request.content.data?.url;
-    if (typeof url === 'string') {
+    if (typeof url === 'string' && isValidDeepLink(url)) {
       router.push(url as any);
     }
   }, []);
 
   // Handle initial response captured at module level (before React mount)
   useEffect(() => {
-    getInitialNotificationResponse().then((response) => {
-      if (response) handleNotificationResponse(response);
-    });
+    getInitialNotificationResponse()
+      .then((response) => {
+        if (response) handleNotificationResponse(response);
+      })
+      .catch((error) => {
+        if (__DEV__) console.warn('[DeepLink] Failed to get initial notification:', error);
+      });
   }, [handleNotificationResponse]);
 
   useNotificationListeners(undefined, handleNotificationResponse);

@@ -43,8 +43,7 @@ export const listCompleted = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
-    const tasks = await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', userId)).order('desc').collect();
-    return tasks.filter((task) => task.isCompleted);
+    return await ctx.db.query('tasks').withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true)).order('desc').collect();
   },
 });
 
