@@ -30,6 +30,18 @@ const MAPPING = {
   'clock.arrow.circlepath': 'history',
   'paintpalette.fill': 'palette',
   'square.and.arrow.up': 'ios-share',
+  'bell.fill': 'notifications',
+  'hand.raised.fill': 'pan-tool',
+  'questionmark.circle.fill': 'help',
+  'info.circle.fill': 'info',
+  'hammer.fill': 'build',
+  link: 'link',
+  'doc.text.fill': 'description',
+  'doc.plaintext.fill': 'article',
+  'arrow.up.right': 'open-in-new',
+  'envelope.fill': 'mail',
+  'exclamationmark.bubble.fill': 'report-problem',
+  'creditcard.fill': 'credit-card',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

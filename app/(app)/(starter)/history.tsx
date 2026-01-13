@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useQuery } from 'convex/react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/convex/_generated/api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, Radius, Typography } from '@/constants/theme';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { haptics } from '@/lib/haptics';
 
 export default function HistoryScreen() {
   const colorScheme = useColorScheme();

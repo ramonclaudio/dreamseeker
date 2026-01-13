@@ -1,22 +1,30 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, Typography } from '@/constants/theme';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { haptics } from '@/lib/haptics';
 
 export default function ExportScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
 
+  const handleClose = () => {
+    haptics.light();
+    router.back();
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={{ width: 60 }} />
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.dragIndicator} />
         <Text style={[Typography.subtitle, { color: colors.text }]}>Data Export</Text>
-        <Pressable onPress={() => router.back()} hitSlop={8} style={styles.closeButton}>
-          <IconSymbol name="xmark" size={20} color={colors.foreground} />
+        <Pressable onPress={handleClose} style={styles.closeButton}>
+          <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
         </Pressable>
       </View>
 
@@ -46,8 +54,9 @@ export default function ExportScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
-  closeButton: { width: 60, alignItems: 'flex-end' },
+  header: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 16 },
+  dragIndicator: { position: 'absolute', top: 8, width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' },
+  closeButton: { position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center', padding: 4 },
   content: { flex: 1 },
   contentContainer: { padding: 20, gap: 20 },
   card: { padding: 20 },
