@@ -61,11 +61,11 @@ export default function SubscribeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.dragIndicator} />
         <Pressable onPress={handleClose} style={styles.closeButton}>
           <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
         </Pressable>
       </View>
-
       <ScrollView
         style={styles.content}
         contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 20 }]}
@@ -223,8 +223,9 @@ export default function SubscribeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingBottom: 8 },
-  closeButton: { padding: 4 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 8 },
+  dragIndicator: { position: 'absolute', top: 8, width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' },
+  closeButton: { position: 'absolute', right: 16, padding: 4 },
   content: { flex: 1 },
   contentContainer: { paddingHorizontal: 20 },
   heroSection: { alignItems: 'center', marginBottom: 24 },
