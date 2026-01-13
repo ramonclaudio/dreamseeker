@@ -28,24 +28,26 @@ export default function AppLayout() {
   const canAccess = (minTier: TierKey) => meetsMinTier(tier, minTier);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {/* Base routes - all authenticated users */}
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="subscribe" options={{ presentation: 'modal', gestureEnabled: true }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+        {/* Base routes - all authenticated users */}
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="subscribe" options={{ presentation: 'modal', gestureEnabled: true }} />
+        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
 
-      {/* Tier-gated routes - requires minimum subscription tier */}
-      <Stack.Protected guard={canAccess('starter')}>
-        <Stack.Screen name="(starter)" options={{ presentation: 'modal' }} />
-      </Stack.Protected>
+        {/* Tier-gated routes - requires minimum subscription tier */}
+        <Stack.Protected guard={canAccess('starter')}>
+          <Stack.Screen name="(starter)" options={{ presentation: 'modal' }} />
+        </Stack.Protected>
 
-      <Stack.Protected guard={canAccess('plus')}>
-        <Stack.Screen name="(plus)" options={{ presentation: 'modal' }} />
-      </Stack.Protected>
+        <Stack.Protected guard={canAccess('plus')}>
+          <Stack.Screen name="(plus)" options={{ presentation: 'modal' }} />
+        </Stack.Protected>
 
-      <Stack.Protected guard={canAccess('pro')}>
-        <Stack.Screen name="(pro)" options={{ presentation: 'modal' }} />
-      </Stack.Protected>
-    </Stack>
+        <Stack.Protected guard={canAccess('pro')}>
+          <Stack.Screen name="(pro)" options={{ presentation: 'modal' }} />
+        </Stack.Protected>
+      </Stack>
+    </View>
   );
 }
