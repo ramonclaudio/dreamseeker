@@ -20,7 +20,7 @@ const SEVEN_DAYS = ONE_DAY * 7;
 export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
   trustedOrigins: ['expostarterapp://', 'exp://', 'http://localhost:8081', env.siteUrl, 'https://appleid.apple.com'],
   database: authComponent.adapter(ctx),
-  user: { changeEmail: { enabled: true, updateEmailWithoutVerification: true } },
+  user: { changeEmail: { enabled: true, updateEmailWithoutVerification: false } },
   socialProviders: {
     apple: {
       clientId: env.apple.clientId,
@@ -31,7 +31,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    minPasswordLength: 8,
+    minPasswordLength: 10,
     maxPasswordLength: 128,
     resetPasswordTokenExpiresIn: ONE_HOUR,
     revokeSessionsOnPasswordReset: true,
