@@ -18,12 +18,19 @@ const ONE_DAY = ONE_HOUR * 24;
 const SEVEN_DAYS = ONE_DAY * 7;
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
-  trustedOrigins: ['expostarterapp://', 'exp://', 'http://localhost:8081', env.siteUrl],
+  trustedOrigins: ['expostarterapp://', 'exp://', 'http://localhost:8081', env.siteUrl, 'https://appleid.apple.com'],
   database: authComponent.adapter(ctx),
   user: { changeEmail: { enabled: true, updateEmailWithoutVerification: true } },
+  socialProviders: {
+    apple: {
+      clientId: env.apple.clientId,
+      clientSecret: env.apple.clientSecret,
+      appBundleIdentifier: 'com.ramonclaudio.expo-starter-app',
+    },
+  },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
     resetPasswordTokenExpiresIn: ONE_HOUR,
@@ -36,7 +43,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       await sendEmailVerification(requireActionCtx(ctx), { to: user.email, url });
     },
-    sendOnSignUp: false,
+    sendOnSignUp: true,
     autoSignInAfterVerification: true,
   },
   session: { expiresIn: SEVEN_DAYS, updateAge: ONE_DAY, cookieCache: { enabled: true, maxAge: ONE_MINUTE * 5 } },
