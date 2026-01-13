@@ -22,6 +22,10 @@ export const env = {
   expo: {
     accessToken: required('EXPO_ACCESS_TOKEN'),
   },
+  apple: {
+    clientId: optional('APPLE_CLIENT_ID', ''),
+    clientSecret: optional('APPLE_CLIENT_SECRET', ''),
+  },
   resend: {
     fromEmail: required('RESEND_FROM_EMAIL'),
     webhookSecret: required('RESEND_WEBHOOK_SECRET'),
