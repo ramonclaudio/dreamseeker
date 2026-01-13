@@ -1,25 +1,34 @@
-import { query, action } from './_generated/server';
+import { query, action, type QueryCtx } from './_generated/server';
 import { components } from './_generated/api';
 import { StripeSubscriptions } from '@convex-dev/stripe';
 import { v } from 'convex/values';
+import { authComponent } from './auth';
 
 const stripeClient = new StripeSubscriptions(components.stripe, {});
+
+const getAuthUserId = async (ctx: QueryCtx) => (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
+
+const requireAuth = async (ctx: QueryCtx) => {
+  const userId = await getAuthUserId(ctx);
+  if (!userId) throw new Error('Unauthorized');
+  return userId;
+};
 
 export const getUserSubscriptions = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-    return await ctx.runQuery(components.stripe.public.listSubscriptionsByUserId, { userId: identity.subject });
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+    return await ctx.runQuery(components.stripe.public.listSubscriptionsByUserId, { userId });
   },
 });
 
 export const getPaymentHistory = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-    return await ctx.runQuery(components.stripe.public.listPaymentsByUserId, { userId: identity.subject });
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+    return await ctx.runQuery(components.stripe.public.listPaymentsByUserId, { userId });
   },
 });
 
