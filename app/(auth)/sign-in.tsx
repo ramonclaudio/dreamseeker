@@ -15,6 +15,7 @@ import { haptics } from '@/lib/haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
+import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
 
 export default function SignInScreen() {
   const colorScheme = useColorScheme();
@@ -148,6 +149,14 @@ export default function SignInScreen() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Text>
           </Pressable>
+
+          <View style={styles.divider}>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          </View>
+
+          <AppleSignInButton onError={(err) => setError(err)} />
         </View>
 
         <View style={styles.footer}>
