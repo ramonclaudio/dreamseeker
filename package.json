@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0-alpha-1",
   "scripts": {
-    "postinstall": "patch-package && test -f .env.local || cp .env.local.dev .env.local",
+    "postinstall": "patch-package && (test -f .env.local || cp .env.local.dev .env.local 2>/dev/null || true)",
     "eas-build-post-install": "npx convex codegen",
     "start": "expo start --dev-client --clear",
     "env:dev": "cp .env.local.dev .env.local && echo 'Switched to DEV'",
