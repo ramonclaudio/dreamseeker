@@ -2,10 +2,6 @@
 
 Production-ready SaaS starter for mobile. Auth, payments, subscriptions, real-time data—wired up and working.
 
-## Why This Exists
-
-Building mobile SaaS from scratch means weeks on auth flows, payment integration, subscription tiers, and backend plumbing before writing any actual product code. This starter handles that foundation so you can focus on what makes your app unique.
-
 ## Stack
 
 | Layer | Tech |
@@ -18,77 +14,373 @@ Building mobile SaaS from scratch means weeks on auth flows, payment integration
 
 ## What's Included
 
-- **Auth**: Email/password with verification, Apple Sign-In, password reset, rate limiting, 7-day sessions
+- **Auth**: Email/password with verification, Apple Sign-In, password reset, rate limiting
 - **Subscriptions**: Multi-tier system (Free → Starter → Plus → Pro) with feature gating
-- **Payments**: Stripe checkout with monthly/annual toggle, billing portal, failed payment notifications
-- **Tier Gating**: Hooks and components to protect routes/features by subscription tier
+- **Payments**: Stripe checkout, billing portal, failed payment notifications
 - **Profile**: Avatar upload, account deletion with full data cleanup
 - **UI**: Theme system (System/Light/Dark), offline banner, cross-platform
-- **Security**: Input validation, authenticated storage endpoints
 
 ## Prerequisites
 
-- Node 18+, Xcode 16+ or Android Studio
-- [Convex](https://convex.dev), [Resend](https://resend.com), [Stripe](https://stripe.com) accounts
+Before starting, you'll need accounts on these services:
 
-Expo Go not supported—SDK 55 requires development builds.
+| Service | Purpose | Sign Up |
+|---------|---------|---------|
+| [Convex](https://convex.dev) | Real-time backend | Free tier available |
+| [Stripe](https://stripe.com) | Payments | Free to create |
+| [Resend](https://resend.com) | Transactional email | Free tier (3k/month) |
+| [Expo](https://expo.dev) | Build service | Free tier available |
+| [EAS](https://expo.dev/eas) | Cloud builds | Part of Expo account |
 
-## Quick Start
+**Local requirements:**
+- Node 18+
+- Xcode 16+ (iOS) or Android Studio (Android)
+- Expo Go not supported—SDK 55 requires development builds
+
+---
+
+## Complete Setup Guide
+
+This guide walks through everything needed to run the app from scratch.
+
+### Step 1: Clone and Install
 
 ```bash
 git clone https://github.com/ramonclaudio/expo-starter-app.git
-cd expo-starter-app && npm install
-
-npx convex dev  # Creates deployment, prints URLs
+cd expo-starter-app
+npm install
 ```
 
-Create `.env.local`:
+This creates `.env.local` from `.env.local.dev` automatically.
+
+---
+
+### Step 2: Convex Setup
+
+#### 2.1 Create Convex Account
+
+1. Go to [convex.dev](https://convex.dev) and sign up
+2. Create a new project (name it anything)
+
+#### 2.2 Initialize Convex in Project
 
 ```bash
-CONVEX_DEPLOYMENT=dev:your-deployment
-EXPO_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
-EXPO_PUBLIC_CONVEX_SITE_URL=https://your-deployment.convex.site
-EXPO_PUBLIC_SITE_URL=http://localhost:8081
-
-# Stripe (see "Stripe Setup" section below)
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxx
-EXPO_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PLUS_ANNUAL_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID=price_xxxx
+npx convex dev
 ```
 
-Set server env vars:
+Follow the prompts:
+- Select your team/project
+- This creates a **development deployment** (e.g., `amiable-seahorse-506`)
+- The CLI outputs your deployment URLs
+
+#### 2.3 Copy Convex URLs to Local Env
+
+Open `.env.local.dev` and fill in:
 
 ```bash
-npx convex env set BETTER_AUTH_SECRET $(openssl rand -base64 32)
-npx convex env set SITE_URL http://localhost:8081
-npx convex env set RESEND_API_KEY re_xxxx
-npx convex env set RESEND_FROM_EMAIL noreply@yourdomain.com
-npx convex env set STRIPE_SECRET_KEY sk_test_xxxx
-npx convex env set STRIPE_WEBHOOK_SECRET whsec_xxxx
-
-# Stripe price IDs (server-side for tier lookup)
-npx convex env set STRIPE_STARTER_MONTHLY_PRICE_ID price_xxxx
-npx convex env set STRIPE_STARTER_ANNUAL_PRICE_ID price_xxxx
-npx convex env set STRIPE_PLUS_MONTHLY_PRICE_ID price_xxxx
-npx convex env set STRIPE_PLUS_ANNUAL_PRICE_ID price_xxxx
-npx convex env set STRIPE_PRO_MONTHLY_PRICE_ID price_xxxx
-npx convex env set STRIPE_PRO_ANNUAL_PRICE_ID price_xxxx
+CONVEX_DEPLOYMENT=dev:your-deployment-slug
+EXPO_PUBLIC_CONVEX_URL=https://your-deployment-slug.convex.cloud
+EXPO_PUBLIC_CONVEX_SITE_URL=https://your-deployment-slug.convex.site
 ```
 
-Run (two terminals):
+#### 2.4 Create Production Deployment
 
 ```bash
-npm run convex  # Terminal 1: backend
-npm run ios     # Terminal 2: app
+npx convex deploy
 ```
+
+This creates a separate **production deployment** (e.g., `determined-civet-459`).
+
+Save the prod URLs for later (EAS builds).
+
+#### 2.5 Get Deploy Keys
+
+You need deploy keys for EAS cloud builds.
+
+**For each deployment (dev and prod):**
+1. Go to [Convex Dashboard](https://dashboard.convex.dev)
+2. Select your deployment
+3. Go to **Settings** → **Deploy Keys**
+4. Click **Generate Deploy Key**
+5. Save the key (format: `prod:slug|xxxxx` or `dev:slug|xxxxx`)
+
+---
+
+### Step 3: Stripe Setup
+
+#### 3.1 Create Stripe Account
+
+1. Go to [stripe.com](https://stripe.com) and sign up
+2. Enable **Test Mode** (toggle in top-right)
+
+#### 3.2 Create Products
+
+Go to **Products** → **Add Product** and create 3 products:
+
+| Product Name | Monthly Price | Annual Price |
+|--------------|---------------|--------------|
+| Starter Plan | $4.99/month | $49.99/year |
+| Plus Plan | $9.99/month | $99.99/year |
+| Pro Plan | $19.99/month | $199.99/year |
+
+For each product:
+1. Set the name
+2. Add a **Recurring** price for monthly
+3. Add another **Recurring** price for annual
+4. Copy both **Price IDs** (they start with `price_`, not `prod_`)
+
+You'll have 6 price IDs total.
+
+#### 3.3 Get API Keys
+
+1. Go to **Developers** → **API Keys**
+2. Copy:
+   - **Publishable key** (`pk_test_xxx`) - goes in local env
+   - **Secret key** (`sk_test_xxx`) - goes in Convex dashboard
+
+#### 3.4 Create Webhook
+
+**For local development:**
+```bash
+stripe listen --forward-to https://your-deployment.convex.site/stripe/webhook
+```
+
+This gives you a webhook secret (`whsec_xxx`).
+
+**For production (do this later):**
+1. Go to **Developers** → **Webhooks** → **Add endpoint**
+2. URL: `https://your-prod-deployment.convex.site/stripe/webhook`
+3. Select events:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+4. Copy the webhook signing secret
+
+---
+
+### Step 4: Resend Setup
+
+#### 4.1 Create Resend Account
+
+1. Go to [resend.com](https://resend.com) and sign up
+2. Verify your email domain (or use their test domain for development)
+
+#### 4.2 Get API Key
+
+1. Go to **API Keys** → **Create API Key**
+2. Copy the key (`re_xxx`)
+
+#### 4.3 Create Webhook (Optional)
+
+For email delivery tracking:
+1. Go to **Webhooks** → **Add Webhook**
+2. URL: `https://your-deployment.convex.site/resend/webhook`
+3. Select events: all delivery events
+4. Copy the webhook secret
+
+---
+
+### Step 5: Expo Setup
+
+#### 5.1 Create Expo Account
+
+1. Go to [expo.dev](https://expo.dev) and sign up
+2. This also gives you access to EAS
+
+#### 5.2 Get Access Token
+
+For push notifications:
+1. Go to **Account Settings** → **Access Tokens**
+2. Click **Create Token**
+3. Name it (e.g., "expo-starter-app")
+4. Copy the token
+
+---
+
+### Step 6: Set Convex Environment Variables
+
+**You must set env vars for BOTH deployments (dev and prod).**
+
+#### 6.1 Development Deployment
+
+1. Go to [Convex Dashboard](https://dashboard.convex.dev)
+2. Select your **dev deployment**
+3. Go to **Settings** → **Environment Variables**
+4. Add these variables:
+
+```bash
+# App
+SITE_URL=expostarterapp://
+SUPPORT_EMAIL=your@email.com
+
+# Push Notifications
+EXPO_ACCESS_TOKEN=<from Step 5.2>
+
+# Better Auth
+BETTER_AUTH_SECRET=<run: openssl rand -base64 32>
+
+# Resend
+RESEND_API_KEY=<from Step 4.2>
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+RESEND_WEBHOOK_SECRET=<from Step 4.3, or skip>
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxx
+STRIPE_STARTER_ANNUAL_PRICE_ID=price_xxx
+STRIPE_PLUS_MONTHLY_PRICE_ID=price_xxx
+STRIPE_PLUS_ANNUAL_PRICE_ID=price_xxx
+STRIPE_PRO_MONTHLY_PRICE_ID=price_xxx
+STRIPE_PRO_ANNUAL_PRICE_ID=price_xxx
+```
+
+#### 6.2 Production Deployment
+
+1. Select your **prod deployment** in Convex Dashboard
+2. Go to **Settings** → **Environment Variables**
+3. Add the **same variables** as dev, but with production values:
+   - Use `sk_live_xxx` for Stripe secret key (when ready)
+   - Use production webhook secrets
+   - Generate a **different** `BETTER_AUTH_SECRET`
+
+---
+
+### Step 7: Set Local Environment Variables
+
+Edit `.env.local.dev` with your values:
+
+```bash
+# Convex
+CONVEX_DEPLOYMENT=dev:your-slug
+EXPO_PUBLIC_CONVEX_URL=https://your-slug.convex.cloud
+EXPO_PUBLIC_CONVEX_SITE_URL=https://your-slug.convex.site
+
+# App
+EXPO_PUBLIC_SITE_URL=expostarterapp://
+
+# Stripe (client-side - safe to expose)
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+EXPO_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PLUS_ANNUAL_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID=price_xxx
+```
+
+Copy to `.env.local`:
+```bash
+cp .env.local.dev .env.local
+```
+
+---
+
+### Step 8: Set EAS Environment Variables
+
+EAS needs env vars for cloud builds. Set them for **both profiles** (development and production).
+
+#### 8.1 Production Profile
+
+1. Go to [EAS Dashboard](https://expo.dev) → Your Project → **Environment Variables**
+2. Create variables for **production** environment:
+
+```bash
+CONVEX_DEPLOY_KEY=prod:your-slug|xxxxx
+EXPO_PUBLIC_CONVEX_URL=https://your-prod-slug.convex.cloud
+EXPO_PUBLIC_CONVEX_SITE_URL=https://your-prod-slug.convex.site
+EXPO_PUBLIC_SITE_URL=expostarterapp://
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+EXPO_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PLUS_ANNUAL_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_xxx
+EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID=price_xxx
+```
+
+All variables should be **Plain text** visibility.
+
+#### 8.2 Development Profile (Optional)
+
+If you want EAS dev builds:
+1. Create variables for **development** environment
+2. Use your **dev** Convex deployment URLs and deploy key
+
+---
+
+### Step 9: Run the App
+
+Open **two terminals**:
+
+**Terminal 1 - Backend:**
+```bash
+npm run convex
+```
+
+**Terminal 2 - App:**
+```bash
+npm run ios        # iOS Simulator
+npm run android    # Android Emulator
+```
+
+---
+
+## Environment Summary
+
+| Location | What Goes There | When Used |
+|----------|-----------------|-----------|
+| `.env.local` | Convex URLs, Stripe publishable key, price IDs | Local simulator/device |
+| Convex Dashboard (dev) | All server secrets | `npm run convex` |
+| Convex Dashboard (prod) | All server secrets | Production app |
+| EAS Dashboard (prod) | Deploy key, public vars | `eas build --profile production` |
+| EAS Dashboard (dev) | Deploy key, public vars | `eas build --profile development` |
+
+---
+
+## Commands
+
+```bash
+# Development
+npm run ios                 # Clean build + simulator
+npm run ios:device          # Clean build + physical device
+npm run android             # Android emulator
+npm run android:device      # Android physical device
+npm run web                 # Web dev server
+npm run convex              # Convex backend with hot reload
+
+# Environment
+npm run env:dev             # Switch to dev backend
+npm run env:prod            # Switch to prod backend
+
+# Quality
+npm run check               # Lint + typecheck
+npm run lint                # ESLint
+npm run typecheck           # tsc --noEmit
+
+# Reset
+npm run clean               # Project reset
+npm run clean:nuclear       # Full reset (all caches)
+```
+
+---
+
+## EAS Builds
+
+After completing setup:
+
+```bash
+# Development build (for testing)
+eas build --platform ios --profile development
+
+# Production build (for App Store)
+eas build --platform ios --profile production
+```
+
+---
 
 ## Subscription Tiers
-
-The app uses a 4-tier freemium model. Configure in `convex/schema/tiers.ts`:
 
 | Tier | Task Limit | Features |
 |------|------------|----------|
@@ -97,265 +389,51 @@ The app uses a 4-tier freemium model. Configure in `convex/schema/tiers.ts`:
 | Plus | 200 | + Data export |
 | Pro | Unlimited | + Early access |
 
-### Feature Flags
+Configure in `convex/schema/tiers.ts`.
 
-Each tier has feature flags defined in `TIER_FEATURES`:
+---
 
-```typescript
-// convex/schema/tiers.ts
-export const TIER_FEATURES = {
-  free: { tasks: 10, history: false, dataExport: false, ... },
-  starter: { tasks: 50, history: true, ... },
-  plus: { tasks: 200, dataExport: true, ... },
-  pro: { tasks: Infinity, earlyAccess: true, ... },
-};
-```
+## Apple Sign-In (Optional)
 
-### Customizing Tiers
+Pre-configured but requires Apple Developer setup:
 
-To add/modify tiers:
-
-1. Update `TIER_KEYS` in `convex/schema/tiers.ts`
-2. Add limits to `TIER_LIMITS` and features to `TIER_FEATURES`
-3. Add pricing in `constants/subscriptions.ts`
-4. Create corresponding Stripe products/prices
-5. Set price ID environment variables
-
-## Stripe Setup
-
-### 1. Create Products in Stripe Dashboard
-
-Enable **Test Mode**, then create products for each paid tier:
-
-| Product | Monthly Price | Annual Price |
-|---------|--------------|--------------|
-| Starter | $4.99/mo | $49.99/yr |
-| Plus | $9.99/mo | $99.99/yr |
-| Pro | $19.99/mo | $199.99/yr |
-
-For each product:
-1. Go to **Products** → **Add Product**
-2. Name it (e.g., "Starter Plan")
-3. Add a **Recurring** price for monthly billing
-4. Add another **Recurring** price for annual billing
-5. Copy the **Price IDs** (start with `price_`, not `prod_`)
-
-### 2. Set Price IDs
-
-**Client (`.env.local`)** - Used for checkout:
-```bash
-EXPO_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PLUS_ANNUAL_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_xxxx
-EXPO_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID=price_xxxx
-```
-
-**Server (Convex dashboard)** - Used for tier lookup from webhooks:
-```bash
-STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxxx
-STRIPE_STARTER_ANNUAL_PRICE_ID=price_xxxx
-STRIPE_PLUS_MONTHLY_PRICE_ID=price_xxxx
-STRIPE_PLUS_ANNUAL_PRICE_ID=price_xxxx
-STRIPE_PRO_MONTHLY_PRICE_ID=price_xxxx
-STRIPE_PRO_ANNUAL_PRICE_ID=price_xxxx
-```
-
-### 3. Configure Webhooks
-
-**Local development:**
-```bash
-stripe listen --forward-to https://your-deployment.convex.site/stripe/webhook
-```
-
-**Production:**
-1. Stripe Dashboard → Developers → Webhooks → Add endpoint
-2. URL: `https://your-deployment.convex.site/stripe/webhook`
-3. Events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
-
-### 4. Test
-
-Test card: `4242 4242 4242 4242` (any future expiry, any CVC)
-
-## Apple Sign-In Setup (Optional)
-
-Apple Sign-In is pre-configured but requires Apple Developer setup:
-
-1. **Apple Developer Portal**:
-   - Go to Certificates, Identifiers & Profiles → Identifiers
-   - Select your App ID → Enable "Sign In with Apple"
-   - Create a Services ID for web-based authentication
-
-2. **Generate Client Secret**:
-   - Create a private key for Sign In with Apple
-   - Generate a JWT client secret (valid for 6 months max)
-
-3. **Set Environment Variables**:
+1. Apple Developer Portal → Identifiers → Enable "Sign In with Apple"
+2. Create a Services ID for web auth
+3. Generate a private key and JWT client secret
+4. Set in Convex dashboard:
    ```bash
-   npx convex env set APPLE_CLIENT_ID your-services-id
-   npx convex env set APPLE_CLIENT_SECRET your-jwt-secret
+   APPLE_CLIENT_ID=your-services-id
+   APPLE_CLIENT_SECRET=your-jwt-secret
    ```
 
-The sign-in button will automatically appear on iOS devices when configured.
+---
 
-## Tier Gating
+## Troubleshooting
 
-Protect routes and features based on subscription tier.
+| Problem | Solution |
+|---------|----------|
+| "Missing CONVEX_URL" | Check `.env.local` exists and has values |
+| "Unauthorized" errors | Verify Convex env vars in dashboard |
+| Stripe checkout fails | Check webhook is running locally |
+| Push notifications fail | Use physical device (simulator doesn't support) |
+| EAS build fails | Check `CONVEX_DEPLOY_KEY` is set in EAS |
 
-### useSubscription Hook
+---
 
-Access subscription state anywhere:
+## Production Checklist
 
-```tsx
-import { useSubscription } from '@/hooks/use-subscription';
+Before going live:
 
-function MyComponent() {
-  const {
-    tier,                    // 'free' | 'starter' | 'plus' | 'pro'
-    features,                // Current tier's feature flags
-    canAccess,               // (minTier) => boolean
-    hasFeature,              // (feature) => boolean
-    showUpgrade,             // Navigate to subscribe screen
-    taskCount,               // Current task count
-    tasksRemaining,          // null for unlimited
-  } = useSubscription();
+- [ ] Create Convex production deployment
+- [ ] Set all Convex prod env vars
+- [ ] Create Stripe production webhook (live mode)
+- [ ] Switch Stripe keys to `sk_live_xxx` / `pk_live_xxx`
+- [ ] Set up email DNS records for Resend
+- [ ] Configure EAS production env vars
+- [ ] Generate new `BETTER_AUTH_SECRET` for prod
+- [ ] Test full signup/payment flow in production
 
-  // Check tier level
-  if (canAccess('plus')) {
-    // User is Plus or Pro
-  }
-
-  // Check specific feature
-  if (hasFeature('dataExport')) {
-    // User has data export feature
-  }
-
-  // Access feature flags directly
-  if (features.dataExport) {
-    // Show data export option
-  }
-}
-```
-
-### TierGate Component
-
-Conditionally render content based on tier:
-
-```tsx
-import { TierGate, UpgradePrompt } from '@/components/tier-gate';
-
-// Gate by minimum tier
-<TierGate minTier="plus">
-  <AdvancedSettings />
-</TierGate>
-
-// Gate by specific feature
-<TierGate feature="dataExport">
-  <ExportButton />
-</TierGate>
-
-// Custom fallback when denied
-<TierGate minTier="pro" fallback={<UpgradePrompt minTier="pro" />}>
-  <ProFeature />
-</TierGate>
-
-// Hide completely if no access
-<TierGate minTier="pro" hideOnDeny>
-  <ProOnlyButton />
-</TierGate>
-```
-
-### Route Protection
-
-Protect entire route groups by tier:
-
-```tsx
-// app/(app)/(pro)/_layout.tsx
-import { Redirect, Stack } from 'expo-router';
-import { useRequireTier } from '@/hooks/use-tier-gate';
-
-export default function ProLayout() {
-  const { hasAccess, isLoading } = useRequireTier('pro');
-
-  if (isLoading) return <Loading />;
-  if (!hasAccess) return <Redirect href="/subscribe" />;
-
-  return <Stack>{/* Pro-only screens */}</Stack>;
-}
-```
-
-### Feature-Based Route Protection
-
-```tsx
-import { useRequireFeature } from '@/hooks/use-tier-gate';
-
-function DataExportScreen() {
-  const { hasAccess, isLoading, requiredTier } = useRequireFeature('dataExport');
-
-  if (isLoading) return <Loading />;
-  if (!hasAccess) return null; // Will redirect to /subscribe
-
-  return <ExportUI />;
-}
-```
-
-### useTierAccess Hook
-
-Check access without redirecting:
-
-```tsx
-import { useTierAccess } from '@/hooks/use-tier-gate';
-
-function SettingsScreen() {
-  const { canAccess, hasFeature, features } = useTierAccess();
-
-  return (
-    <View>
-      <BasicSettings />
-      {canAccess('starter') && <HistorySettings />}
-      {features.dataExport && <ExportSettings />}
-    </View>
-  );
-}
-
-## Commands
-
-```bash
-npm run ios           # Clean prebuild + simulator
-npm run ios:device    # Clean prebuild + device
-npm run ios:fast      # Skip prebuild (native unchanged)
-npm run android       # Android
-npm run web           # Web
-npm run convex        # Backend with hot reload
-npm run clean         # Nuclear reset
-npm run typecheck     # tsc --noEmit
-npm run lint          # ESLint
-```
-
-## Production
-
-**Email Verification**: Enabled by default. New users must verify their email before signing in. Configure in `convex/auth.ts` to disable if needed.
-
-**Email DNS** (for deliverability):
-
-```
-@ TXT "v=spf1 include:_spf.resend.com ~all"
-resend._domainkey TXT <value from Resend dashboard>
-_dmarc TXT "v=DMARC1; p=none;"
-```
-
-**Stripe Webhook**:
-
-1. Dashboard → Developers → Webhooks → Add endpoint
-2. URL: `https://your-deployment.convex.site/stripe/webhook`
-3. Events: `checkout.session.completed`, `customer.subscription.*`
-
-**Deploy**:
-
-```bash
-npx convex deploy
-```
+---
 
 ## License
 
