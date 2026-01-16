@@ -35,7 +35,7 @@ function AboutItem({
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         {value && (
-          <Text style={{ fontSize: 16, color: colors.mutedForeground }}>
+          <Text selectable style={{ fontSize: 16, color: colors.mutedForeground }}>
             {value}
           </Text>
         )}
