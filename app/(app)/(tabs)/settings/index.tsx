@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ActivityIndicator, Alert, Pressable, ScrollView, View, Text, Platform } from 'react-native';
+import { Link } from 'expo-router';
 import { useMutation } from 'convex/react';
+import * as Clipboard from 'expo-clipboard';
 
 import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -11,6 +12,17 @@ import { useColorScheme, useThemeMode, type ThemeMode } from '@/hooks/use-color-
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
+
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
+const sectionContentStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
+const settingsItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 16 };
+const settingsItemLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };
+const dividerStyle = { height: 0.5, marginLeft: 50 };
+const subscriptionContainerStyle = { padding: 16, gap: 12 };
+const subscriptionHeaderStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const };
+const subscriptionInfoStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };
+const buttonRowStyle = { flexDirection: 'row' as const, gap: 8 };
 
 function SettingsItem({ icon, label, onPress, destructive, showChevron = true, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -22,15 +34,15 @@ function SettingsItem({ icon, label, onPress, destructive, showChevron = true, c
 }) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.settingsItem, { opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}
       onPress={onPress}>
-      <View style={styles.settingsItemLeft}>
+      <View style={settingsItemLeftStyle}>
         <IconSymbol
           name={icon}
           size={22}
           color={destructive ? colors.destructive : colors.mutedForeground}
         />
-        <Text style={[styles.settingsItemLabel, { color: destructive ? colors.destructive : colors.text }]}>
+        <Text style={{ fontSize: 16, color: destructive ? colors.destructive : colors.text }}>
           {label}
         </Text>
       </View>
@@ -39,11 +51,61 @@ function SettingsItem({ icon, label, onPress, destructive, showChevron = true, c
   );
 }
 
+function SettingsLinkItem({ href, icon, label, colors }: {
+  href: '/settings/notifications' | '/settings/privacy' | '/settings/help' | '/settings/about';
+  icon: Parameters<typeof IconSymbol>[0]['name'];
+  label: string;
+  colors: (typeof Colors)['light'];
+}) {
+  const handleCopyLink = async () => {
+    await Clipboard.setStringAsync(href);
+    haptics.light();
+  };
+
+  const SettingsRow = (
+    <Pressable style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}>
+      <View style={settingsItemLeftStyle}>
+        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
+        <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+      </View>
+      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+    </Pressable>
+  );
+
+  if (Platform.OS !== 'ios') {
+    return (
+      <Link href={href} asChild>
+        {SettingsRow}
+      </Link>
+    );
+  }
+
+  return (
+    <Link href={href} style={settingsItemStyle}>
+      <Link.Trigger>
+        <View style={settingsItemLeftStyle}>
+          <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
+          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+        </View>
+      </Link.Trigger>
+      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+      <Link.Preview />
+      <Link.Menu>
+        <Link.MenuAction
+          title="Copy Link"
+          icon="doc.on.doc"
+          onPress={handleCopyLink}
+        />
+      </Link.Menu>
+    </Link>
+  );
+}
+
 function SettingsSection({ title, children, colors }: { title?: string; children: React.ReactNode; colors: (typeof Colors)['light'] }) {
   return (
-    <View style={styles.section}>
-      {title && <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>}
-      <GlassCard style={styles.sectionContent}>
+    <View style={sectionStyle}>
+      {title && <Text style={[sectionTitleStyle, { color: colors.text }]}>{title}</Text>}
+      <GlassCard style={sectionContentStyle}>
         {children}
       </GlassCard>
     </View>
@@ -64,26 +126,26 @@ function ThemePicker({ mode, onModeChange, colors }: {
   const colorScheme = useColorScheme();
   const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
   return (
-    <View style={styles.themeContainer}>
-      <View style={styles.themeRow}>
+    <View style={{ padding: 16, gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <Text style={[styles.settingsItemLabel, { color: colors.text }]}>Theme</Text>
+        <Text style={{ fontSize: 16, color: colors.text }}>Theme</Text>
       </View>
-      <View style={[styles.segmentedControl, { backgroundColor: colors.muted }]}>
+      <View style={{ flexDirection: 'row', borderRadius: Radius.md, borderCurve: 'continuous', padding: 3, backgroundColor: colors.muted }}>
         {THEME_OPTIONS.map((option) => {
           const isSelected = mode === option.value;
           return (
             <Pressable
               key={option.value}
               style={[
-                styles.segment,
-                isSelected && [styles.segmentSelected, { backgroundColor: colors.background }],
+                { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: Radius.sm, borderCurve: 'continuous' },
+                isSelected && { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)', backgroundColor: colors.background },
               ]}
               onPress={() => {
                 haptics.light();
                 onModeChange(option.value);
               }}>
-              <Text style={[styles.segmentText, { color: isSelected ? colors.foreground : colors.mutedForeground }]}>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: isSelected ? colors.foreground : colors.mutedForeground }}>
                 {option.label}
               </Text>
             </Pressable>
@@ -130,9 +192,11 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
     }
   };
 
+  const subscriptionButtonStyle = { paddingVertical: 12, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, marginTop: 4 };
+
   if (isLoading) {
     return (
-      <View style={styles.subscriptionContainer}>
+      <View style={subscriptionContainerStyle}>
         <ActivityIndicator color={colors.mutedForeground} />
       </View>
     );
@@ -145,57 +209,53 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
     const isPro = tier === 'pro';
 
     return (
-      <View style={styles.subscriptionContainer}>
-        <View style={styles.subscriptionHeader}>
-          <View style={styles.subscriptionInfo}>
+      <View style={subscriptionContainerStyle}>
+        <View style={subscriptionHeaderStyle}>
+          <View style={subscriptionInfoStyle}>
             <IconSymbol name="star.fill" size={22} color={colors.primary} />
-            <Text style={[styles.settingsItemLabel, { color: colors.text }]}>
+            <Text style={{ fontSize: 16, color: colors.text }}>
               {isTrialing ? `${tierName} (Trial)` : `${tierName} Plan`}
             </Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: colors.primary + '20' }]}>
-            <Text style={[styles.badgeText, { color: colors.primary }]}>Active</Text>
+          <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary + '20' }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>Active</Text>
           </View>
         </View>
 
         {isCanceled ? (
           <>
-            <Text style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+            <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
               Cancels on {periodEnd}
             </Text>
             <Pressable
-              style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
+              style={[subscriptionButtonStyle, { backgroundColor: colors.primary }]}
               onPress={handleRestore}
               disabled={loading}>
-              <Text style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primaryForeground }}>
                 {loading ? 'Restoring...' : 'Restore Subscription'}
               </Text>
             </Pressable>
           </>
         ) : (
           <>
-            <Text style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+            <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
               {isTrialing ? `Trial ends ${periodEnd}` : `Renews ${periodEnd}`}
             </Text>
-            <View style={styles.buttonRow}>
+            <View style={buttonRowStyle}>
               {!isPro && (
                 <Pressable
-                  style={[styles.subscriptionButton, styles.buttonFlex, { backgroundColor: colors.primary }]}
+                  style={[subscriptionButtonStyle, { flex: 1, backgroundColor: colors.primary }]}
                   onPress={handleUpgrade}>
-                  <Text style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primaryForeground }}>
                     Upgrade
                   </Text>
                 </Pressable>
               )}
               <Pressable
-                style={[
-                  styles.subscriptionButton,
-                  styles.buttonFlex,
-                  { borderColor: colors.border, borderWidth: 1 },
-                ]}
+                style={[subscriptionButtonStyle, { flex: 1, borderColor: colors.border, borderWidth: 1 }]}
                 onPress={handleManage}
                 disabled={loading}>
-                <Text style={[styles.subscriptionButtonText, { color: colors.foreground }]}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: colors.foreground }}>
                   {loading ? 'Loading...' : 'Manage'}
                 </Text>
               </Pressable>
@@ -211,21 +271,21 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
     : `${taskCount} tasks`;
 
   return (
-    <View style={styles.subscriptionContainer}>
-      <View style={styles.subscriptionHeader}>
-        <View style={styles.subscriptionInfo}>
+    <View style={subscriptionContainerStyle}>
+      <View style={subscriptionHeaderStyle}>
+        <View style={subscriptionInfoStyle}>
           <IconSymbol name="gift" size={22} color={colors.mutedForeground} />
-          <Text style={[styles.settingsItemLabel, { color: colors.text }]}>{tierName} Plan</Text>
+          <Text style={{ fontSize: 16, color: colors.text }}>{tierName} Plan</Text>
         </View>
       </View>
-      <Text style={[styles.subscriptionDetail, { color: colors.mutedForeground }]}>
+      <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
         {usageText} · Upgrade for more features
       </Text>
 
       <Pressable
-        style={[styles.subscriptionButton, { backgroundColor: colors.primary }]}
+        style={[subscriptionButtonStyle, { backgroundColor: colors.primary }]}
         onPress={handleUpgrade}>
-        <Text style={[styles.subscriptionButtonText, { color: colors.primaryForeground }]}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primaryForeground }}>
           Upgrade
         </Text>
       </Pressable>
@@ -234,7 +294,6 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
 }
 
 export default function SettingsScreen() {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const { mode, setMode } = useThemeMode();
@@ -254,7 +313,7 @@ export default function SettingsScreen() {
     } catch (error) {
       setIsDeleting(false);
       const message = error instanceof Error ? error.message : 'Failed to delete account';
-      if (Platform.OS === 'web') {
+      if (process.env.EXPO_OS === 'web') {
         window.alert(message);
       } else {
         Alert.alert('Error', message);
@@ -268,7 +327,7 @@ export default function SettingsScreen() {
     const message =
       'Are you sure you want to delete your account? This will permanently delete all your data including tasks, sessions, and profile information. This action cannot be undone.';
 
-    if (Platform.OS === 'web') {
+    if (process.env.EXPO_OS === 'web') {
       if (window.confirm(message)) {
         performDeleteAccount();
       }
@@ -286,9 +345,10 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ paddingBottom: 100 }}
+      contentInsetAdjustmentBehavior="automatic">
+      <View style={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 }}>
         <Text style={[Typography.title, { color: colors.text }]}>Settings</Text>
       </View>
 
@@ -301,45 +361,33 @@ export default function SettingsScreen() {
       </SettingsSection>
 
       <SettingsSection title="Preferences" colors={colors}>
-        <SettingsItem
+        <SettingsLinkItem
+          href="/settings/notifications"
           icon="bell.fill"
           label="Notifications"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/notifications');
-          }}
           colors={colors}
         />
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <SettingsItem
+        <View style={[dividerStyle, { backgroundColor: colors.border }]} />
+        <SettingsLinkItem
+          href="/settings/privacy"
           icon="hand.raised.fill"
           label="Privacy"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/privacy');
-          }}
           colors={colors}
         />
       </SettingsSection>
 
       <SettingsSection title="Support" colors={colors}>
-        <SettingsItem
+        <SettingsLinkItem
+          href="/settings/help"
           icon="questionmark.circle.fill"
           label="Help"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/help');
-          }}
           colors={colors}
         />
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <SettingsItem
+        <View style={[dividerStyle, { backgroundColor: colors.border }]} />
+        <SettingsLinkItem
+          href="/settings/about"
           icon="info.circle.fill"
           label="About"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/about');
-          }}
           colors={colors}
         />
       </SettingsSection>
@@ -356,9 +404,9 @@ export default function SettingsScreen() {
 
       <SettingsSection title="Danger Zone" colors={colors}>
         {isDeleting ? (
-          <View style={styles.deletingContainer}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 12 }}>
             <ActivityIndicator color={colors.destructive} />
-            <Text style={[styles.deletingText, { color: colors.destructive }]}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.destructive }}>
               Deleting account...
             </Text>
           </View>
@@ -376,34 +424,3 @@ export default function SettingsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  contentContainer: { paddingBottom: 100 },
-  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
-  section: { marginTop: 24, paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6 },
-  sectionContent: { borderRadius: Radius.lg, overflow: 'hidden' },
-  settingsItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  settingsItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  settingsItemLabel: { fontSize: 16 },
-  themeContainer: { padding: 16, gap: 12 },
-  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  segmentedControl: { flexDirection: 'row', borderRadius: Radius.md, padding: 3 },
-  segment: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: Radius.sm },
-  segmentSelected: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  segmentText: { fontSize: 14, fontWeight: '500' },
-  deletingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 12 },
-  deletingText: { fontSize: 16, fontWeight: '500' },
-  subscriptionContainer: { padding: 16, gap: 12 },
-  subscriptionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  subscriptionInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  subscriptionDetail: { fontSize: 14 },
-  subscriptionButton: { paddingVertical: 12, borderRadius: Radius.md, alignItems: 'center', marginTop: 4 },
-  subscriptionButtonText: { fontSize: 16, fontWeight: '600' },
-  buttonRow: { flexDirection: 'row', gap: 8 },
-  buttonFlex: { flex: 1 },
-  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm },
-  badgeText: { fontSize: 12, fontWeight: '600' },
-  divider: { height: StyleSheet.hairlineWidth, marginLeft: 50 },
-});

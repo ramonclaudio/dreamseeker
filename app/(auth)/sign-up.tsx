@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
@@ -136,11 +135,12 @@ export default function SignUpScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Create account</Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, View, Text } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, Switch, View, Text } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useAction } from 'convex/react';
@@ -11,6 +11,12 @@ import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
+const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
+const settingRowLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, flex: 1 };
+const settingRowTextStyle = { flex: 1, gap: 2 };
+
 type PermissionStatus = 'granted' | 'denied' | 'undetermined';
 
 function SettingRow({ icon, label, description, children, colors }: {
@@ -21,13 +27,13 @@ function SettingRow({ icon, label, description, children, colors }: {
   colors: (typeof Colors)['light'];
 }) {
   return (
-    <View style={styles.settingRow}>
-      <View style={styles.settingRowLeft}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
+      <View style={settingRowLeftStyle}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <View style={styles.settingRowText}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
+        <View style={settingRowTextStyle}>
+          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
           {description && (
-            <Text style={[styles.settingDescription, { color: colors.mutedForeground }]}>{description}</Text>
+            <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
           )}
         </View>
       </View>
@@ -115,12 +121,12 @@ export default function NotificationsScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.contentContainer}
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ paddingBottom: 100 }}
       contentInsetAdjustmentBehavior="automatic">
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Push Notifications</Text>
-        <GlassCard style={styles.card}>
+      <View style={sectionStyle}>
+        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Push Notifications</Text>
+        <GlassCard style={cardStyle}>
           <SettingRow
             icon="bell.fill"
             label="Allow Notifications"
@@ -138,27 +144,27 @@ export default function NotificationsScreen() {
               }}
               disabled={isLoading || isSimulator}
               trackColor={{ false: colors.muted, true: colors.primary }}
-              thumbColor={Platform.OS === 'android' ? colors.background : undefined}
+              thumbColor={process.env.EXPO_OS === 'android' ? colors.background : undefined}
             />
           </SettingRow>
         </GlassCard>
       </View>
 
       {isEnabled && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Test</Text>
-          <GlassCard style={styles.card}>
+        <View style={sectionStyle}>
+          <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Test</Text>
+          <GlassCard style={cardStyle}>
             <Pressable
-              style={({ pressed }) => [styles.testButton, { opacity: pressed || isSendingTest ? 0.7 : 1 }]}
+              style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }, { opacity: pressed || isSendingTest ? 0.7 : 1 }]}
               onPress={handleTestNotification}
               disabled={isSendingTest}>
-              <View style={styles.settingRowLeft}>
+              <View style={settingRowLeftStyle}>
                 <IconSymbol name="paperplane.fill" size={22} color={colors.primary} />
-                <View style={styles.settingRowText}>
-                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                <View style={settingRowTextStyle}>
+                  <Text style={{ fontSize: 16, color: colors.text }}>
                     {isSendingTest ? 'Sending...' : 'Send Test Notification'}
                   </Text>
-                  <Text style={[styles.settingDescription, { color: colors.mutedForeground }]}>
+                  <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
                     Verify notifications are working
                   </Text>
                 </View>
@@ -169,11 +175,11 @@ export default function NotificationsScreen() {
         </View>
       )}
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>About</Text>
-        <GlassCard style={styles.card}>
-          <View style={styles.infoContainer}>
-            <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
+      <View style={sectionStyle}>
+        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>About</Text>
+        <GlassCard style={cardStyle}>
+          <View style={{ padding: 16 }}>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: colors.mutedForeground }}>
               Push notifications keep you informed about important updates, task reminders, and account activity.
               {'\n\n'}
               You can manage notification preferences in your device settings at any time.
@@ -184,19 +190,3 @@ export default function NotificationsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  contentContainer: { paddingBottom: 100 },
-  section: { marginTop: 24, paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6 },
-  card: { borderRadius: Radius.lg, overflow: 'hidden' },
-  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  settingRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  settingRowText: { flex: 1 },
-  settingLabel: { fontSize: 16 },
-  settingDescription: { fontSize: 13, marginTop: 2 },
-  testButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  infoContainer: { padding: 16 },
-  infoText: { fontSize: 14, lineHeight: 20 },
-});

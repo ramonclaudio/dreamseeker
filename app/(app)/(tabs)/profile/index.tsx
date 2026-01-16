@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   View,
   TextInput,
   Modal,
@@ -23,6 +22,14 @@ import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { api } from '@/convex/_generated/api';
 
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const fieldDividerStyle = { height: 1, marginLeft: 16 };
+const inputGroupStyle = { gap: 8 };
+const inputStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, fontSize: 16 };
+const buttonStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, alignItems: 'center' as const, marginTop: 8 };
+const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 12 };
+const modalHeaderStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: 'rgba(128, 128, 128, 0.2)' };
+
 function ProfileField({ label, value, onPress, colors }: {
   label: string;
   value: string;
@@ -32,13 +39,13 @@ function ProfileField({ label, value, onPress, colors }: {
   return (
     <Pressable
       style={({ pressed }) => [
-        styles.field,
+        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
         { opacity: pressed ? 0.7 : 1 },
       ]}
       onPress={onPress}>
-      <View style={styles.fieldContent}>
-        <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
-        <Text style={[styles.fieldValue, { color: colors.text }]}>{value || 'Not set'}</Text>
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={{ fontSize: 12, fontWeight: '500', textTransform: 'uppercase', color: colors.mutedForeground }}>{label}</Text>
+        <Text selectable style={{ fontSize: 16, color: colors.text }}>{value || 'Not set'}</Text>
       </View>
       <IconSymbol name="pencil" size={18} color={colors.mutedForeground} />
     </Pressable>
@@ -89,8 +96,8 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.modalHeader}>
+        style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={modalHeaderStyle}>
           <Pressable onPress={handleClose} hitSlop={8}>
             <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
           </Pressable>
@@ -102,17 +109,17 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
           </Pressable>
         </View>
 
-        <View style={styles.modalContent}>
+        <View style={{ flex: 1, padding: 20, gap: 20 }}>
           {error && (
-            <View style={[styles.errorContainer, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
-              <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
+            <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
+              <Text style={{ fontSize: 14, textAlign: 'center', color: colors.destructive }}>{error}</Text>
             </View>
           )}
 
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>{label}</Text>
+          <View style={inputGroupStyle}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>{label}</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
+              style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder={placeholder}
               placeholderTextColor={colors.mutedForeground}
               value={value}
@@ -210,8 +217,8 @@ function ChangePasswordModal({
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.modalHeader}>
+        style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={modalHeaderStyle}>
           <Pressable onPress={handleClose} hitSlop={8}>
             <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
           </Pressable>
@@ -219,23 +226,23 @@ function ChangePasswordModal({
           <View style={{ width: 50 }} />
         </View>
 
-        <ScrollView style={styles.modalContent} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
           {error && (
-            <View style={[styles.errorContainer, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
-              <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
+            <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
+              <Text style={{ fontSize: 14, textAlign: 'center', color: colors.destructive }}>{error}</Text>
             </View>
           )}
 
           {success && (
-            <View style={[styles.successContainer, { backgroundColor: `${colors.success}15`, borderColor: colors.success }]}>
-              <Text style={[styles.successText, { color: colors.success }]}>Password changed successfully!</Text>
+            <View style={[errorContainerStyle, { backgroundColor: `${colors.success}15`, borderColor: colors.success }]}>
+              <Text style={{ fontSize: 14, textAlign: 'center', color: colors.success }}>Password changed successfully!</Text>
             </View>
           )}
 
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>Current Password</Text>
+          <View style={inputGroupStyle}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Current Password</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
+              style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter current password"
               placeholderTextColor={colors.mutedForeground}
               value={currentPassword}
@@ -248,10 +255,10 @@ function ChangePasswordModal({
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>New Password</Text>
+          <View style={inputGroupStyle}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>New Password</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
+              style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter new password"
               placeholderTextColor={colors.mutedForeground}
               value={newPassword}
@@ -264,10 +271,10 @@ function ChangePasswordModal({
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>Confirm New Password</Text>
+          <View style={inputGroupStyle}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Confirm New Password</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
+              style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Confirm new password"
               placeholderTextColor={colors.mutedForeground}
               value={confirmPassword}
@@ -281,18 +288,15 @@ function ChangePasswordModal({
           </View>
 
           <Pressable
-            style={[
-              styles.button,
-              { backgroundColor: colors.primary, opacity: isLoading || success ? 0.7 : 1 },
-            ]}
+            style={[buttonStyle, { backgroundColor: colors.primary, opacity: isLoading || success ? 0.7 : 1 }]}
             onPress={handleChangePassword}
             disabled={isLoading || success}>
-            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primaryForeground }}>
               {isLoading ? 'Changing...' : 'Change Password'}
             </Text>
           </Pressable>
 
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          <Text style={{ fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18, color: colors.mutedForeground }}>
             For security, you will remain signed in on this device. All other sessions will be signed out.
           </Text>
         </ScrollView>
@@ -354,51 +358,52 @@ export default function ProfileScreen() {
   return (
     <>
       <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.contentContainer}>
-        <View style={[styles.header, { backgroundColor: colors.background }]}>
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        contentInsetAdjustmentBehavior="automatic">
+        <View style={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: colors.background }}>
           <Text style={[Typography.title, { color: colors.text }]}>Profile</Text>
         </View>
 
         {user && (
           <>
-            <View style={styles.avatarSection}>
+            <View style={{ alignItems: 'center', paddingVertical: 20, gap: 8 }}>
               <Pressable
                 onPress={showAvatarOptions}
                 disabled={isUploadingAvatar}
                 style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <View style={styles.avatarContainer}>
+                <View style={{ position: 'relative' }}>
                   {user.image ? (
                     <Image
                       source={{ uri: user.image }}
-                      style={styles.avatar}
+                      style={{ width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
                       contentFit="cover"
                       transition={200}
                     />
                   ) : (
-                    <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-                      <Text style={[styles.avatarText, { color: colors.primaryForeground }]}>{avatarInitial}</Text>
+                    <View style={{ width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: colors.primary }}>
+                      <Text style={{ fontSize: 36, lineHeight: 36, fontWeight: '600', textAlign: 'center', includeFontPadding: false, color: colors.primaryForeground }}>{avatarInitial}</Text>
                     </View>
                   )}
                   {isUploadingAvatar ? (
-                    <View style={styles.avatarOverlay}>
+                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 50, backgroundColor: 'rgba(0, 0, 0, 0.5)', alignItems: 'center', justifyContent: 'center' }}>
                       <ActivityIndicator color={colors.primaryForeground} size="large" />
                     </View>
                   ) : (
-                    <View style={[styles.avatarBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+                    <View style={{ position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: colors.primary, borderColor: colors.background }}>
                       <IconSymbol name="camera.fill" size={14} color={colors.primaryForeground} />
                     </View>
                   )}
                 </View>
               </Pressable>
-              <Text style={[styles.avatarHint, { color: colors.mutedForeground }]}>
+              <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
                 Tap to change photo
               </Text>
             </View>
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Account Info</Text>
-              <GlassCard style={styles.fieldGroup}>
+            <View style={sectionStyle}>
+              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12, color: colors.mutedForeground }}>Account Info</Text>
+              <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <ProfileField
                   label="Name"
                   value={user.name || ''}
@@ -408,7 +413,7 @@ export default function ProfileScreen() {
                   }}
                   colors={colors}
                 />
-                <View style={[styles.fieldDivider, { backgroundColor: colors.border }]} />
+                <View style={[fieldDividerStyle, { backgroundColor: colors.border }]} />
                 <ProfileField
                   label="Username"
                   value={user.username ? `@${user.username}` : ''}
@@ -418,7 +423,7 @@ export default function ProfileScreen() {
                   }}
                   colors={colors}
                 />
-                <View style={[styles.fieldDivider, { backgroundColor: colors.border }]} />
+                <View style={[fieldDividerStyle, { backgroundColor: colors.border }]} />
                 <ProfileField
                   label="Email"
                   value={user.email || ''}
@@ -431,21 +436,21 @@ export default function ProfileScreen() {
               </GlassCard>
             </View>
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Security</Text>
-              <GlassCard style={styles.fieldGroup}>
+            <View style={sectionStyle}>
+              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12, color: colors.mutedForeground }}>Security</Text>
+              <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <Pressable
                   style={({ pressed }) => [
-                    styles.securityItem,
+                    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, borderCurve: 'continuous' },
                     { opacity: pressed ? 0.7 : 1 },
                   ]}
                   onPress={() => {
                     haptics.selection();
                     setShowChangePassword(true);
                   }}>
-                  <View style={styles.securityItemLeft}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                     <IconSymbol name="lock.fill" size={22} color={colors.mutedForeground} />
-                    <Text style={[styles.securityItemLabel, { color: colors.text }]}>Change Password</Text>
+                    <Text style={{ fontSize: 16, color: colors.text }}>Change Password</Text>
                   </View>
                   <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
                 </Pressable>
@@ -500,40 +505,3 @@ export default function ProfileScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  contentContainer: { paddingBottom: 100 },
-  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
-  avatarSection: { alignItems: 'center', paddingVertical: 20 },
-  avatarContainer: { position: 'relative' },
-  avatar: { width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  avatarText: { fontSize: 36, lineHeight: 36, fontWeight: '600', textAlign: 'center', includeFontPadding: false },
-  avatarOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 50, backgroundColor: 'rgba(0, 0, 0, 0.5)', alignItems: 'center', justifyContent: 'center' },
-  avatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 3 },
-  avatarHint: { fontSize: 13, marginTop: 8 },
-  section: { marginTop: 24, paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8, marginLeft: 12 },
-  fieldGroup: { borderRadius: 12, overflow: 'hidden' },
-  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  fieldDivider: { height: 1, marginLeft: 16 },
-  fieldContent: { flex: 1, gap: 4 },
-  fieldLabel: { fontSize: 12, fontWeight: '500', textTransform: 'uppercase' },
-  fieldValue: { fontSize: 16 },
-  securityItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12 },
-  securityItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  securityItemLabel: { fontSize: 16 },
-  modalContainer: { flex: 1 },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128, 128, 128, 0.2)' },
-  modalContent: { flex: 1, padding: 20 },
-  inputGroup: { marginBottom: 20 },
-  inputLabel: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
-  input: { borderRadius: Radius.md, padding: 16, fontSize: 16 },
-  errorContainer: { borderWidth: 1, borderRadius: Radius.md, padding: 12, marginBottom: 16 },
-  errorText: { fontSize: 14, textAlign: 'center' },
-  successContainer: { borderWidth: 1, borderRadius: Radius.md, padding: 12, marginBottom: 16 },
-  successText: { fontSize: 14, textAlign: 'center' },
-  button: { borderRadius: Radius.md, padding: 16, alignItems: 'center', marginTop: 8 },
-  buttonText: { fontSize: 14, fontWeight: '500' },
-  hint: { fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18 },
-});
