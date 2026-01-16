@@ -81,8 +81,14 @@ function SettingsLinkItem({ href, icon, label, colors }: {
   }
 
   return (
-    <Link href={href}>
-      <Link.Trigger>{SettingsRow}</Link.Trigger>
+    <Link href={href} style={settingsItemStyle}>
+      <Link.Trigger>
+        <View style={settingsItemLeftStyle}>
+          <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
+          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+        </View>
+      </Link.Trigger>
+      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
       <Link.Preview />
       <Link.Menu>
         <Link.MenuAction

@@ -30,7 +30,7 @@ export function UpgradeBanner() {
 
   return (
     <Pressable
-      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginHorizontal: 20, marginBottom: 12, backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }}
+      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginBottom: 12, backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }}
       onPress={handlePress}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
