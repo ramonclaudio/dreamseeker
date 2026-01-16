@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, View, Text } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View, Text } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useAction } from 'convex/react';
@@ -138,7 +138,7 @@ export default function NotificationsScreen() {
               }}
               disabled={isLoading || isSimulator}
               trackColor={{ false: colors.muted, true: colors.primary }}
-              thumbColor={Platform.OS === 'android' ? colors.background : undefined}
+              thumbColor={process.env.EXPO_OS === 'android' ? colors.background : undefined}
             />
           </SettingRow>
         </GlassCard>

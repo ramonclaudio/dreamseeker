@@ -1,6 +1,5 @@
 import {
   Linking,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -82,11 +81,11 @@ export default function AboutScreen() {
 
   const deviceInfo = Device.modelName
     ? `${Device.manufacturer ?? ""} ${Device.modelName}`.trim()
-    : Platform.OS;
+    : process.env.EXPO_OS;
 
   const osVersion = Device.osVersion
-    ? `${Platform.OS === "ios" ? "iOS" : "Android"} ${Device.osVersion}`
-    : Platform.OS;
+    ? `${process.env.EXPO_OS === "ios" ? "iOS" : "Android"} ${Device.osVersion}`
+    : process.env.EXPO_OS;
 
   const handleOpenGitHub = () => {
     Linking.openURL("https://github.com/ramonclaudio/expo-starter-app");

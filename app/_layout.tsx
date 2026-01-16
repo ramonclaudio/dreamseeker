@@ -5,7 +5,7 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router }
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, AppState, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, AppState } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -114,7 +114,7 @@ function RootNavigator() {
 
   // Apply background to body on web
   useEffect(() => {
-    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    if (process.env.EXPO_OS === 'web' && typeof document !== 'undefined') {
       document.body.style.backgroundColor = colors.background;
       document.body.style.color = colors.foreground;
     }

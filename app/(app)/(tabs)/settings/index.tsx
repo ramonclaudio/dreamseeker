@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View, Text } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation } from 'convex/react';
 
@@ -254,7 +254,7 @@ export default function SettingsScreen() {
     } catch (error) {
       setIsDeleting(false);
       const message = error instanceof Error ? error.message : 'Failed to delete account';
-      if (Platform.OS === 'web') {
+      if (process.env.EXPO_OS === 'web') {
         window.alert(message);
       } else {
         Alert.alert('Error', message);
@@ -268,7 +268,7 @@ export default function SettingsScreen() {
     const message =
       'Are you sure you want to delete your account? This will permanently delete all your data including tasks, sessions, and profile information. This action cannot be undone.';
 
-    if (Platform.OS === 'web') {
+    if (process.env.EXPO_OS === 'web') {
       if (window.confirm(message)) {
         performDeleteAccount();
       }

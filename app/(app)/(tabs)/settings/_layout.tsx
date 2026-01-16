@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import { Platform } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -13,8 +12,8 @@ export default function SettingsLayout() {
       screenOptions={{
         headerShown: true,
         headerBackTitle: 'Settings',
-        headerTransparent: Platform.OS !== 'web',
-        headerStyle: Platform.OS === 'web' ? { backgroundColor: colors.card } : undefined,
+        headerTransparent: process.env.EXPO_OS !== 'web',
+        headerStyle: process.env.EXPO_OS === 'web' ? { backgroundColor: colors.card } : undefined,
         headerTintColor: colors.foreground,
         headerTitleStyle: { color: colors.text },
         headerShadowVisible: false,
