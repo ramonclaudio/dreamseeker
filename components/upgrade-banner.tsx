@@ -50,7 +50,7 @@ export function UpgradeBanner() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderWidth: 1, marginHorizontal: 20, marginBottom: 12 },
+  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginHorizontal: 20, marginBottom: 12 },
   content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   text: { fontSize: 14, fontWeight: '500' },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4 },

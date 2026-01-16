@@ -74,16 +74,16 @@ export function UpgradePrompt({ feature, minTier, title, description }: {
 }
 
 const styles = StyleSheet.create({
-  container: { borderRadius: Radius.lg, borderWidth: 1, padding: 16 },
+  container: { borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, padding: 16 },
   content: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconContainer: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   textContainer: { flex: 1 },
   title: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
   description: { fontSize: 13 },
-  promptContainer: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: Radius.lg, borderWidth: 1 },
+  promptContainer: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1 },
   promptText: { flex: 1 },
   promptTitle: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
   promptDescription: { fontSize: 13 },
-  upgradeButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.md },
+  upgradeButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.md, borderCurve: 'continuous' },
   upgradeButtonText: { fontSize: 14, fontWeight: '600' },
 });

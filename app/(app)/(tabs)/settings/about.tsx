@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     opacity: 0.6,
   },
-  card: { borderRadius: Radius.lg, overflow: "hidden" },
+  card: { borderRadius: Radius.lg, borderCurve: "continuous", overflow: "hidden" },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",

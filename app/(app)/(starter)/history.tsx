@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   emptyDescription: { fontSize: 14, textAlign: 'center' },
   sectionTitle: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 12 },
   taskItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, marginBottom: 8 },
-  checkbox: { width: 24, height: 24, borderRadius: Radius.sm, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  checkbox: { width: 24, height: 24, borderRadius: Radius.sm, borderCurve: 'continuous', borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   checkmark: { fontSize: 14, fontWeight: 'bold' },
   taskText: { fontSize: 16, flex: 1 },
 });

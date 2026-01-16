@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   contentContainer: { paddingBottom: 100 },
   section: { marginTop: 24, paddingHorizontal: 20 },
   sectionTitle: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6 },
-  card: { borderRadius: Radius.lg, overflow: 'hidden' },
+  card: { borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   settingRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   settingRowText: { flex: 1 },
