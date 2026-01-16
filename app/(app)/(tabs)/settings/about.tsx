@@ -9,8 +9,8 @@ import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginBottom: 8, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
 const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
 const dividerStyle = { height: 0.5, marginLeft: 50 };
 

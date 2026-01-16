@@ -11,11 +11,11 @@ import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginBottom: 8, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
 const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
 const settingRowLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, flex: 1 };
-const settingRowTextStyle = { flex: 1 };
+const settingRowTextStyle = { flex: 1, gap: 2 };
 
 type PermissionStatus = 'granted' | 'denied' | 'undetermined';
 
@@ -33,7 +33,7 @@ function SettingRow({ icon, label, description, children, colors }: {
         <View style={settingRowTextStyle}>
           <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
           {description && (
-            <Text style={{ fontSize: 13, marginTop: 2, color: colors.mutedForeground }}>{description}</Text>
+            <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
           )}
         </View>
       </View>
@@ -164,7 +164,7 @@ export default function NotificationsScreen() {
                   <Text style={{ fontSize: 16, color: colors.text }}>
                     {isSendingTest ? 'Sending...' : 'Send Test Notification'}
                   </Text>
-                  <Text style={{ fontSize: 13, marginTop: 2, color: colors.mutedForeground }}>
+                  <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
                     Verify notifications are working
                   </Text>
                 </View>

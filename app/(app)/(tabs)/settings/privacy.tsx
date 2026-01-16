@@ -7,8 +7,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
 const dividerStyle = { height: 0.5, marginLeft: 50 };
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginBottom: 8, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
 const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
 
 function PrivacyItem({ icon, label, description, onPress, colors }: {
@@ -22,9 +22,9 @@ function PrivacyItem({ icon, label, description, onPress, colors }: {
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
-          <Text style={{ fontSize: 13, marginTop: 2, color: colors.mutedForeground }}>{description}</Text>
+          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
         </View>
       </View>
       {onPress && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
