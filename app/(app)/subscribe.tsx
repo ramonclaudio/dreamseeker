@@ -1,13 +1,5 @@
 import { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-  Alert,
-  Platform,
-  Text,
-} from 'react-native';
+import { View, ScrollView, Pressable, Alert, Platform, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,6 +9,10 @@ import { PAID_TIERS, TIER_KEYS, TIERS, getPriceId, type TierKey, type BillingPer
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
+
+const billingOptionStyle = { flex: 1, paddingVertical: 12, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, justifyContent: 'center' as const };
+const tierCardStyle = { padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous' as const, position: 'relative' as const };
+const featureRowStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 };
 
 export default function SubscribeScreen() {
   const router = useRouter();
@@ -59,69 +55,59 @@ export default function SubscribeScreen() {
   const currentTierIndex = TIER_KEYS.indexOf(currentTier);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.dragIndicator} />
-        <Pressable onPress={handleClose} style={styles.closeButton}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 8, paddingTop: insets.top + 8 }}>
+        <View style={{ position: 'absolute', top: 8, width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' }} />
+        <Pressable onPress={handleClose} style={{ position: 'absolute', right: 16, padding: 4 }}>
           <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
         </Pressable>
       </View>
       <ScrollView
-        style={styles.content}
-        contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 20 }]}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.heroSection}>
-          <Text style={[Typography.title, styles.title, { color: colors.text }]}>
+        <View style={{ alignItems: 'center', marginBottom: 24 }}>
+          <Text style={[Typography.title, { textAlign: 'center', marginBottom: 8, color: colors.text }]}>
             Choose Your Plan
           </Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          <Text style={{ textAlign: 'center', fontSize: 16, lineHeight: 22, color: colors.mutedForeground }}>
             Unlock more features and boost your productivity.
           </Text>
         </View>
 
-        <View style={[styles.billingToggle, { backgroundColor: colors.muted }]}>
+        <View style={{ flexDirection: 'row', borderRadius: Radius.lg, borderCurve: 'continuous', padding: 4, marginBottom: 20, backgroundColor: colors.muted }}>
           <Pressable
             style={[
-              styles.billingOption,
-              billingPeriod === 'monthly' && [styles.billingOptionSelected, { backgroundColor: colors.background }],
+              billingOptionStyle,
+              billingPeriod === 'monthly' && { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)', backgroundColor: colors.background },
             ]}
             onPress={() => {
               haptics.light();
               setBillingPeriod('monthly');
             }}
           >
-            <Text
-              style={[
-                styles.billingOptionLabel,
-                { color: billingPeriod === 'monthly' ? colors.foreground : colors.mutedForeground },
-              ]}
-            >
+            <Text style={{ fontSize: 15, fontWeight: '600', color: billingPeriod === 'monthly' ? colors.foreground : colors.mutedForeground }}>
               Monthly
             </Text>
           </Pressable>
           <Pressable
             style={[
-              styles.billingOption,
-              billingPeriod === 'annual' && [styles.billingOptionSelected, { backgroundColor: colors.background }],
+              billingOptionStyle,
+              billingPeriod === 'annual' && { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)', backgroundColor: colors.background },
             ]}
             onPress={() => {
               haptics.light();
               setBillingPeriod('annual');
             }}
           >
-            <Text
-              style={[
-                styles.billingOptionLabel,
-                { color: billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground },
-              ]}
-            >
+            <Text style={{ fontSize: 15, fontWeight: '600', color: billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground }}>
               Annual
             </Text>
           </Pressable>
         </View>
 
-        <View style={styles.tiersContainer}>
+        <View style={{ gap: 12, marginBottom: 20 }}>
           {PAID_TIERS.map((tierConfig) => {
             const isSelected = selectedTier === tierConfig.key;
             const tierIndex = TIER_KEYS.indexOf(tierConfig.key);
@@ -133,7 +119,7 @@ export default function SubscribeScreen() {
               <Pressable
                 key={tierConfig.key}
                 style={[
-                  styles.tierCard,
+                  tierCardStyle,
                   {
                     backgroundColor: colors.card,
                     borderColor: isSelected ? colors.primary : colors.border,
@@ -149,42 +135,42 @@ export default function SubscribeScreen() {
                 disabled={isCurrent || isDowngrade}
               >
                 {tierConfig.popular && (
-                  <View style={[styles.popularBadge, { backgroundColor: colors.primary }]}>
-                    <Text style={[styles.popularText, { color: colors.primaryForeground }]}>
+                  <View style={{ position: 'absolute', top: -10, right: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary }}>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.primaryForeground }}>
                       Popular
                     </Text>
                   </View>
                 )}
 
-                <View style={styles.tierHeader}>
-                  <Text style={[styles.tierName, { color: colors.text }]}>{tierConfig.name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', lineHeight: 24, color: colors.text }}>{tierConfig.name}</Text>
                   {isCurrent && (
-                    <View style={[styles.currentBadge, { backgroundColor: colors.muted }]}>
-                      <Text style={[styles.currentText, { color: colors.mutedForeground }]}>
+                    <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.muted }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.mutedForeground }}>
                         Current
                       </Text>
                     </View>
                   )}
                 </View>
 
-                <View style={styles.priceRow}>
-                  <Text style={[styles.price, { color: colors.text }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 28, fontWeight: '700', lineHeight: 34, color: colors.text }}>
                     {billingPeriod === 'monthly' ? pricing.monthly.amount : pricing.annual.amount}
                   </Text>
-                  <Text style={[styles.pricePeriod, { color: colors.mutedForeground }]}>
+                  <Text style={{ fontSize: 14, marginLeft: 2, color: colors.mutedForeground }}>
                     /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                   </Text>
                 </View>
 
-                <Text style={[styles.taskLimit, { color: colors.mutedForeground }]}>
+                <Text style={{ fontSize: 14, marginBottom: 12, color: colors.mutedForeground }}>
                   {tierConfig.limitLabel}
                 </Text>
 
-                <View style={styles.featuresList}>
+                <View style={{ gap: 8 }}>
                   {tierConfig.features.map((feature) => (
-                    <View key={feature} style={styles.featureRow}>
+                    <View key={feature} style={featureRowStyle}>
                       <IconSymbol name="checkmark" size={14} color={colors.primary} />
-                      <Text style={[styles.featureText, { color: colors.mutedForeground }]}>
+                      <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
                         {feature}
                       </Text>
                     </View>
@@ -196,23 +182,23 @@ export default function SubscribeScreen() {
         </View>
 
         <Pressable
-          style={[styles.subscribeButton, { backgroundColor: colors.primary }]}
+          style={{ paddingVertical: 16, borderRadius: Radius.lg, borderCurve: 'continuous', alignItems: 'center', marginBottom: 12, backgroundColor: colors.primary }}
           onPress={handleSubscribe}
           disabled={loading}
         >
-          <Text style={[styles.subscribeButtonText, { color: colors.primaryForeground }]}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.primaryForeground }}>
             {loading ? 'Loading...' : `Subscribe to ${TIERS[selectedTier].name}`}
           </Text>
         </Pressable>
 
-        <Pressable onPress={handleRestore} style={styles.restoreButton}>
-          <Text style={[styles.restoreText, { color: colors.mutedForeground }]}>
+        <Pressable onPress={handleRestore} style={{ alignItems: 'center', paddingVertical: 12 }}>
+          <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
             Restore Purchases
           </Text>
         </Pressable>
 
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
+        <View style={{ marginTop: 16, paddingHorizontal: 20 }}>
+          <Text style={{ fontSize: 12, textAlign: 'center', lineHeight: 18, color: colors.mutedForeground }}>
             By subscribing, you agree to our Terms of Service and Privacy Policy.
           </Text>
         </View>
@@ -220,40 +206,3 @@ export default function SubscribeScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 8 },
-  dragIndicator: { position: 'absolute', top: 8, width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' },
-  closeButton: { position: 'absolute', right: 16, padding: 4 },
-  content: { flex: 1 },
-  contentContainer: { paddingHorizontal: 20 },
-  heroSection: { alignItems: 'center', marginBottom: 24 },
-  title: { textAlign: 'center', marginBottom: 8 },
-  subtitle: { textAlign: 'center', fontSize: 16, lineHeight: 22 },
-  billingToggle: { flexDirection: 'row', borderRadius: Radius.lg, borderCurve: 'continuous', padding: 4, marginBottom: 20 },
-  billingOption: { flex: 1, paddingVertical: 12, borderRadius: Radius.md, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
-  billingOptionSelected: { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' },
-  billingOptionLabel: { fontSize: 15, fontWeight: '600' },
-  tiersContainer: { gap: 12, marginBottom: 20 },
-  tierCard: { padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous', position: 'relative' },
-  popularBadge: { position: 'absolute', top: -10, right: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous' },
-  popularText: { fontSize: 11, fontWeight: '600' },
-  tierHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  tierName: { fontSize: 18, fontWeight: '700', lineHeight: 24 },
-  currentBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous' },
-  currentText: { fontSize: 11, fontWeight: '600' },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 },
-  price: { fontSize: 28, fontWeight: '700', lineHeight: 34 },
-  pricePeriod: { fontSize: 14, marginLeft: 2 },
-  taskLimit: { fontSize: 14, marginBottom: 12 },
-  featuresList: { gap: 8 },
-  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  featureText: { fontSize: 14 },
-  subscribeButton: { paddingVertical: 16, borderRadius: Radius.lg, borderCurve: 'continuous', alignItems: 'center', marginBottom: 12 },
-  subscribeButtonText: { fontSize: 17, fontWeight: '600' },
-  restoreButton: { alignItems: 'center', paddingVertical: 12 },
-  restoreText: { fontSize: 14 },
-  footer: { marginTop: 16, paddingHorizontal: 20 },
-  footerText: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
-});

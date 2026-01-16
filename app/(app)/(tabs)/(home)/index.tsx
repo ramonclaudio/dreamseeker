@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, View, Text, Pressable } from 'react-native';
+import { Platform, View, Text, Pressable } from 'react-native';
 import { useQuery } from 'convex/react';
 
 import { HelloWave } from '@/components/hello-wave';
@@ -8,6 +8,8 @@ import { Link } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Colors, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+const stepContainerStyle = { gap: 8, marginBottom: 8 };
 
 export default function HomeScreen() {
   const user = useQuery(api.auth.getCurrentUser);
@@ -20,17 +22,17 @@ export default function HomeScreen() {
       headerImage={
         <Image
           source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          style={{ height: 178, width: 290, bottom: 0, left: 0, position: 'absolute' }}
         />
       }>
-      <View style={styles.titleContainer}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Text style={[Typography.title, { color: colors.text }]}>
           {user?.name ? `Hi, ${user.name}!` : 'Welcome!'}
         </Text>
         <HelloWave />
       </View>
 
-      <View style={styles.stepContainer}>
+      <View style={stepContainerStyle}>
         <Text style={[Typography.subtitle, { color: colors.text }]}>Step 1: Try it</Text>
         <Text style={[Typography.default, { color: colors.text }]}>
           Edit <Text style={Typography.defaultSemiBold}>app/(tabs)/index.tsx</Text> to see changes.
@@ -45,7 +47,7 @@ export default function HomeScreen() {
           to open developer tools.
         </Text>
       </View>
-      <View style={styles.stepContainer}>
+      <View style={stepContainerStyle}>
         <Link href="/modal" asChild>
           <Pressable>
             <Text style={[Typography.subtitle, { color: colors.text }]}>Step 2: Explore</Text>
@@ -55,7 +57,7 @@ export default function HomeScreen() {
           {`Tap the Explore tab to learn more about what's included in this starter app.`}
         </Text>
       </View>
-      <View style={styles.stepContainer}>
+      <View style={stepContainerStyle}>
         <Text style={[Typography.subtitle, { color: colors.text }]}>Step 3: Get a fresh start</Text>
         <Text style={[Typography.default, { color: colors.text }]}>
           {`When you're ready, run `}
@@ -68,9 +70,3 @@ export default function HomeScreen() {
     </ParallaxScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  stepContainer: { gap: 8, marginBottom: 8 },
-  reactLogo: { height: 178, width: 290, bottom: 0, left: 0, position: 'absolute' },
-});
