@@ -11,7 +11,7 @@ import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
 
 const billingOptionStyle = { flex: 1, paddingVertical: 12, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, justifyContent: 'center' as const };
-const tierCardStyle = { padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous' as const, position: 'relative' as const };
+const tierCardStyle = { padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous' as const, position: 'relative' as const, gap: 4 };
 const featureRowStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 };
 
 export default function SubscribeScreen() {
@@ -68,8 +68,8 @@ export default function SubscribeScreen() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View style={{ alignItems: 'center', marginBottom: 24 }}>
-          <Text style={[Typography.title, { textAlign: 'center', marginBottom: 8, color: colors.text }]}>
+        <View style={{ alignItems: 'center', marginBottom: 24, gap: 8 }}>
+          <Text style={[Typography.title, { textAlign: 'center', color: colors.text }]}>
             Choose Your Plan
           </Text>
           <Text style={{ textAlign: 'center', fontSize: 16, lineHeight: 22, color: colors.mutedForeground }}>
@@ -143,7 +143,7 @@ export default function SubscribeScreen() {
                   </View>
                 )}
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 18, fontWeight: '700', lineHeight: 24, color: colors.text }}>{tierConfig.name}</Text>
                   {isCurrent && (
                     <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.muted }}>
@@ -154,7 +154,7 @@ export default function SubscribeScreen() {
                   )}
                 </View>
 
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                   <Text style={{ fontSize: 28, fontWeight: '700', lineHeight: 34, color: colors.text }}>
                     {billingPeriod === 'monthly' ? pricing.monthly.amount : pricing.annual.amount}
                   </Text>
@@ -163,11 +163,11 @@ export default function SubscribeScreen() {
                   </Text>
                 </View>
 
-                <Text style={{ fontSize: 14, marginBottom: 12, color: colors.mutedForeground }}>
+                <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
                   {tierConfig.limitLabel}
                 </Text>
 
-                <View style={{ gap: 8 }}>
+                <View style={{ gap: 8, marginTop: 8 }}>
                   {tierConfig.features.map((feature) => (
                     <View key={feature} style={featureRowStyle}>
                       <IconSymbol name="checkmark" size={14} color={colors.primary} />

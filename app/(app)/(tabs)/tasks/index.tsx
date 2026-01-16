@@ -153,9 +153,9 @@ export default function TasksScreen() {
   const ListHeader = (
     <>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 60, paddingBottom: 16 }}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, gap: 4 }}>
           <Text style={{ fontSize: 34, fontWeight: 'bold', color: colors.foreground }}>Tasks</Text>
-          <Text style={{ fontSize: 14, marginTop: 4, color: colors.mutedForeground }}>
+          <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
             {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
           </Text>
         </View>
