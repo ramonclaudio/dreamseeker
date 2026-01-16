@@ -45,7 +45,7 @@ function ProfileField({ label, value, onPress, colors }: {
       onPress={onPress}>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={{ fontSize: 12, fontWeight: '500', textTransform: 'uppercase', color: colors.mutedForeground }}>{label}</Text>
-        <Text style={{ fontSize: 16, color: colors.text }}>{value || 'Not set'}</Text>
+        <Text selectable style={{ fontSize: 16, color: colors.text }}>{value || 'Not set'}</Text>
       </View>
       <IconSymbol name="pencil" size={18} color={colors.mutedForeground} />
     </Pressable>
