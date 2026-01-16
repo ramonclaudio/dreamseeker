@@ -167,7 +167,7 @@ export default function SubscribeScreen() {
                   {tierConfig.limitLabel}
                 </Text>
 
-                <View style={{ gap: 8, marginTop: 8 }}>
+                <View style={{ gap: 8 }}>
                   {tierConfig.features.map((feature) => (
                     <View key={feature} style={featureRowStyle}>
                       <IconSymbol name="checkmark" size={14} color={colors.primary} />
