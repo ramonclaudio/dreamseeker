@@ -5,7 +5,7 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router }
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, AppState } from 'react-native';
+import { View, Text, Pressable, Dimensions, AppState } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -25,27 +25,15 @@ const convex = new ConvexReactClient(env.convexUrl, { expectAuth: true, unsavedC
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
-    <View style={errorStyles.container}>
-      <Text style={errorStyles.title}>Something went wrong</Text>
-      <Text style={errorStyles.message}>{error.message}</Text>
-      <Pressable style={errorStyles.button} onPress={retry}>
-        <Text style={errorStyles.buttonText}>Try Again</Text>
+    <View style={{ flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive, marginBottom: 12 }}>Something went wrong</Text>
+      <Text style={{ fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 24 }}>{error.message}</Text>
+      <Pressable style={{ backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' }} onPress={retry}>
+        <Text style={{ color: Colors.dark.primaryForeground, fontWeight: '600' }}>Try Again</Text>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-});
-
-const errorStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive, marginBottom: 12 },
-  message: { fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 24 },
-  button: { backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' },
-  buttonText: { color: Colors.dark.primaryForeground, fontWeight: '600' },
-});
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 1000, fade: true });
@@ -123,7 +111,7 @@ function RootNavigator() {
   return (
     <KeyboardProvider>
       <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <View style={[styles.root, { backgroundColor: colors.background }]}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
             {/* Public routes - only when NOT authenticated */}
             <Stack.Protected guard={!isAuthenticated}>
