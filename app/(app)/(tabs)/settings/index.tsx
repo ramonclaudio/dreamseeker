@@ -13,8 +13,8 @@ import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginBottom: 8, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
 const sectionContentStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
 const settingsItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 16 };
 const settingsItemLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };

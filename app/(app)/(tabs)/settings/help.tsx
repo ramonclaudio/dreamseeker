@@ -7,8 +7,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
 const dividerStyle = { height: 0.5, marginLeft: 50 };
-const faqItemStyle = { padding: 16 };
-const faqQuestionStyle = { fontSize: 16, fontWeight: '500' as const, marginBottom: 4 };
+const faqItemStyle = { padding: 16, gap: 4 };
+const faqQuestionStyle = { fontSize: 16, fontWeight: '500' as const };
 const faqAnswerStyle = { fontSize: 14, lineHeight: 20 };
 
 function HelpItem({ icon, label, description, onPress, colors }: {
@@ -27,9 +27,9 @@ function HelpItem({ icon, label, description, onPress, colors }: {
       }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
-          <Text style={{ fontSize: 13, marginTop: 2, color: colors.mutedForeground }}>{description}</Text>
+          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
         </View>
       </View>
       <IconSymbol name="arrow.up.right" size={16} color={colors.mutedForeground} />
@@ -73,8 +73,8 @@ export default function HelpScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{ paddingBottom: 100 }}
       contentInsetAdjustmentBehavior="automatic">
-      <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
-        <Text style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6, color: colors.mutedForeground }}>Contact</Text>
+      <View style={{ marginTop: 24, paddingHorizontal: 20, gap: 8 }}>
+        <Text style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6, color: colors.mutedForeground }}>Contact</Text>
         <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <HelpItem
             icon="envelope.fill"
@@ -94,8 +94,8 @@ export default function HelpScreen() {
         </GlassCard>
       </View>
 
-      <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
-        <Text style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6, color: colors.mutedForeground }}>FAQ</Text>
+      <View style={{ marginTop: 24, paddingHorizontal: 20, gap: 8 }}>
+        <Text style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6, color: colors.mutedForeground }}>FAQ</Text>
         <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <FAQItem
             question="How do I upgrade my subscription?"
