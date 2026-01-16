@@ -1,18 +1,18 @@
 import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 
 import { Colors, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: typeof Colors.light }) => (
-  <View style={styles.content}>
+  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 8 }}>
     <Text style={[Typography.title, { color: colors.text }]}>Modal</Text>
-    <Text style={{ color: colors.mutedForeground, textAlign: 'center', marginTop: 8 }}>
+    <Text style={{ color: colors.mutedForeground, textAlign: 'center' }}>
       This modal uses a blur background on iOS and web.
     </Text>
-    <Link href={isPresented ? '../' : '/'} style={styles.link}>
+    <Link href={isPresented ? '../' : '/'} style={{ marginTop: 12, paddingVertical: 15 }}>
       <Text style={[Typography.link, { color: colors.mutedForeground }]}>{isPresented ? 'Dismiss' : 'Go home'}</Text>
     </Link>
   </View>
@@ -25,7 +25,7 @@ export default function ModalScreen() {
 
   if (Platform.OS === 'android') {
     return (
-      <View style={[styles.container, { backgroundColor: colors.card }]}>
+      <View style={{ flex: 1, backgroundColor: colors.card }}>
         <ModalContent isPresented={isPresented} colors={colors} />
         <StatusBar style="auto" />
       </View>
@@ -33,15 +33,9 @@ export default function ModalScreen() {
   }
 
   return (
-    <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.container}>
+    <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={{ flex: 1 }}>
       <ModalContent isPresented={isPresented} colors={colors} />
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
     </BlurView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  link: { marginTop: 20, paddingVertical: 15 },
-});
