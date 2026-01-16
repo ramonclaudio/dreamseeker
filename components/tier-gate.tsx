@@ -34,8 +34,8 @@ export function TierGate({ children, minTier, feature, fallback, hideOnDeny = fa
         <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary + '20' }}>
           <IconSymbol name="lock.fill" size={20} color={colors.primary} />
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 2, color: colors.text }}>{TIER_NAMES[requiredTier]} Feature</Text>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>{TIER_NAMES[requiredTier]} Feature</Text>
           <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
             Upgrade to {TIER_NAMES[requiredTier]} to unlock
           </Text>
@@ -60,8 +60,8 @@ export function UpgradePrompt({ feature, minTier, title, description }: {
   return (
     <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, backgroundColor: colors.card, borderColor: colors.border }} onPress={showUpgrade}>
       <IconSymbol name="sparkles" size={24} color={colors.primary} />
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 2, color: colors.text }}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</Text>
         <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
           {description ?? `Upgrade to ${TIER_NAMES[requiredTier]} to access this and more`}
         </Text>
