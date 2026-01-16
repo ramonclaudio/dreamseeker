@@ -43,7 +43,7 @@ const errorStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20 },
   title: { fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive, marginBottom: 12 },
   message: { fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 24 },
-  button: { backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  button: { backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' },
   buttonText: { color: Colors.dark.primaryForeground, fontWeight: '600' },
 });
 

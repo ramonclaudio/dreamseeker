@@ -51,5 +51,5 @@ export function GlassCardContainer({ children, style, spacing = 10, ...props }: 
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: Radius.lg, overflow: 'hidden' },
+  card: { borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' },
 });
