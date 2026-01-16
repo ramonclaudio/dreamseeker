@@ -30,7 +30,7 @@ export default function ExportScreen() {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} contentInsetAdjustmentBehavior="automatic">
         <GlassCard style={{ padding: 20, gap: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <IconSymbol name="star.fill" size={16} color={colors.primary} />
             <Text style={{ fontSize: 12, fontWeight: '600', textTransform: 'uppercase', color: colors.primary }}>Plus Feature</Text>
           </View>
