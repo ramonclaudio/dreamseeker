@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   segmentedControl: { flexDirection: 'row', borderRadius: Radius.md, padding: 3 },
   segment: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: Radius.sm },
-  segmentSelected: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  segmentSelected: { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' },
   segmentText: { fontSize: 14, fontWeight: '500' },
   deletingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 12 },
   deletingText: { fontSize: 16, fontWeight: '500' },

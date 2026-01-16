@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   subtitle: { textAlign: 'center', fontSize: 16, lineHeight: 22 },
   billingToggle: { flexDirection: 'row', borderRadius: Radius.lg, padding: 4, marginBottom: 20 },
   billingOption: { flex: 1, paddingVertical: 12, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  billingOptionSelected: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  billingOptionSelected: { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' },
   billingOptionLabel: { fontSize: 15, fontWeight: '600' },
   tiersContainer: { gap: 12, marginBottom: 20 },
   tierCard: { padding: 16, borderRadius: Radius.lg, position: 'relative' },
