@@ -48,11 +48,22 @@ export default function HomeScreen() {
         </Text>
       </View>
       <View style={stepContainerStyle}>
-        <Link href="/modal" asChild>
-          <Pressable>
-            <Text style={[Typography.subtitle, { color: colors.text }]}>Step 2: Explore</Text>
-          </Pressable>
-        </Link>
+        {Platform.OS === 'ios' ? (
+          <Link href="/modal">
+            <Link.Trigger>
+              <Pressable>
+                <Text style={[Typography.subtitle, { color: colors.text }]}>Step 2: Explore</Text>
+              </Pressable>
+            </Link.Trigger>
+            <Link.Preview />
+          </Link>
+        ) : (
+          <Link href="/modal" asChild>
+            <Pressable>
+              <Text style={[Typography.subtitle, { color: colors.text }]}>Step 2: Explore</Text>
+            </Pressable>
+          </Link>
+        )}
         <Text style={[Typography.default, { color: colors.text }]}>
           {`Tap the Explore tab to learn more about what's included in this starter app.`}
         </Text>

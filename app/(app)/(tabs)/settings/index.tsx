@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, View, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ActivityIndicator, Alert, Pressable, ScrollView, View, Text, Platform } from 'react-native';
+import { Link } from 'expo-router';
 import { useMutation } from 'convex/react';
+import * as Clipboard from 'expo-clipboard';
 
 import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -47,6 +48,50 @@ function SettingsItem({ icon, label, onPress, destructive, showChevron = true, c
       </View>
       {showChevron && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
     </Pressable>
+  );
+}
+
+function SettingsLinkItem({ href, icon, label, colors }: {
+  href: '/settings/notifications' | '/settings/privacy' | '/settings/help' | '/settings/about';
+  icon: Parameters<typeof IconSymbol>[0]['name'];
+  label: string;
+  colors: (typeof Colors)['light'];
+}) {
+  const handleCopyLink = async () => {
+    await Clipboard.setStringAsync(href);
+    haptics.light();
+  };
+
+  const SettingsRow = (
+    <Pressable style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}>
+      <View style={settingsItemLeftStyle}>
+        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
+        <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+      </View>
+      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+    </Pressable>
+  );
+
+  if (Platform.OS !== 'ios') {
+    return (
+      <Link href={href} asChild>
+        {SettingsRow}
+      </Link>
+    );
+  }
+
+  return (
+    <Link href={href}>
+      <Link.Trigger>{SettingsRow}</Link.Trigger>
+      <Link.Preview />
+      <Link.Menu>
+        <Link.MenuAction
+          title="Copy Link"
+          icon="doc.on.doc"
+          onPress={handleCopyLink}
+        />
+      </Link.Menu>
+    </Link>
   );
 }
 
@@ -243,7 +288,6 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
 }
 
 export default function SettingsScreen() {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const { mode, setMode } = useThemeMode();
@@ -311,45 +355,33 @@ export default function SettingsScreen() {
       </SettingsSection>
 
       <SettingsSection title="Preferences" colors={colors}>
-        <SettingsItem
+        <SettingsLinkItem
+          href="/settings/notifications"
           icon="bell.fill"
           label="Notifications"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/notifications');
-          }}
           colors={colors}
         />
         <View style={[dividerStyle, { backgroundColor: colors.border }]} />
-        <SettingsItem
+        <SettingsLinkItem
+          href="/settings/privacy"
           icon="hand.raised.fill"
           label="Privacy"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/privacy');
-          }}
           colors={colors}
         />
       </SettingsSection>
 
       <SettingsSection title="Support" colors={colors}>
-        <SettingsItem
+        <SettingsLinkItem
+          href="/settings/help"
           icon="questionmark.circle.fill"
           label="Help"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/help');
-          }}
           colors={colors}
         />
         <View style={[dividerStyle, { backgroundColor: colors.border }]} />
-        <SettingsItem
+        <SettingsLinkItem
+          href="/settings/about"
           icon="info.circle.fill"
           label="About"
-          onPress={() => {
-            haptics.light();
-            router.navigate('/settings/about');
-          }}
           colors={colors}
         />
       </SettingsSection>
