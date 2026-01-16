@@ -25,9 +25,9 @@ const convex = new ConvexReactClient(env.convexUrl, { expectAuth: true, unsavedC
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive, marginBottom: 12 }}>Something went wrong</Text>
-      <Text style={{ fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 24 }}>{error.message}</Text>
+    <View style={{ flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive }}>Something went wrong</Text>
+      <Text style={{ fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 12 }}>{error.message}</Text>
       <Pressable style={{ backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' }} onPress={retry}>
         <Text style={{ color: Colors.dark.primaryForeground, fontWeight: '600' }}>Try Again</Text>
       </Pressable>

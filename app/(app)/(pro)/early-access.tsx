@@ -31,19 +31,19 @@ export default function EarlyAccessScreen() {
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} contentInsetAdjustmentBehavior="automatic">
-        <GlassCard style={{ padding: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+        <GlassCard style={{ padding: 20, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <IconSymbol name="sparkles" size={16} color={colors.primary} />
             <Text style={{ fontSize: 12, fontWeight: '600', textTransform: 'uppercase', color: colors.primary }}>Pro Feature</Text>
           </View>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 8, color: colors.foreground }}>Early Access Features</Text>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.foreground }}>Early Access Features</Text>
           <Text style={{ fontSize: 16, lineHeight: 24, color: colors.mutedForeground }}>
             As a Pro subscriber, you get early access to new features before they&apos;re released to everyone.
           </Text>
         </GlassCard>
 
         <GlassCard style={{ padding: 20, gap: 16 }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 4, color: colors.foreground }}>Coming Soon</Text>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.foreground }}>Coming Soon</Text>
           {[
             'AI-powered task suggestions',
             'Advanced analytics dashboard',

@@ -29,12 +29,12 @@ export default function ExportScreen() {
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} contentInsetAdjustmentBehavior="automatic">
-        <GlassCard style={{ padding: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+        <GlassCard style={{ padding: 20, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <IconSymbol name="star.fill" size={16} color={colors.primary} />
             <Text style={{ fontSize: 12, fontWeight: '600', textTransform: 'uppercase', color: colors.primary }}>Plus Feature</Text>
           </View>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 8, color: colors.foreground }}>Data Export</Text>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.foreground }}>Data Export</Text>
           <Text style={{ fontSize: 16, lineHeight: 24, color: colors.mutedForeground }}>
             Export your tasks and data in various formats including JSON, CSV, and PDF. Keep backups or analyze your productivity.
           </Text>

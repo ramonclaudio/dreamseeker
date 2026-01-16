@@ -11,9 +11,9 @@ export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: colors.background }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 15, backgroundColor: colors.background }}>
         <Text style={[Typography.title, { color: colors.text }]}>This screen does not exist.</Text>
-        <Link href="/" style={{ marginTop: 15, paddingVertical: 15 }}>
+        <Link href="/" style={{ paddingVertical: 15 }}>
           <Text style={[Typography.link, { color: colors.mutedForeground }]}>Go to home screen!</Text>
         </Link>
       </View>

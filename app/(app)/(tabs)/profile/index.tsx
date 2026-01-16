@@ -22,12 +22,12 @@ import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { api } from '@/convex/_generated/api';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20 };
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
 const fieldDividerStyle = { height: 1, marginLeft: 16 };
-const inputGroupStyle = { marginBottom: 20 };
+const inputGroupStyle = { gap: 8 };
 const inputStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, fontSize: 16 };
 const buttonStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, alignItems: 'center' as const, marginTop: 8 };
-const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 12, marginBottom: 16 };
+const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 12 };
 const modalHeaderStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: 'rgba(128, 128, 128, 0.2)' };
 
 function ProfileField({ label, value, onPress, colors }: {
@@ -109,7 +109,7 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
           </Pressable>
         </View>
 
-        <View style={{ flex: 1, padding: 20 }}>
+        <View style={{ flex: 1, padding: 20, gap: 20 }}>
           {error && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
               <Text style={{ fontSize: 14, textAlign: 'center', color: colors.destructive }}>{error}</Text>
@@ -117,7 +117,7 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
           )}
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8, color: colors.text }}>{label}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>{label}</Text>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder={placeholder}
@@ -226,7 +226,7 @@ function ChangePasswordModal({
           <View style={{ width: 50 }} />
         </View>
 
-        <ScrollView style={{ flex: 1, padding: 20 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
           {error && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
               <Text style={{ fontSize: 14, textAlign: 'center', color: colors.destructive }}>{error}</Text>
@@ -240,7 +240,7 @@ function ChangePasswordModal({
           )}
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8, color: colors.text }}>Current Password</Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Current Password</Text>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter current password"
@@ -256,7 +256,7 @@ function ChangePasswordModal({
           </View>
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8, color: colors.text }}>New Password</Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>New Password</Text>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter new password"
@@ -272,7 +272,7 @@ function ChangePasswordModal({
           </View>
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8, color: colors.text }}>Confirm New Password</Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Confirm New Password</Text>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Confirm new password"
@@ -367,7 +367,7 @@ export default function ProfileScreen() {
 
         {user && (
           <>
-            <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+            <View style={{ alignItems: 'center', paddingVertical: 20, gap: 8 }}>
               <Pressable
                 onPress={showAvatarOptions}
                 disabled={isUploadingAvatar}
@@ -396,13 +396,13 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </Pressable>
-              <Text style={{ fontSize: 13, marginTop: 8, color: colors.mutedForeground }}>
+              <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
                 Tap to change photo
               </Text>
             </View>
 
             <View style={sectionStyle}>
-              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8, marginLeft: 12, color: colors.mutedForeground }}>Account Info</Text>
+              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12, color: colors.mutedForeground }}>Account Info</Text>
               <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <ProfileField
                   label="Name"
@@ -437,7 +437,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={sectionStyle}>
-              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8, marginLeft: 12, color: colors.mutedForeground }}>Security</Text>
+              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12, color: colors.mutedForeground }}>Security</Text>
               <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <Pressable
                   style={({ pressed }) => [

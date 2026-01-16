@@ -7,12 +7,12 @@ import { Colors, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: typeof Colors.light }) => (
-  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 8 }}>
     <Text style={[Typography.title, { color: colors.text }]}>Modal</Text>
-    <Text style={{ color: colors.mutedForeground, textAlign: 'center', marginTop: 8 }}>
+    <Text style={{ color: colors.mutedForeground, textAlign: 'center' }}>
       This modal uses a blur background on iOS and web.
     </Text>
-    <Link href={isPresented ? '../' : '/'} style={{ marginTop: 20, paddingVertical: 15 }}>
+    <Link href={isPresented ? '../' : '/'} style={{ marginTop: 12, paddingVertical: 15 }}>
       <Text style={[Typography.link, { color: colors.mutedForeground }]}>{isPresented ? 'Dismiss' : 'Go home'}</Text>
     </Link>
   </View>
