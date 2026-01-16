@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
 import { Link } from 'expo-router';
@@ -60,7 +59,7 @@ export default function SignInScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}

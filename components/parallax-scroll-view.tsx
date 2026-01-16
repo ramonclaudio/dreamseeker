@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollOffset } from 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -27,7 +27,7 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
     <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16}>
       <Animated.View style={[styles.header, { backgroundColor: headerBackgroundColor[colorScheme] }, headerStyle]}>
         {headerImage}
-        {Platform.OS !== 'android' && (
+        {process.env.EXPO_OS !== 'android' && (
           <Animated.View style={[styles.blurOverlay, blurStyle]}>
             <BlurView intensity={60} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           </Animated.View>
