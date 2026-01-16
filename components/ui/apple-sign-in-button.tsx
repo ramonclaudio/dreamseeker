@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAppleAuth } from '@/hooks/use-apple-auth';
 import { haptics } from '@/lib/haptics';
@@ -39,18 +39,8 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
           : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
       }
       cornerRadius={12}
-      style={[styles.button, isLoading && styles.disabled]}
+      style={[{ width: '100%', height: 50 }, isLoading && { opacity: 0.7 }]}
       onPress={handlePress}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    width: '100%',
-    height: 50,
-  },
-  disabled: {
-    opacity: 0.7,
-  },
-});

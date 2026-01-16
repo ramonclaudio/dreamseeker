@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View, Text } from 'react-native';
+import { Pressable, View, Text } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Radius } from '@/constants/theme';
@@ -30,17 +30,17 @@ export function UpgradeBanner() {
 
   return (
     <Pressable
-      style={[styles.container, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}
+      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginHorizontal: 20, marginBottom: 12, backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }}
       onPress={handlePress}
     >
-      <View style={styles.content}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <IconSymbol name="star.fill" size={16} color={colors.primary} />
-        <Text style={[styles.text, { color: colors.primary }]}>
+        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primary }}>
           {message}
         </Text>
       </View>
-      <View style={styles.action}>
-        <Text style={[styles.actionText, { color: colors.primary }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>
           Upgrade to {nextTierName}
         </Text>
         <IconSymbol name="chevron.right" size={14} color={colors.primary} />
@@ -48,11 +48,3 @@ export function UpgradeBanner() {
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginHorizontal: 20, marginBottom: 12 },
-  content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  text: { fontSize: 14, fontWeight: '500' },
-  action: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  actionText: { fontSize: 14, fontWeight: '600' },
-});
