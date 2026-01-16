@@ -1,5 +1,5 @@
 import { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
+import { TouchableOpacity, View, Text } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Typography } from '@/constants/theme';
@@ -12,7 +12,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
 
   return (
     <View style={{ backgroundColor: colors.background }}>
-      <TouchableOpacity style={styles.heading} onPress={() => setIsOpen((v) => !v)} activeOpacity={0.8}>
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={() => setIsOpen((v) => !v)} activeOpacity={0.8}>
         <IconSymbol
           name="chevron.right"
           size={18}
@@ -22,12 +22,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
         />
         <Text style={[Typography.defaultSemiBold, { color: colors.text }]}>{title}</Text>
       </TouchableOpacity>
-      {isOpen && <View style={[styles.content, { backgroundColor: colors.background }]}>{children}</View>}
+      {isOpen && <View style={{ marginTop: 6, marginLeft: 24, backgroundColor: colors.background }}>{children}</View>}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  content: { marginTop: 6, marginLeft: 24 },
-});

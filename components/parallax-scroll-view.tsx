@@ -25,21 +25,15 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
 
   return (
     <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16}>
-      <Animated.View style={[styles.header, { backgroundColor: headerBackgroundColor[colorScheme] }, headerStyle]}>
+      <Animated.View style={[{ height: H, overflow: 'hidden' }, { backgroundColor: headerBackgroundColor[colorScheme] }, headerStyle]}>
         {headerImage}
         {process.env.EXPO_OS !== 'android' && (
-          <Animated.View style={[styles.blurOverlay, blurStyle]}>
+          <Animated.View style={[StyleSheet.absoluteFillObject, blurStyle]}>
             <BlurView intensity={60} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           </Animated.View>
         )}
       </Animated.View>
-      <View style={[styles.content, { backgroundColor: colors.background }]}>{children}</View>
+      <View style={{ flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 100, gap: 16, overflow: 'hidden', backgroundColor: colors.background }}>{children}</View>
     </Animated.ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { height: H, overflow: 'hidden' },
-  blurOverlay: { ...StyleSheet.absoluteFillObject },
-  content: { flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 100, gap: 16, overflow: 'hidden' },
-});
