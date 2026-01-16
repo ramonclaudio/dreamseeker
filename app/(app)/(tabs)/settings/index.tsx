@@ -296,7 +296,8 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 100 }}>
+      contentContainerStyle={{ paddingBottom: 100 }}
+      contentInsetAdjustmentBehavior="automatic">
       <View style={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 }}>
         <Text style={[Typography.title, { color: colors.text }]}>Settings</Text>
       </View>

@@ -66,6 +66,7 @@ export default function SubscribeScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <View style={{ alignItems: 'center', marginBottom: 24 }}>
           <Text style={[Typography.title, { textAlign: 'center', marginBottom: 8, color: colors.text }]}>

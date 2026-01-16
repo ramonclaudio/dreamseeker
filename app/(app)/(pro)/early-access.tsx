@@ -30,7 +30,7 @@ export default function EarlyAccessScreen() {
         </Pressable>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} contentInsetAdjustmentBehavior="automatic">
         <GlassCard style={{ padding: 20 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
             <IconSymbol name="sparkles" size={16} color={colors.primary} />

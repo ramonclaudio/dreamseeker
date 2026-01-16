@@ -219,6 +219,7 @@ export default function TasksScreen() {
       keyExtractor={keyExtractor}
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}
+      contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={ListHeader}
       ListEmptyComponent={ListEmpty}
       removeClippedSubviews

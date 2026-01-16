@@ -106,7 +106,8 @@ export default function ResetPasswordScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Reset password</Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
