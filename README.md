@@ -408,6 +408,54 @@ Pre-configured but requires Apple Developer setup:
 
 ---
 
+## Push Notifications
+
+Already wired up. Just needs `EXPO_ACCESS_TOKEN` in Convex dashboard (set in Step 6).
+
+**Requirements:**
+- Physical device (iOS Simulator doesn't support push)
+- EAS project ID (auto-configured from `app.json`)
+
+**How it works:**
+1. User signs in → app registers push token with Convex
+2. Token stored in `pushTokens` table with device ID
+3. Backend sends via Expo Push API (`convex/notifications.ts`)
+4. Receipts tracked, stale tokens auto-cleaned
+
+**Testing:**
+1. Run on physical device
+2. Sign in
+3. Go to **Settings** → **Notifications** → **Send Test**
+
+**Sending from backend:**
+```typescript
+// Single user
+await ctx.runAction(api.notifications.sendPushNotification, {
+  userId: "user_123",
+  title: "Hello",
+  body: "You have a new message",
+  data: { screen: "messages" },
+});
+
+// Batch (multiple users)
+await ctx.runAction(api.notifications.sendBatchNotifications, {
+  notifications: [
+    { userId: "user_1", title: "Alert", body: "..." },
+    { userId: "user_2", title: "Alert", body: "..." },
+  ],
+});
+```
+
+**Background/silent notifications:**
+```typescript
+await ctx.runAction(api.notifications.sendBackgroundNotification, {
+  userId: "user_123",
+  data: { action: "sync", resourceId: "abc" },
+});
+```
+
+---
+
 ## Troubleshooting
 
 | Problem | Solution |
