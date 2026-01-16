@@ -74,6 +74,7 @@ export default function HistoryScreen() {
         keyExtractor={keyExtractor}
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 20 }}
+        contentInsetAdjustmentBehavior="automatic"
         ListHeaderComponent={ListHeaderSection}
         ListEmptyComponent={ListEmpty}
         removeClippedSubviews

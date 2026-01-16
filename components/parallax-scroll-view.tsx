@@ -24,7 +24,7 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
   const blurStyle = useAnimatedStyle(() => ({ opacity: interpolate(scrollOffset.value, [0, H * 0.5, H], [0, 0.5, 1]) }));
 
   return (
-    <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16}>
+    <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16} contentInsetAdjustmentBehavior="automatic">
       <Animated.View style={[{ height: H, overflow: 'hidden' }, { backgroundColor: headerBackgroundColor[colorScheme] }, headerStyle]}>
         {headerImage}
         {process.env.EXPO_OS !== 'android' && (

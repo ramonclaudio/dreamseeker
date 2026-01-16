@@ -63,7 +63,8 @@ export default function SignInScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
