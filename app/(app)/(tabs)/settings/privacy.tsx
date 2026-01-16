@@ -1,10 +1,15 @@
-import { Linking, Pressable, ScrollView, StyleSheet, View, Text } from 'react-native';
+import { Linking, Pressable, ScrollView, View, Text } from 'react-native';
 
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
+
+const dividerStyle = { height: 0.5, marginLeft: 50 };
+const sectionStyle = { marginTop: 24, paddingHorizontal: 20 };
+const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginBottom: 8, marginLeft: 4, opacity: 0.6 };
+const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
 
 function PrivacyItem({ icon, label, description, onPress, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -14,12 +19,12 @@ function PrivacyItem({ icon, label, description, onPress, colors }: {
   colors: (typeof Colors)['light'];
 }) {
   const content = (
-    <View style={styles.itemRow}>
-      <View style={styles.itemLeft}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <View style={styles.itemText}>
-          <Text style={[styles.itemLabel, { color: colors.text }]}>{label}</Text>
-          <Text style={[styles.itemDescription, { color: colors.mutedForeground }]}>{description}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+          <Text style={{ fontSize: 13, marginTop: 2, color: colors.mutedForeground }}>{description}</Text>
         </View>
       </View>
       {onPress && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
@@ -52,12 +57,12 @@ export default function PrivacyScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.contentContainer}
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ paddingBottom: 100 }}
       contentInsetAdjustmentBehavior="automatic">
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Device Permissions</Text>
-        <GlassCard style={styles.card}>
+      <View style={sectionStyle}>
+        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Device Permissions</Text>
+        <GlassCard style={cardStyle}>
           <PrivacyItem
             icon="camera.fill"
             label="Camera & Photos"
@@ -65,7 +70,7 @@ export default function PrivacyScreen() {
             onPress={handleOpenSettings}
             colors={colors}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[dividerStyle, { backgroundColor: colors.border }]} />
           <PrivacyItem
             icon="bell.fill"
             label="Notifications"
@@ -76,23 +81,23 @@ export default function PrivacyScreen() {
         </GlassCard>
       </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Data Collection</Text>
-        <GlassCard style={styles.card}>
+      <View style={sectionStyle}>
+        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Data Collection</Text>
+        <GlassCard style={cardStyle}>
           <PrivacyItem
             icon="person.fill"
             label="Account Data"
             description="Name, email, and profile information"
             colors={colors}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[dividerStyle, { backgroundColor: colors.border }]} />
           <PrivacyItem
             icon="checklist"
             label="Task Data"
             description="Your tasks and completion history"
             colors={colors}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[dividerStyle, { backgroundColor: colors.border }]} />
           <PrivacyItem
             icon="creditcard.fill"
             label="Payment Data"
@@ -102,11 +107,11 @@ export default function PrivacyScreen() {
         </GlassCard>
       </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Your Rights</Text>
-        <GlassCard style={styles.card}>
-          <View style={styles.infoContainer}>
-            <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
+      <View style={sectionStyle}>
+        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Your Rights</Text>
+        <GlassCard style={cardStyle}>
+          <View style={{ padding: 16 }}>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: colors.mutedForeground }}>
               You can request a copy of your data or delete your account at any time from Settings → Delete Account.
               {'\n\n'}
               We do not sell your personal information to third parties.
@@ -117,19 +122,3 @@ export default function PrivacyScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  contentContainer: { paddingBottom: 100 },
-  section: { marginTop: 24, paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, opacity: 0.6 },
-  card: { borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' },
-  itemRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  itemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  itemText: { flex: 1 },
-  itemLabel: { fontSize: 16 },
-  itemDescription: { fontSize: 13, marginTop: 2 },
-  divider: { height: StyleSheet.hairlineWidth, marginLeft: 50 },
-  infoContainer: { padding: 16 },
-  infoText: { fontSize: 14, lineHeight: 20 },
-});
