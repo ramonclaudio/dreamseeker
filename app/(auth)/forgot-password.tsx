@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   Pressable,
   KeyboardAvoidingView,
@@ -13,13 +12,13 @@ import { Link, router } from 'expo-router';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { env } from '@/lib/env';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
+import { ThemedText } from '@/components/ui/themed-text';
 
 export default function ForgotPasswordScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,19 +61,21 @@ export default function ForgotPasswordScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.successContent}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Check your email</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.title}>Check your email</ThemedText>
+          <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             We&apos;ve sent a password reset link to {email}
-          </Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          </ThemedText>
+          <ThemedText style={styles.hint} color={colors.mutedForeground}>
             If you don&apos;t see it, check your spam folder.
-          </Text>
+          </ThemedText>
           <Pressable
             style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={() => router.replace('/sign-in')}>
-            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
+            onPress={() => router.replace('/sign-in')}
+            accessibilityRole="button"
+            accessibilityLabel="Back to sign in">
+            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
               Back to Sign In
-            </Text>
+            </ThemedText>
           </Pressable>
         </View>
       </View>
@@ -90,21 +91,21 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Forgot password?</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.title}>Forgot password?</ThemedText>
+          <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Enter your email and we&apos;ll send you a reset link
-          </Text>
+          </ThemedText>
         </View>
 
         {error && (
           <View style={getErrorStyles(colorScheme).container}>
-            <Text style={getErrorStyles(colorScheme).text}>{error}</Text>
+            <ThemedText style={getErrorStyles(colorScheme).text}>{error}</ThemedText>
           </View>
         )}
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Email</Text>
+            <ThemedText style={styles.label}>Email</ThemedText>
             <TextInput
               style={[
                 styles.input,
@@ -124,6 +125,8 @@ export default function ForgotPasswordScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              accessibilityLabel="Email"
+              accessibilityHint="Enter your email address to receive a reset link"
             />
           </View>
 
@@ -136,20 +139,23 @@ export default function ForgotPasswordScreen() {
               },
             ]}
             onPress={handleForgotPassword}
-            disabled={isLoading}>
-            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
+            disabled={isLoading}
+            accessibilityRole="button"
+            accessibilityLabel={isLoading ? 'Sending reset link' : 'Send reset link'}
+            accessibilityState={{ disabled: isLoading }}>
+            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
               {isLoading ? 'Sending...' : 'Send Reset Link'}
-            </Text>
+            </ThemedText>
           </Pressable>
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.footerText} color={colors.mutedForeground}>
             Remember your password?{' '}
-          </Text>
+          </ThemedText>
           <Link href="/sign-in" asChild>
-            <Pressable>
-              <Text style={[styles.linkText, { color: colors.foreground }]}>Sign In</Text>
+            <Pressable accessibilityRole="link" accessibilityLabel="Sign in" accessibilityHint="Go back to sign in screen">
+              <ThemedText style={styles.linkText}>Sign In</ThemedText>
             </Pressable>
           </Link>
         </View>

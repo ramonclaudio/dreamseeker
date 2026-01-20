@@ -1,7 +1,8 @@
 import { type ReactNode } from 'react';
-import { View, Pressable, Text } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 import { IconSymbol } from './ui/icon-symbol';
+import { ThemedText } from './ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -35,10 +36,10 @@ export function TierGate({ children, minTier, feature, fallback, hideOnDeny = fa
           <IconSymbol name="lock.fill" size={20} color={colors.primary} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>{TIER_NAMES[requiredTier]} Feature</Text>
-          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
+          <ThemedText style={{ fontSize: 15, fontWeight: '600' }}>{TIER_NAMES[requiredTier]} Feature</ThemedText>
+          <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
             Upgrade to {TIER_NAMES[requiredTier]} to unlock
-          </Text>
+          </ThemedText>
         </View>
         <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
       </View>
@@ -61,13 +62,13 @@ export function UpgradePrompt({ feature, minTier, title, description }: {
     <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, backgroundColor: colors.card, borderColor: colors.border }} onPress={showUpgrade}>
       <IconSymbol name="sparkles" size={24} color={colors.primary} />
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</Text>
-        <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
+        <ThemedText style={{ fontSize: 15, fontWeight: '600' }}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</ThemedText>
+        <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
           {description ?? `Upgrade to ${TIER_NAMES[requiredTier]} to access this and more`}
-        </Text>
+        </ThemedText>
       </View>
       <View style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.md, borderCurve: 'continuous', backgroundColor: colors.primary }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primaryForeground }}>Upgrade</Text>
+        <ThemedText style={{ fontSize: 14, fontWeight: '600' }} color={colors.primaryForeground}>Upgrade</ThemedText>
       </View>
     </Pressable>
   );

@@ -1,10 +1,11 @@
-import { Linking, Pressable, ScrollView, View, Text } from 'react-native';
+import { Linking, Pressable, ScrollView, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -31,13 +32,13 @@ function AboutItem({
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+        <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         {value && (
-          <Text selectable style={{ fontSize: 16, color: colors.mutedForeground }}>
+          <ThemedText selectable style={{ fontSize: 16 }} color={colors.mutedForeground}>
             {value}
-          </Text>
+          </ThemedText>
         )}
         {onPress && (
           <IconSymbol
@@ -102,9 +103,9 @@ export default function AboutScreen() {
       contentContainerStyle={{ paddingBottom: 40 }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
           App
-        </Text>
+        </ThemedText>
         <GlassCard style={cardStyle}>
           <AboutItem
             icon="info.circle.fill"
@@ -123,9 +124,9 @@ export default function AboutScreen() {
       </View>
 
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
           Device
-        </Text>
+        </ThemedText>
         <GlassCard style={cardStyle}>
           <AboutItem
             icon="gear"
@@ -144,9 +145,9 @@ export default function AboutScreen() {
       </View>
 
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
           Links
-        </Text>
+        </ThemedText>
         <GlassCard style={cardStyle}>
           <AboutItem
             icon="link"
@@ -174,9 +175,9 @@ export default function AboutScreen() {
       <View style={sectionStyle}>
         <GlassCard style={cardStyle}>
           <View style={{ padding: 16, alignItems: 'center' }}>
-            <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
+            <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
               © Copyright 2026 | All rights reserved.
-            </Text>
+            </ThemedText>
           </View>
         </GlassCard>
       </View>
