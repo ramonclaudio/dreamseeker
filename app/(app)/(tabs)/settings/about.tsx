@@ -7,13 +7,15 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
+const sectionTitleStyle = { fontSize: FontSize.md, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: Spacing.xs, opacity: 0.6 };
 const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
-const dividerStyle = { height: 0.5, marginLeft: 50 };
+const dividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
 
 function AboutItem({
   icon,
@@ -29,21 +31,21 @@ function AboutItem({
   colors: ColorPalette;
 }) {
   const content = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+        <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
+        <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
         {value && (
-          <ThemedText selectable style={{ fontSize: 16 }} color={colors.mutedForeground}>
+          <ThemedText selectable style={{ fontSize: FontSize.xl }} color={colors.mutedForeground}>
             {value}
           </ThemedText>
         )}
         {onPress && (
           <IconSymbol
             name="chevron.right"
-            size={16}
+            size={IconSize.md}
             color={colors.mutedForeground}
           />
         )}
@@ -54,11 +56,14 @@ function AboutItem({
   if (onPress) {
     return (
       <Pressable
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1, minHeight: TouchTarget.min })}
         onPress={() => {
           haptics.light();
           onPress();
-        }}>
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={`Opens ${label}`}>
         {content}
       </Pressable>
     );
@@ -99,7 +104,7 @@ export default function AboutScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
@@ -173,8 +178,8 @@ export default function AboutScreen() {
 
       <View style={sectionStyle}>
         <GlassCard style={cardStyle}>
-          <View style={{ padding: 16, alignItems: 'center' }}>
-            <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+          <View style={{ padding: Spacing.lg, alignItems: 'center' }}>
+            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
               © Copyright 2026 | All rights reserved.
             </ThemedText>
           </View>

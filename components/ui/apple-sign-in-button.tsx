@@ -2,6 +2,8 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAppleAuth } from '@/hooks/use-apple-auth';
 import { haptics } from '@/lib/haptics';
+import { Size } from '@/constants/ui';
+import { Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 type Props = {
@@ -38,8 +40,8 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
           ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
           : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
       }
-      cornerRadius={12}
-      style={[{ width: '100%', height: 50 }, isLoading && { opacity: 0.7 }]}
+      cornerRadius={Radius.lg}
+      style={[{ width: '100%', height: Size.appleButton }, isLoading && { opacity: 0.7 }]}
       onPress={handlePress}
     />
   );

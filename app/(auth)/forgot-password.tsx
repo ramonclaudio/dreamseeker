@@ -60,7 +60,7 @@ export default function ForgotPasswordScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.successContent}>
-          <ThemedText style={styles.title}>Check your email</ThemedText>
+          <ThemedText variant="title">Check your email</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             We&apos;ve sent a password reset link to {email}
           </ThemedText>
@@ -90,7 +90,7 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Forgot password?</ThemedText>
+          <ThemedText variant="title">Forgot password?</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Enter your email and we&apos;ll send you a reset link
           </ThemedText>
@@ -153,7 +153,7 @@ export default function ForgotPasswordScreen() {
             Remember your password?{' '}
           </ThemedText>
           <Link href="/sign-in" asChild>
-            <Pressable accessibilityRole="link" accessibilityLabel="Sign in" accessibilityHint="Go back to sign in screen">
+            <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Sign in" accessibilityHint="Go back to sign in screen">
               <ThemedText style={styles.linkText}>Sign In</ThemedText>
             </Pressable>
           </Link>

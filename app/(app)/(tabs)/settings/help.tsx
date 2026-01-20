@@ -4,13 +4,15 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
-const dividerStyle = { height: 0.5, marginLeft: 50 };
-const faqItemStyle = { padding: 16, gap: 4 };
-const faqQuestionStyle = { fontSize: 16, fontWeight: '500' as const };
-const faqAnswerStyle = { fontSize: 14, lineHeight: 20 };
+const dividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
+const faqItemStyle = { padding: Spacing.lg, gap: Spacing.xs };
+const faqQuestionStyle = { fontSize: FontSize.xl, fontWeight: '500' as const };
+const faqAnswerStyle = { fontSize: FontSize.base, lineHeight: 20 };
 
 function HelpItem({ icon, label, description, onPress, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -21,19 +23,22 @@ function HelpItem({ icon, label, description, onPress, colors }: {
 }) {
   return (
     <Pressable
-      style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }, { opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min }, { opacity: pressed ? Opacity.pressed : 1 }]}
       onPress={() => {
         haptics.light();
         onPress?.();
-      }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
-          <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>{description}</ThemedText>
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={description}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 }}>
+        <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
+        <View style={{ flex: 1, gap: Spacing.xs / 2 }}>
+          <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
+          <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>{description}</ThemedText>
         </View>
       </View>
-      <IconSymbol name="arrow.up.right" size={16} color={colors.mutedForeground} />
+      <IconSymbol name="arrow.up.right" size={IconSize.md} color={colors.mutedForeground} />
     </Pressable>
   );
 }
@@ -71,10 +76,10 @@ export default function HelpScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
-      <View style={{ marginTop: 24, paddingHorizontal: 20, gap: 8 }}>
-        <ThemedText style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6 }} color={colors.mutedForeground}>Contact</ThemedText>
+      <View style={{ marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm }}>
+        <ThemedText style={{ fontSize: FontSize.md, fontWeight: '500', textTransform: 'uppercase', marginLeft: Spacing.xs, opacity: 0.6 }} color={colors.mutedForeground}>Contact</ThemedText>
         <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <HelpItem
             icon="envelope.fill"
@@ -94,8 +99,8 @@ export default function HelpScreen() {
         </GlassCard>
       </View>
 
-      <View style={{ marginTop: 24, paddingHorizontal: 20, gap: 8 }}>
-        <ThemedText style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6 }} color={colors.mutedForeground}>FAQ</ThemedText>
+      <View style={{ marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm }}>
+        <ThemedText style={{ fontSize: FontSize.md, fontWeight: '500', textTransform: 'uppercase', marginLeft: Spacing.xs, opacity: 0.6 }} color={colors.mutedForeground}>FAQ</ThemedText>
         <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <FAQItem
             question="How do I upgrade my subscription?"

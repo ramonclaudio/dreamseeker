@@ -1,30 +1,27 @@
 import Animated from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/ui/themed-text';
+import { FontSize, LineHeight } from '@/constants/layout';
+import { Duration } from '@/constants/ui';
 import { useReduceMotion } from '@/hooks/use-accessibility-settings';
+
+const emojiStyle = { fontSize: FontSize['6xl'], lineHeight: LineHeight['4xl'], marginTop: -6 };
 
 export function HelloWave() {
   const reduceMotion = useReduceMotion();
 
   if (reduceMotion) {
-    return (
-      <ThemedText style={{ fontSize: 28, lineHeight: 32, marginTop: -6 }}>👋</ThemedText>
-    );
+    return <ThemedText style={emojiStyle}>👋</ThemedText>;
   }
 
   return (
-    <Animated.Text
+    <Animated.View
       style={{
-        fontSize: 28,
-        lineHeight: 32,
-        marginTop: -6,
-        animationName: {
-          '50%': { transform: [{ rotate: '25deg' }] },
-        },
+        animationName: { '50%': { transform: [{ rotate: '25deg' }] } },
         animationIterationCount: 4,
-        animationDuration: '300ms',
+        animationDuration: `${Duration.slow}ms`,
       }}>
-      👋
-    </Animated.Text>
+      <ThemedText style={emojiStyle}>👋</ThemedText>
+    </Animated.View>
   );
 }

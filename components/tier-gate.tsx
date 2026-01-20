@@ -3,6 +3,8 @@ import { View, Pressable } from 'react-native';
 
 import { IconSymbol } from './ui/icon-symbol';
 import { ThemedText } from './ui/themed-text';
+import { IconSize, Spacing, TouchTarget, FontSize } from '@/constants/layout';
+import { Size } from '@/constants/ui';
 import { Radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -29,18 +31,18 @@ export function TierGate({ children, minTier, feature, fallback, hideOnDeny = fa
   if (fallback) return <>{fallback}</>;
 
   return (
-    <Pressable style={{ borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, padding: 16, backgroundColor: colors.muted, borderColor: colors.border }} onPress={showUpgrade}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary + '20' }}>
-          <IconSymbol name="lock.fill" size={20} color={colors.primary} />
+    <Pressable style={{ borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, padding: Spacing.lg, minHeight: TouchTarget.min, backgroundColor: colors.muted, borderColor: colors.border }} onPress={showUpgrade} accessibilityRole="button" accessibilityLabel={`Unlock ${TIER_NAMES[requiredTier]} feature`} accessibilityHint="Opens upgrade options">
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+        <View style={{ width: Size.iconContainer, height: Size.iconContainer, borderRadius: Size.iconContainer / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary + '20' }}>
+          <IconSymbol name="lock.fill" size={IconSize.xl} color={colors.primary} />
         </View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <ThemedText style={{ fontSize: 15, fontWeight: '600' }}>{TIER_NAMES[requiredTier]} Feature</ThemedText>
-          <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
+        <View style={{ flex: 1, gap: Spacing.xxs }}>
+          <ThemedText style={{ fontSize: FontSize.lg, fontWeight: '600' }}>{TIER_NAMES[requiredTier]} Feature</ThemedText>
+          <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>
             Upgrade to {TIER_NAMES[requiredTier]} to unlock
           </ThemedText>
         </View>
-        <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+        <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
       </View>
     </Pressable>
   );
@@ -57,16 +59,16 @@ export function UpgradePrompt({ feature, minTier, title, description }: {
   const requiredTier = minTier ?? (feature ? getMinTierForFeature(feature) : 'starter');
 
   return (
-    <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, backgroundColor: colors.card, borderColor: colors.border }} onPress={showUpgrade}>
-      <IconSymbol name="sparkles" size={24} color={colors.primary} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <ThemedText style={{ fontSize: 15, fontWeight: '600' }}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</ThemedText>
-        <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
+    <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, minHeight: TouchTarget.min, borderRadius: Radius.lg, borderCurve: 'continuous', borderWidth: 1, backgroundColor: colors.card, borderColor: colors.border }} onPress={showUpgrade} accessibilityRole="button" accessibilityLabel={title ?? `Unlock ${TIER_NAMES[requiredTier]} features`} accessibilityHint="Opens upgrade options">
+      <IconSymbol name="sparkles" size={IconSize['3xl']} color={colors.primary} />
+      <View style={{ flex: 1, gap: Spacing.xxs }}>
+        <ThemedText style={{ fontSize: FontSize.lg, fontWeight: '600' }}>{title ?? `Unlock ${TIER_NAMES[requiredTier]} Features`}</ThemedText>
+        <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>
           {description ?? `Upgrade to ${TIER_NAMES[requiredTier]} to access this and more`}
         </ThemedText>
       </View>
-      <View style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.md, borderCurve: 'continuous', backgroundColor: colors.primary }}>
-        <ThemedText style={{ fontSize: 14, fontWeight: '600' }} color={colors.primaryForeground}>Upgrade</ThemedText>
+      <View style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.md, borderCurve: 'continuous', backgroundColor: colors.primary }}>
+        <ThemedText style={{ fontSize: FontSize.base, fontWeight: '600' }} color={colors.primaryForeground}>Upgrade</ThemedText>
       </View>
     </Pressable>
   );
