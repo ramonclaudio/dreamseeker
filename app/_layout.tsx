@@ -5,7 +5,8 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router }
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback } from 'react';
-import { View, Text, Pressable, Dimensions, AppState } from 'react-native';
+import { View, Text, Pressable, Dimensions, AppState, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -77,6 +78,7 @@ function RootNavigator() {
   const pathname = usePathname();
   const params = useGlobalSearchParams();
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const insets = useSafeAreaInsets();
 
   usePushNotifications();
   useNotificationDeepLink();
@@ -112,6 +114,9 @@ function RootNavigator() {
     <KeyboardProvider>
       <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <View style={{ flex: 1, backgroundColor: colors.background }}>
+          {!['/', '/explore'].includes(pathname) && (
+            <View style={[styles.statusBarBackground, { height: insets.top, backgroundColor: colors.background }]} />
+          )}
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
             {/* Public routes - only when NOT authenticated */}
             <Stack.Protected guard={!isAuthenticated}>
@@ -133,3 +138,13 @@ function RootNavigator() {
     </KeyboardProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  statusBarBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+  },
+});

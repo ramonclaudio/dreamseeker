@@ -99,7 +99,7 @@ export default function AboutScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 100 }}
+      contentContainerStyle={{ paddingBottom: 40 }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>
