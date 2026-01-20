@@ -2,6 +2,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { SymbolWeight } from 'expo-symbols';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
+import { IconSize } from '@/constants/layout';
+
 const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
@@ -49,7 +51,7 @@ type IconSymbolName = keyof typeof MAPPING;
 
 export function IconSymbol({
   name,
-  size = 24,
+  size = IconSize['3xl'],
   color,
   style,
 }: {

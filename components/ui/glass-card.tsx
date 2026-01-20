@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, type ViewProps, Platform, AccessibilityInfo } from 'react-native';
 
+import { Spacing } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import { useColors } from '@/hooks/use-color-scheme';
 
@@ -54,7 +55,7 @@ export function GlassCard({ children, style, glassStyle = 'regular', isInteracti
 
 type GlassContainerProps = ViewProps & { spacing?: number };
 
-export function GlassCardContainer({ children, style, spacing = 10, ...props }: GlassContainerProps) {
+export function GlassCardContainer({ children, style, spacing = Spacing.sm, ...props }: GlassContainerProps) {
   const colors = useColors();
   const reduceTransparency = useReduceTransparency();
   const cardStyle = [baseCardStyle, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }, style];
