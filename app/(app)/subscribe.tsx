@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { View, ScrollView, Pressable, Alert, Platform, Text } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -15,18 +14,12 @@ const tierCardStyle = { padding: 16, borderRadius: Radius.lg, borderCurve: 'cont
 const featureRowStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 };
 
 export default function SubscribeScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
   const { subscribe, loading, tier: currentTier } = useSubscription();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [selectedTier, setSelectedTier] = useState<Exclude<TierKey, 'free'>>('plus');
-
-  const handleClose = () => {
-    haptics.light();
-    router.back();
-  };
 
   const handleSubscribe = async () => {
     const priceId = getPriceId(selectedTier, billingPeriod);
@@ -56,15 +49,12 @@ export default function SubscribeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 8, paddingTop: insets.top + 8 }}>
-        <View style={{ position: 'absolute', top: 8, width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' }} />
-        <Pressable onPress={handleClose} style={{ position: 'absolute', right: 16, padding: 4 }}>
-          <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
-        </Pressable>
+      <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
+        <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' }} />
       </View>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: insets.bottom }}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
