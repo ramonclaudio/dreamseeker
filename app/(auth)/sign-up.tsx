@@ -12,6 +12,7 @@ import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
+import { Spacing, IconSize } from '@/constants/layout';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 
@@ -95,9 +96,9 @@ export default function SignUpScreen() {
   if (showVerification) {
     return (
       <View style={[styles.container, styles.successContent, { backgroundColor: colors.background }]}>
-        <View style={{ alignItems: 'center', gap: 16 }}>
-          <IconSymbol name="envelope.badge" size={64} color={colors.primary} />
-          <ThemedText style={[styles.title, { textAlign: 'center' }]}>
+        <View style={{ alignItems: 'center', gap: Spacing.lg }}>
+          <IconSymbol name="envelope.badge" size={IconSize['6xl']} color={colors.primary} />
+          <ThemedText variant="title" style={{ textAlign: 'center' }}>
             Check your email
           </ThemedText>
           <ThemedText style={[styles.subtitle, { textAlign: 'center' }]} color={colors.mutedForeground}>
@@ -109,7 +110,7 @@ export default function SignUpScreen() {
           </ThemedText>
         </View>
 
-        <View style={{ gap: 12, marginTop: 32 }}>
+        <View style={{ gap: Spacing.md, marginTop: Spacing['3xl'] }}>
           <Pressable
             style={[styles.button, { backgroundColor: colors.primary }]}
             onPress={() => router.replace('/sign-in')}
@@ -145,7 +146,7 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Create account</ThemedText>
+          <ThemedText variant="title">Create account</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Sign up to get started
           </ThemedText>
@@ -283,7 +284,7 @@ export default function SignUpScreen() {
             Already have an account?{' '}
           </ThemedText>
           <Link href="/sign-in" asChild>
-            <Pressable accessibilityRole="link" accessibilityLabel="Sign in" accessibilityHint="Go to sign in screen">
+            <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Sign in" accessibilityHint="Go to sign in screen">
               <ThemedText style={styles.linkText}>Sign In</ThemedText>
             </Pressable>
           </Link>

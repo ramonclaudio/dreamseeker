@@ -84,7 +84,7 @@ export default function ResetPasswordScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.successContent}>
-          <ThemedText style={styles.title}>Password reset!</ThemedText>
+          <ThemedText variant="title">Password reset!</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Your password has been successfully reset. You can now sign in with your new password.
           </ThemedText>
@@ -109,7 +109,7 @@ export default function ResetPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Reset password</ThemedText>
+          <ThemedText variant="title">Reset password</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Enter your new password below
           </ThemedText>
