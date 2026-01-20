@@ -2,8 +2,8 @@ import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/use-color-scheme';
-import { MaxWidth, Spacing, FontSize, IconSize } from '@/constants/layout';
-import { Size } from '@/constants/ui';
+import { MaxWidth, Spacing, FontSize, IconSize, LineHeight } from '@/constants/layout';
+import { Size, EmptyState } from '@/constants/ui';
 import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
@@ -26,12 +26,12 @@ export default function ExportScreen() {
             <ThemedText style={{ fontSize: FontSize.sm, fontWeight: '600', textTransform: 'uppercase' }} color={colors.primary}>Plus Feature</ThemedText>
           </View>
           <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: 'bold' }}>Data Export</ThemedText>
-          <ThemedText style={{ fontSize: FontSize.xl, lineHeight: 24 }} color={colors.mutedForeground}>
+          <ThemedText style={{ fontSize: FontSize.xl, lineHeight: LineHeight.loose }} color={colors.mutedForeground}>
             Export your tasks and data in various formats including JSON, CSV, and PDF. Keep backups or analyze your productivity.
           </ThemedText>
         </MaterialCard>
 
-        <View style={{ alignItems: 'center', paddingVertical: 60, gap: Spacing.md }}>
+        <View style={{ alignItems: 'center', paddingVertical: EmptyState.paddingVertical, gap: Spacing.md }}>
           <IconSymbol name="square.and.arrow.up" size={IconSize['5xl']} color={colors.mutedForeground} />
           <ThemedText style={{ fontSize: FontSize['3xl'], fontWeight: '600' }}>Coming Soon</ThemedText>
           <ThemedText style={{ fontSize: FontSize.base, textAlign: 'center' }} color={colors.mutedForeground}>
