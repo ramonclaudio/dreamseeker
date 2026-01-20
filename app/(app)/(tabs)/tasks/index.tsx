@@ -152,20 +152,17 @@ export default function TasksScreen() {
 
   const ListHeader = (
     <>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 60, paddingBottom: 16 }}>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontSize: 34, fontWeight: 'bold', color: colors.foreground }}>Tasks</Text>
-          <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
-            {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-          </Text>
-        </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16 }}>
+        <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
+          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+        </Text>
         {canAccess('starter') && (
           <Pressable
             onPress={() => {
               haptics.light();
               router.push('/history');
             }}
-            style={({ pressed }) => [{ padding: 10, marginBottom: 4, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' }, { opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [{ padding: 10, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' }, { opacity: pressed ? 0.7 : 1 }]}
             accessibilityRole="button"
             accessibilityLabel="View completed tasks history"
             accessibilityHint="Opens a list of your completed tasks"
@@ -218,7 +215,7 @@ export default function TasksScreen() {
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}
+      contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 20 }}
       contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={ListHeader}
       ListEmptyComponent={ListEmpty}
