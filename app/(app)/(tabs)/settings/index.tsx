@@ -135,7 +135,7 @@ function ThemePicker({ mode, onModeChange, colors }: {
         <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
         <ThemedText style={{ fontSize: FontSize.xl }}>Theme</ThemedText>
       </View>
-      <View style={{ flexDirection: 'row', borderRadius: Radius.md, borderCurve: 'continuous', padding: 3, backgroundColor: colors.muted }}>
+      <View style={{ flexDirection: 'row', borderRadius: Radius.md, borderCurve: 'continuous', padding: Spacing.xxs, backgroundColor: colors.muted }}>
         {THEME_OPTIONS.map((option) => {
           const isSelected = mode === option.value;
           return (

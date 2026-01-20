@@ -17,7 +17,7 @@ import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { MaxWidth, Breakpoint, Spacing, TouchTarget, FontSize, HitSlop, IconSize } from '@/constants/layout';
+import { MaxWidth, Breakpoint, Spacing, TouchTarget, FontSize, HitSlop, IconSize, LineHeight } from '@/constants/layout';
 import { Opacity, Size, Duration, Responsive } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useAvatarUpload } from '@/hooks/use-avatar-upload';
@@ -322,7 +322,7 @@ function ChangePasswordModal({
             </ThemedText>
           </Pressable>
 
-          <ThemedText style={{ fontSize: FontSize.md, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 18 }} color={colors.mutedForeground}>
+          <ThemedText style={{ fontSize: FontSize.md, textAlign: 'center', marginTop: Spacing.lg, lineHeight: LineHeight.tight }} color={colors.mutedForeground}>
             For security, you will remain signed in on this device. All other sessions will be signed out.
           </ThemedText>
         </ScrollView>
@@ -429,7 +429,7 @@ export default function ProfileScreen() {
 
             <View style={sectionStyle}>
               <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.md }} color={colors.mutedForeground}>Account Info</ThemedText>
-              <MaterialCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
+              <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <ProfileField
                   label="Name"
                   value={user.name || ''}
@@ -464,10 +464,10 @@ export default function ProfileScreen() {
 
             <View style={sectionStyle}>
               <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.md }} color={colors.mutedForeground}>Security</ThemedText>
-              <MaterialCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
+              <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <Pressable
                   style={({ pressed }) => [
-                    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min, borderRadius: 12, borderCurve: 'continuous' },
+                    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min, borderRadius: Radius.lg, borderCurve: 'continuous' },
                     { opacity: pressed ? Opacity.pressed : 1 },
                   ]}
                   onPress={() => {

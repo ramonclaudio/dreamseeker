@@ -4,7 +4,7 @@ import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
 import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -116,7 +116,7 @@ export default function PrivacyScreen() {
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Your Rights</ThemedText>
         <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg }}>
-            <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
+            <ThemedText style={{ fontSize: FontSize.base, lineHeight: LineHeight.base }} color={colors.mutedForeground}>
               You can request a copy of your data or delete your account at any time from Settings → Delete Account.
               {'\n\n'}
               Your personal information is never sold to third parties.

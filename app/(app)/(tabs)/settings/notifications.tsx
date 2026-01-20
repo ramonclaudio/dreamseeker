@@ -10,7 +10,7 @@ import { GlassSwitch } from '@/components/ui/glass-switch';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
 import { Opacity } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -183,7 +183,7 @@ export default function NotificationsScreen() {
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>About</ThemedText>
         <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg }}>
-            <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
+            <ThemedText style={{ fontSize: FontSize.base, lineHeight: LineHeight.base }} color={colors.mutedForeground}>
               Push notifications keep you informed about important updates, task reminders, and account activity.
               {'\n\n'}
               You can manage notification preferences in your device settings at any time.
