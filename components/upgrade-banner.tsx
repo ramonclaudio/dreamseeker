@@ -2,6 +2,7 @@ import { Pressable, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
+import { IconSize, Spacing, TouchTarget, FontSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import { NEXT_TIER, TIERS } from '@/constants/subscriptions';
 import { useColors } from '@/hooks/use-color-scheme';
@@ -30,20 +31,23 @@ export function UpgradeBanner() {
 
   return (
     <Pressable
-      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginBottom: 12, backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }}
+      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 14, borderRadius: Radius.md, borderCurve: 'continuous', borderWidth: 1, marginBottom: Spacing.md, minHeight: TouchTarget.min, backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }}
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`${message}. Upgrade to ${nextTierName}`}
+      accessibilityHint="Opens subscription options"
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <IconSymbol name="star.fill" size={16} color={colors.primary} />
-        <ThemedText style={{ fontSize: 14, fontWeight: '500' }} color={colors.primary}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flex: 1 }}>
+        <IconSymbol name="star.fill" size={IconSize.md} color={colors.primary} />
+        <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }} color={colors.primary} numberOfLines={1}>
           {message}
         </ThemedText>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <ThemedText style={{ fontSize: 14, fontWeight: '600' }} color={colors.primary}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, flexShrink: 0 }}>
+        <ThemedText style={{ fontSize: FontSize.base, fontWeight: '600' }} color={colors.primary} numberOfLines={1}>
           Upgrade to {nextTierName}
         </ThemedText>
-        <IconSymbol name="chevron.right" size={14} color={colors.primary} />
+        <IconSymbol name="chevron.right" size={IconSize.sm} color={colors.primary} />
       </View>
     </Pressable>
   );
