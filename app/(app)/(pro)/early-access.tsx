@@ -3,19 +3,17 @@ import { View, ScrollView } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GlassCard } from '@/components/ui/glass-card';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 
 const featureItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };
 
 export default function EarlyAccessScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 16 }}>
-        <View style={{ width: 36, height: 5, borderRadius: 3, marginBottom: 12, backgroundColor: 'rgba(128,128,128,0.3)' }} />
+        <View style={{ width: 36, height: 5, borderRadius: 3, marginBottom: 12, backgroundColor: colors.separator }} />
         <ThemedText variant="subtitle">Early Access</ThemedText>
       </View>
 

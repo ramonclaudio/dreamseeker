@@ -10,13 +10,12 @@ import { Link } from 'expo-router';
 
 import { authClient, signInWithUsername } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
 import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
 import { ThemedText } from '@/components/ui/themed-text';
 
 export default function SignInScreen() {
-  const colorScheme = useColorScheme();
   const colors = useColors();
 
   const [identifier, setIdentifier] = useState('');
@@ -72,8 +71,8 @@ export default function SignInScreen() {
         </View>
 
         {error && (
-          <View style={getErrorStyles(colorScheme).container}>
-            <ThemedText style={getErrorStyles(colorScheme).text}>{error}</ThemedText>
+          <View style={getErrorStyles(colors).container}>
+            <ThemedText style={getErrorStyles(colors).text}>{error}</ThemedText>
           </View>
         )}
 

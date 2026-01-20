@@ -15,7 +15,7 @@ import { useQuery } from 'convex/react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
+import { Radius, type ColorPalette } from '@/constants/theme';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useAvatarUpload } from '@/hooks/use-avatar-upload';
 import { authClient } from '@/lib/auth-client';
@@ -28,13 +28,13 @@ const inputGroupStyle = { gap: 8 };
 const inputStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, fontSize: 16 };
 const buttonStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, alignItems: 'center' as const, marginTop: 8 };
 const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 12 };
-const modalHeaderBaseStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: 'rgba(128, 128, 128, 0.2)' };
+const modalHeaderBaseStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 0.5 };
 
 function ProfileField({ label, value, onPress, colors }: {
   label: string;
   value: string;
   onPress: () => void;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   return (
     <Pressable
@@ -63,7 +63,7 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
   label: string;
   value: string;
   onSave: (value: string) => Promise<void>;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
   placeholder?: string;
   keyboardType?: 'default' | 'email-address';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
@@ -101,7 +101,7 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={[modalHeaderBaseStyle, { paddingTop: 16 }]}>
+        <View style={[modalHeaderBaseStyle, { paddingTop: 16, borderBottomColor: colors.separator }]}>
           <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">
             <ThemedText color={colors.mutedForeground}>Cancel</ThemedText>
           </Pressable>
@@ -151,7 +151,7 @@ function ChangePasswordModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -223,7 +223,7 @@ function ChangePasswordModal({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={[modalHeaderBaseStyle, { paddingTop: 16 }]}>
+        <View style={[modalHeaderBaseStyle, { paddingTop: 16, borderBottomColor: colors.separator }]}>
           <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel={success ? 'Done' : 'Cancel'}>
             <ThemedText style={{ fontWeight: success ? '600' : '400' }} color={success ? colors.foreground : colors.mutedForeground}>
               {success ? 'Done' : 'Cancel'}
@@ -401,7 +401,7 @@ export default function ProfileScreen() {
                     </View>
                   )}
                   {isUploadingAvatar ? (
-                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 50, backgroundColor: 'rgba(0, 0, 0, 0.5)', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 50, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center' }}>
                       <ActivityIndicator color={colors.primaryForeground} size="large" />
                     </View>
                   ) : (

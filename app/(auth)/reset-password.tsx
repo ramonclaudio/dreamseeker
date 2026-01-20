@@ -11,12 +11,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
 import { ThemedText } from '@/components/ui/themed-text';
 
 export default function ResetPasswordScreen() {
-  const colorScheme = useColorScheme();
   const colors = useColors();
   const { token } = useLocalSearchParams<{ token: string }>();
 
@@ -117,8 +116,8 @@ export default function ResetPasswordScreen() {
         </View>
 
         {error && (
-          <View style={getErrorStyles(colorScheme).container}>
-            <ThemedText style={getErrorStyles(colorScheme).text}>{error}</ThemedText>
+          <View style={getErrorStyles(colors).container}>
+            <ThemedText style={getErrorStyles(colors).text}>{error}</ThemedText>
           </View>
         )}
 
