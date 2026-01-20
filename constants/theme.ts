@@ -16,8 +16,10 @@ const lightColors = {
   accentForeground: '#262626',
   destructive: '#dc2626',
   destructiveForeground: '#fafafa',
+  destructiveBackground: 'rgba(220, 38, 38, 0.1)',
   success: '#16a34a',
   successForeground: '#f0fdf4',
+  successBackground: 'rgba(22, 163, 74, 0.1)',
   border: '#e5e5e5',
   input: '#e5e5e5',
   ring: '#a3a3a3',
@@ -26,6 +28,8 @@ const lightColors = {
   icon: '#666666',
   tabIconDefault: '#666666',
   tabIconSelected: '#262626',
+  separator: 'rgba(60, 60, 67, 0.29)', // iOS standard separator
+  overlay: 'rgba(0, 0, 0, 0.4)',
 };
 
 const darkColors = {
@@ -45,8 +49,10 @@ const darkColors = {
   accentForeground: '#fafafa',
   destructive: '#f87171',
   destructiveForeground: '#fef2f2',
+  destructiveBackground: 'rgba(248, 113, 113, 0.15)',
   success: '#22c55e',
   successForeground: '#14532d',
+  successBackground: 'rgba(34, 197, 94, 0.15)',
   border: 'rgba(255, 255, 255, 0.1)',
   input: 'rgba(255, 255, 255, 0.15)',
   ring: '#737373',
@@ -55,6 +61,8 @@ const darkColors = {
   icon: '#a3a3a3',
   tabIconDefault: '#a3a3a3',
   tabIconSelected: '#e5e5e5',
+  separator: 'rgba(84, 84, 88, 0.6)', // iOS standard dark separator
+  overlay: 'rgba(0, 0, 0, 0.6)',
 };
 
 // High contrast variants (for iOS Increase Contrast setting)
@@ -69,7 +77,9 @@ const lightHighContrast = {
   mutedForeground: '#4a4a4a', // Darker for better contrast (7:1+)
   accentForeground: '#000000',
   destructive: '#b91c1c', // Darker red
+  destructiveBackground: 'rgba(185, 28, 28, 0.15)', // More visible in high contrast
   success: '#15803d', // Darker green
+  successBackground: 'rgba(21, 128, 61, 0.15)',
   border: '#a3a3a3', // More visible border
   input: '#a3a3a3',
   text: '#000000',
@@ -77,6 +87,8 @@ const lightHighContrast = {
   icon: '#4a4a4a',
   tabIconDefault: '#4a4a4a',
   tabIconSelected: '#000000',
+  separator: 'rgba(60, 60, 67, 0.6)', // More visible in high contrast
+  overlay: 'rgba(0, 0, 0, 0.5)',
 };
 
 const darkHighContrast = {
@@ -90,8 +102,10 @@ const darkHighContrast = {
   accentForeground: '#ffffff',
   destructive: '#fca5a5', // Lighter red
   destructiveForeground: '#ffffff',
+  destructiveBackground: 'rgba(252, 165, 165, 0.2)', // More visible in high contrast
   success: '#4ade80', // Lighter green
   successForeground: '#000000',
+  successBackground: 'rgba(74, 222, 128, 0.2)',
   border: 'rgba(255, 255, 255, 0.3)', // More visible border
   input: 'rgba(255, 255, 255, 0.3)',
   text: '#ffffff',
@@ -99,6 +113,8 @@ const darkHighContrast = {
   icon: '#d4d4d4',
   tabIconDefault: '#d4d4d4',
   tabIconSelected: '#ffffff',
+  separator: 'rgba(142, 142, 147, 0.6)', // More visible in high contrast
+  overlay: 'rgba(0, 0, 0, 0.7)',
 };
 
 export const Colors = {
