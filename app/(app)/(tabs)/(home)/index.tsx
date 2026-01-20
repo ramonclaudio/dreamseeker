@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, View, Pressable } from 'react-native';
+import { Platform, View, Pressable, useWindowDimensions } from 'react-native';
 import { useQuery } from 'convex/react';
 
 import { HelloWave } from '@/components/hello-wave';
@@ -8,11 +8,17 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { Link } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Colors } from '@/constants/theme';
+import { Spacing, TouchTarget } from '@/constants/layout';
+import { Responsive } from '@/constants/ui';
 
-const stepContainerStyle = { gap: 8, marginBottom: 8 };
+const stepContainerStyle = { gap: Spacing.sm, marginBottom: Spacing.sm };
 
 export default function HomeScreen() {
   const user = useQuery(api.auth.getCurrentUser);
+  const { width } = useWindowDimensions();
+  // Responsive image: 70% of screen width, max 290pt
+  const imageWidth = Math.min(Responsive.heroImage.maxWidth, width * Responsive.heroImage.screenRatio);
+  const imageHeight = imageWidth * Responsive.heroImage.aspectRatio; // Maintain aspect ratio
 
   return (
     <ParallaxScrollView
@@ -20,10 +26,11 @@ export default function HomeScreen() {
       headerImage={
         <Image
           source={require('@/assets/images/partial-react-logo.png')}
-          style={{ height: 178, width: 290, bottom: 0, left: 0, position: 'absolute' }}
+          style={{ height: imageHeight, width: imageWidth, bottom: 0, left: 0, position: 'absolute' }}
+          contentFit="contain"
         />
       }>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
         <ThemedText variant="title">
           {user?.name ? `Hi, ${user.name}!` : 'Welcome!'}
         </ThemedText>
@@ -49,7 +56,7 @@ export default function HomeScreen() {
         {Platform.OS === 'ios' ? (
           <Link href="/modal">
             <Link.Trigger>
-              <Pressable accessibilityRole="link" accessibilityLabel="Step 2: Explore" accessibilityHint="Opens modal with more information">
+              <Pressable style={{ minHeight: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="link" accessibilityLabel="Step 2: Explore" accessibilityHint="Opens modal with more information">
                 <ThemedText variant="subtitle">Step 2: Explore</ThemedText>
               </Pressable>
             </Link.Trigger>
@@ -57,7 +64,7 @@ export default function HomeScreen() {
           </Link>
         ) : (
           <Link href="/modal" asChild>
-            <Pressable accessibilityRole="link" accessibilityLabel="Step 2: Explore" accessibilityHint="Opens modal with more information">
+            <Pressable style={{ minHeight: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="link" accessibilityLabel="Step 2: Explore" accessibilityHint="Opens modal with more information">
               <ThemedText variant="subtitle">Step 2: Explore</ThemedText>
             </Pressable>
           </Link>

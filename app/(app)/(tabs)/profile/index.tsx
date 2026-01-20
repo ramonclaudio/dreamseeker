@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from 'convex/react';
@@ -16,19 +17,29 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { MaxWidth, Breakpoint, Spacing, TouchTarget, FontSize, HitSlop, IconSize } from '@/constants/layout';
+import { Opacity, Size, Duration, Responsive } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useAvatarUpload } from '@/hooks/use-avatar-upload';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 import { api } from '@/convex/_generated/api';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
-const fieldDividerStyle = { height: 1, marginLeft: 16 };
-const inputGroupStyle = { gap: 8 };
-const inputStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, fontSize: 16 };
-const buttonStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, alignItems: 'center' as const, marginTop: 8 };
-const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 12 };
-const modalHeaderBaseStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 0.5 };
+const sectionStyle = { marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
+
+// Responsive avatar: scales up on larger screens
+function useAvatarSize() {
+  const { width } = useWindowDimensions();
+  if (width >= Breakpoint.desktop) return Responsive.avatar.desktop;
+  if (width >= Breakpoint.tablet) return Responsive.avatar.tablet;
+  return Responsive.avatar.phone;
+}
+const fieldDividerStyle = { height: Size.dividerThick, marginLeft: Spacing.lg };
+const inputGroupStyle = { gap: Spacing.sm };
+const inputStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: Spacing.lg, fontSize: FontSize.xl };
+const buttonStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: Spacing.lg, minHeight: TouchTarget.min, alignItems: 'center' as const, justifyContent: 'center' as const, marginTop: Spacing.sm };
+const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: Spacing.md };
+const modalHeaderBaseStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, borderBottomWidth: 0.5 };
 
 function ProfileField({ label, value, onPress, colors }: {
   label: string;
@@ -39,19 +50,19 @@ function ProfileField({ label, value, onPress, colors }: {
   return (
     <Pressable
       style={({ pressed }) => [
-        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-        { opacity: pressed ? 0.7 : 1 },
+        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min },
+        { opacity: pressed ? Opacity.pressed : 1 },
       ]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Edit ${label}`}
       accessibilityValue={{ text: value || 'Not set' }}
       accessibilityHint={`Double tap to edit your ${label.toLowerCase()}`}>
-      <View style={{ flex: 1, gap: 4 }}>
-        <ThemedText style={{ fontSize: 12, fontWeight: '500', textTransform: 'uppercase' }} color={colors.mutedForeground}>{label}</ThemedText>
-        <ThemedText selectable style={{ fontSize: 16 }}>{value || 'Not set'}</ThemedText>
+      <View style={{ flex: 1, gap: Spacing.xs }}>
+        <ThemedText style={{ fontSize: FontSize.sm, fontWeight: '500', textTransform: 'uppercase' }} color={colors.mutedForeground}>{label}</ThemedText>
+        <ThemedText selectable style={{ fontSize: FontSize.xl }} numberOfLines={1} ellipsizeMode="tail">{value || 'Not set'}</ThemedText>
       </View>
-      <IconSymbol name="pencil" size={18} color={colors.mutedForeground} />
+      <IconSymbol name="pencil" size={IconSize.lg} color={colors.mutedForeground} />
     </Pressable>
   );
 }
@@ -101,27 +112,27 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={[modalHeaderBaseStyle, { paddingTop: 16, borderBottomColor: colors.separator }]}>
-          <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">
+        <View style={[modalHeaderBaseStyle, { paddingTop: Spacing.lg, borderBottomColor: colors.separator }]}>
+          <Pressable onPress={handleClose} hitSlop={HitSlop.sm} style={{ minHeight: TouchTarget.min, minWidth: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Cancel">
             <ThemedText color={colors.mutedForeground}>Cancel</ThemedText>
           </Pressable>
           <ThemedText variant="subtitle" accessibilityRole="header">{title}</ThemedText>
-          <Pressable onPress={handleSave} hitSlop={8} disabled={isLoading} accessibilityRole="button" accessibilityLabel={isLoading ? 'Saving' : 'Save'} accessibilityState={{ disabled: isLoading }}>
+          <Pressable onPress={handleSave} hitSlop={HitSlop.sm} disabled={isLoading} style={{ minHeight: TouchTarget.min, minWidth: TouchTarget.min, justifyContent: 'center', alignItems: 'flex-end' }} accessibilityRole="button" accessibilityLabel={isLoading ? 'Saving' : 'Save'} accessibilityState={{ disabled: isLoading }}>
             <ThemedText style={{ fontWeight: '600', opacity: isLoading ? 0.5 : 1 }}>
               {isLoading ? 'Saving...' : 'Save'}
             </ThemedText>
           </Pressable>
         </View>
 
-        <View style={{ flex: 1, padding: 20, gap: 20 }}>
+        <View style={{ flex: 1, padding: Spacing.xl, gap: Spacing.xl }}>
           {error && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
-              <ThemedText style={{ fontSize: 14, textAlign: 'center' }} color={colors.destructive}>{error}</ThemedText>
+              <ThemedText style={{ fontSize: FontSize.base, textAlign: 'center' }} color={colors.destructive}>{error}</ThemedText>
             </View>
           )}
 
           <View style={inputGroupStyle}>
-            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>{label}</ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }}>{label}</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder={placeholder}
@@ -223,31 +234,30 @@ function ChangePasswordModal({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={[modalHeaderBaseStyle, { paddingTop: 16, borderBottomColor: colors.separator }]}>
-          <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel={success ? 'Done' : 'Cancel'}>
+        <View style={[modalHeaderBaseStyle, { paddingTop: Spacing.lg, borderBottomColor: colors.separator, position: 'relative', justifyContent: 'center' }]}>
+          <Pressable onPress={handleClose} hitSlop={HitSlop.sm} accessibilityRole="button" accessibilityLabel={success ? 'Done' : 'Cancel'} style={{ position: 'absolute', left: Spacing.xl, minHeight: TouchTarget.min, minWidth: TouchTarget.min, justifyContent: 'center' }}>
             <ThemedText style={{ fontWeight: success ? '600' : '400' }} color={success ? colors.foreground : colors.mutedForeground}>
               {success ? 'Done' : 'Cancel'}
             </ThemedText>
           </Pressable>
           <ThemedText variant="subtitle" accessibilityRole="header">Change Password</ThemedText>
-          <View style={{ width: 50 }} />
         </View>
 
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.xl, paddingBottom: Spacing['4xl'], gap: Spacing.xl }} keyboardShouldPersistTaps="handled">
           {error && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
-              <ThemedText style={{ fontSize: 14, textAlign: 'center' }} color={colors.destructive}>{error}</ThemedText>
+              <ThemedText style={{ fontSize: FontSize.base, textAlign: 'center' }} color={colors.destructive}>{error}</ThemedText>
             </View>
           )}
 
           {success && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.success}15`, borderColor: colors.success }]}>
-              <ThemedText style={{ fontSize: 14, textAlign: 'center' }} color={colors.success}>Password changed successfully!</ThemedText>
+              <ThemedText style={{ fontSize: FontSize.base, textAlign: 'center' }} color={colors.success}>Password changed successfully!</ThemedText>
             </View>
           )}
 
           <View style={inputGroupStyle}>
-            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>Current Password</ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }}>Current Password</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter current password"
@@ -265,7 +275,7 @@ function ChangePasswordModal({
           </View>
 
           <View style={inputGroupStyle}>
-            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>New Password</ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }}>New Password</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter new password"
@@ -283,7 +293,7 @@ function ChangePasswordModal({
           </View>
 
           <View style={inputGroupStyle}>
-            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>Confirm New Password</ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }}>Confirm New Password</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Confirm new password"
@@ -307,12 +317,12 @@ function ChangePasswordModal({
             accessibilityRole="button"
             accessibilityLabel={isLoading ? 'Changing password' : 'Change password'}
             accessibilityState={{ disabled: isLoading || success }}>
-            <ThemedText style={{ fontSize: 14, fontWeight: '500' }} color={colors.primaryForeground}>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }} color={colors.primaryForeground}>
               {isLoading ? 'Changing...' : 'Change Password'}
             </ThemedText>
           </Pressable>
 
-          <ThemedText style={{ fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18 }} color={colors.mutedForeground}>
+          <ThemedText style={{ fontSize: FontSize.md, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 18 }} color={colors.mutedForeground}>
             For security, you will remain signed in on this device. All other sessions will be signed out.
           </ThemedText>
         </ScrollView>
@@ -325,6 +335,7 @@ export default function ProfileScreen() {
   const colors = useColors();
   const user = useQuery(api.auth.getCurrentUser);
   const { isUploading: isUploadingAvatar, showOptions: showAvatarOptions, avatarInitial } = useAvatarUpload(user);
+  const avatarSize = useAvatarSize();
 
   const [showEditName, setShowEditName] = useState(false);
   const [showEditUsername, setShowEditUsername] = useState(false);
@@ -374,15 +385,15 @@ export default function ProfileScreen() {
     <>
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
         contentInsetAdjustmentBehavior="automatic">
         {user && (
           <>
-            <View style={{ alignItems: 'center', paddingVertical: 20, gap: 8 }}>
+            <View style={{ alignItems: 'center', paddingVertical: Spacing.xl, gap: Spacing.sm }}>
               <Pressable
                 onPress={showAvatarOptions}
                 disabled={isUploadingAvatar}
-                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1, minHeight: TouchTarget.min })}
                 accessibilityRole="button"
                 accessibilityLabel="Change profile photo"
                 accessibilityHint="Double tap to choose a new profile photo"
@@ -391,33 +402,33 @@ export default function ProfileScreen() {
                   {user.image ? (
                     <Image
                       source={{ uri: user.image }}
-                      style={{ width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+                      style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
                       contentFit="cover"
-                      transition={200}
+                      transition={Duration.normal}
                     />
                   ) : (
-                    <View style={{ width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: colors.primary }}>
-                      <ThemedText style={{ fontSize: 36, lineHeight: 36, fontWeight: '600', textAlign: 'center', includeFontPadding: false }} color={colors.primaryForeground}>{avatarInitial}</ThemedText>
+                    <View style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: colors.primary }}>
+                      <ThemedText style={{ fontSize: avatarSize * 0.36, lineHeight: avatarSize * 0.36, fontWeight: '600', textAlign: 'center', includeFontPadding: false }} color={colors.primaryForeground}>{avatarInitial}</ThemedText>
                     </View>
                   )}
                   {isUploadingAvatar ? (
-                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 50, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: avatarSize / 2, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center' }}>
                       <ActivityIndicator color={colors.primaryForeground} size="large" />
                     </View>
                   ) : (
-                    <View style={{ position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: colors.primary, borderColor: colors.background }}>
-                      <IconSymbol name="camera.fill" size={14} color={colors.primaryForeground} />
+                    <View style={{ position: 'absolute', bottom: 0, right: 0, width: Size.badge, height: Size.badge, borderRadius: Size.badge / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: colors.primary, borderColor: colors.background }}>
+                      <IconSymbol name="camera.fill" size={IconSize.sm} color={colors.primaryForeground} />
                     </View>
                   )}
                 </View>
               </Pressable>
-              <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
+              <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>
                 Tap to change photo
               </ThemedText>
             </View>
 
             <View style={sectionStyle}>
-              <ThemedText style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12 }} color={colors.mutedForeground}>Account Info</ThemedText>
+              <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.md }} color={colors.mutedForeground}>Account Info</ThemedText>
               <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <ProfileField
                   label="Name"
@@ -452,12 +463,12 @@ export default function ProfileScreen() {
             </View>
 
             <View style={sectionStyle}>
-              <ThemedText style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12 }} color={colors.mutedForeground}>Security</ThemedText>
+              <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.md }} color={colors.mutedForeground}>Security</ThemedText>
               <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <Pressable
                   style={({ pressed }) => [
-                    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, borderCurve: 'continuous' },
-                    { opacity: pressed ? 0.7 : 1 },
+                    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min, borderRadius: 12, borderCurve: 'continuous' },
+                    { opacity: pressed ? Opacity.pressed : 1 },
                   ]}
                   onPress={() => {
                     haptics.selection();
@@ -466,11 +477,11 @@ export default function ProfileScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Change password"
                   accessibilityHint="Double tap to open change password form">
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <IconSymbol name="lock.fill" size={22} color={colors.mutedForeground} />
-                    <ThemedText style={{ fontSize: 16 }}>Change Password</ThemedText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                    <IconSymbol name="lock.fill" size={IconSize['2xl']} color={colors.mutedForeground} />
+                    <ThemedText style={{ fontSize: FontSize.xl }}>Change Password</ThemedText>
                   </View>
-                  <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+                  <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
                 </Pressable>
               </GlassCard>
             </View>

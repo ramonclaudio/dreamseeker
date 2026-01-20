@@ -5,7 +5,7 @@ import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router }
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback } from 'react';
-import { View, Text, Pressable, Dimensions, AppState, StyleSheet } from 'react-native';
+import { View, Pressable, Dimensions, AppState, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
@@ -20,24 +20,28 @@ import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
 import { isValidDeepLink } from '@/lib/deep-link';
 import { OfflineBanner } from '@/components/ui/offline-banner';
+import { ThemedText } from '@/components/ui/themed-text';
+import { Spacing, TouchTarget } from '@/constants/layout';
+import { Radius } from '@/constants/theme';
+import { ZIndex, Duration, Confetti } from '@/constants/ui';
 
 const convex = new ConvexReactClient(env.convexUrl, { expectAuth: true, unsavedChangesWarning: false });
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   const colors = useColors();
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.destructive }}>Something went wrong</Text>
-      <Text style={{ fontSize: 14, color: colors.mutedForeground, textAlign: 'center', marginBottom: 12 }}>{error.message}</Text>
-      <Pressable style={{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' }} onPress={retry}>
-        <Text style={{ color: colors.primaryForeground, fontWeight: '600' }}>Try Again</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.md }}>
+      <ThemedText variant="title" style={{ textAlign: 'center' }} color={colors.destructive} numberOfLines={2} adjustsFontSizeToFit accessibilityRole="header">Something went wrong</ThemedText>
+      <ThemedText style={{ textAlign: 'center', marginBottom: Spacing.md }} color={colors.mutedForeground} numberOfLines={4} ellipsizeMode="tail">{error.message}</ThemedText>
+      <Pressable style={{ backgroundColor: colors.primary, paddingHorizontal: Spacing['2xl'], paddingVertical: Spacing.md, minHeight: TouchTarget.min, justifyContent: 'center', borderRadius: Radius.md, borderCurve: 'continuous' }} onPress={retry} accessibilityRole="button" accessibilityLabel="Try again">
+        <ThemedText style={{ fontWeight: '600' }} color={colors.primaryForeground}>Try Again</ThemedText>
       </Pressable>
     </View>
   );
 }
 
 SplashScreen.preventAutoHideAsync();
-SplashScreen.setOptions({ duration: 1000, fade: true });
+SplashScreen.setOptions({ duration: Duration.splash, fade: true });
 
 export const unstable_settings = { initialRouteName: '(auth)' };
 
@@ -132,7 +136,7 @@ function RootNavigator() {
           </Stack>
           <StatusBar style="auto" />
           <OfflineBanner />
-          <ConfettiCannon ref={confettiRef} count={150} origin={{ x: width / 2, y: -20 }} autoStart={false} fadeOut fallSpeed={3000} explosionSpeed={400} />
+          <ConfettiCannon ref={confettiRef} count={Confetti.count} origin={{ x: width / 2, y: Confetti.originY }} autoStart={false} fadeOut fallSpeed={Confetti.fallSpeed} explosionSpeed={Confetti.explosionSpeed} />
         </View>
       </NavigationThemeProvider>
     </KeyboardProvider>
@@ -145,6 +149,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 1,
+    zIndex: ZIndex.statusBar,
   },
 });

@@ -9,14 +9,16 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { Opacity } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
+const sectionTitleStyle = { fontSize: FontSize.md, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: Spacing.xs, opacity: 0.6 };
 const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
-const settingRowLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, flex: 1 };
-const settingRowTextStyle = { flex: 1, gap: 2 };
+const settingRowLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.md, flex: 1 };
+const settingRowTextStyle = { flex: 1, gap: Spacing.xs / 2 };
 
 type PermissionStatus = 'granted' | 'denied' | 'undetermined';
 
@@ -28,13 +30,13 @@ function SettingRow({ icon, label, description, children, colors }: {
   colors: ColorPalette;
 }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg }}>
       <View style={settingRowLeftStyle}>
-        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
+        <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
         <View style={settingRowTextStyle}>
-          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+          <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
           {description && (
-            <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>{description}</ThemedText>
+            <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>{description}</ThemedText>
           )}
         </View>
       </View>
@@ -122,7 +124,7 @@ export default function NotificationsScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Push Notifications</ThemedText>
@@ -155,21 +157,24 @@ export default function NotificationsScreen() {
           <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Test</ThemedText>
           <GlassCard style={cardStyle}>
             <Pressable
-              style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }, { opacity: pressed || isSendingTest ? 0.7 : 1 }]}
+              style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min }, { opacity: pressed || isSendingTest ? Opacity.pressed : 1 }]}
               onPress={handleTestNotification}
-              disabled={isSendingTest}>
+              disabled={isSendingTest}
+              accessibilityRole="button"
+              accessibilityLabel={isSendingTest ? 'Sending test notification' : 'Send test notification'}
+              accessibilityState={{ disabled: isSendingTest }}>
               <View style={settingRowLeftStyle}>
-                <IconSymbol name="paperplane.fill" size={22} color={colors.primary} />
+                <IconSymbol name="paperplane.fill" size={IconSize['2xl']} color={colors.primary} />
                 <View style={settingRowTextStyle}>
-                  <ThemedText style={{ fontSize: 16 }}>
+                  <ThemedText style={{ fontSize: FontSize.xl }}>
                     {isSendingTest ? 'Sending...' : 'Send Test Notification'}
                   </ThemedText>
-                  <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
+                  <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>
                     Verify notifications are working
                   </ThemedText>
                 </View>
               </View>
-              <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+              <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
             </Pressable>
           </GlassCard>
         </View>
@@ -178,8 +183,8 @@ export default function NotificationsScreen() {
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>About</ThemedText>
         <GlassCard style={cardStyle}>
-          <View style={{ padding: 16 }}>
-            <ThemedText style={{ fontSize: 14, lineHeight: 20 }} color={colors.mutedForeground}>
+          <View style={{ padding: Spacing.lg }}>
+            <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
               Push notifications keep you informed about important updates, task reminders, and account activity.
               {'\n\n'}
               You can manage notification preferences in your device settings at any time.

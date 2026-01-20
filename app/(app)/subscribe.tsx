@@ -5,14 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius } from '@/constants/theme';
+import { FontSize, LineHeight, MaxWidth, Spacing, TouchTarget, HitSlop } from '@/constants/layout';
+import { Shadow, Size } from '@/constants/ui';
 import { PAID_TIERS, TIER_KEYS, TIERS, getPriceId, type TierKey, type BillingPeriod } from '@/constants/subscriptions';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
 
-const billingOptionStyle = { flex: 1, paddingVertical: 12, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, justifyContent: 'center' as const };
-const tierCardStyle = { padding: 16, borderRadius: Radius.lg, borderCurve: 'continuous' as const, position: 'relative' as const, gap: 4 };
-const featureRowStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 };
+const billingOptionStyle = { flex: 1, paddingVertical: Spacing.md, minHeight: TouchTarget.min, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, justifyContent: 'center' as const };
+const tierCardStyle = { padding: Spacing.lg, minHeight: TouchTarget.min, borderRadius: Radius.lg, borderCurve: 'continuous' as const, position: 'relative' as const, gap: Spacing.xs };
+const featureRowStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.sm };
 
 export default function SubscribeScreen() {
   const insets = useSafeAreaInsets();
@@ -49,29 +51,29 @@ export default function SubscribeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
-        <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: colors.separator }} />
+      <View style={{ alignItems: 'center', paddingTop: Spacing.sm, paddingBottom: Spacing.sm }}>
+        <View style={{ width: Size.dragHandle.width, height: Size.dragHandle.height, borderRadius: Size.dragHandle.radius, backgroundColor: colors.separator }} />
       </View>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm, paddingBottom: Math.max(Spacing.xl, insets.bottom), maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View style={{ alignItems: 'center', marginBottom: 24, gap: 8 }}>
+        <View style={{ alignItems: 'center', marginBottom: Spacing['2xl'], gap: Spacing.sm }}>
           <ThemedText variant="title" style={{ textAlign: 'center' }}>
             Choose Your Plan
           </ThemedText>
-          <ThemedText style={{ textAlign: 'center', fontSize: 16, lineHeight: 22 }} color={colors.mutedForeground}>
+          <ThemedText style={{ textAlign: 'center', fontSize: FontSize.xl, lineHeight: LineHeight.relaxed }} color={colors.mutedForeground}>
             Unlock more features and boost your productivity.
           </ThemedText>
         </View>
 
-        <View style={{ flexDirection: 'row', borderRadius: Radius.lg, borderCurve: 'continuous', padding: 4, marginBottom: 20, backgroundColor: colors.muted }} accessibilityRole="radiogroup" accessibilityLabel="Billing period">
+        <View style={{ flexDirection: 'row', borderRadius: Radius.lg, borderCurve: 'continuous', padding: Spacing.xs, marginBottom: Spacing.xl, backgroundColor: colors.muted }} accessibilityRole="radiogroup" accessibilityLabel="Billing period">
           <Pressable
             style={[
               billingOptionStyle,
-              billingPeriod === 'monthly' && { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)', backgroundColor: colors.background },
+              billingPeriod === 'monthly' && { boxShadow: `${Shadow.sm} ${colors.shadow}`, backgroundColor: colors.background },
             ]}
             onPress={() => {
               haptics.light();
@@ -81,14 +83,14 @@ export default function SubscribeScreen() {
             accessibilityLabel="Monthly billing"
             accessibilityState={{ selected: billingPeriod === 'monthly' }}
           >
-            <ThemedText style={{ fontSize: 15, fontWeight: '600' }} color={billingPeriod === 'monthly' ? colors.foreground : colors.mutedForeground}>
+            <ThemedText style={{ fontSize: FontSize.lg, fontWeight: '600' }} color={billingPeriod === 'monthly' ? colors.foreground : colors.mutedForeground}>
               Monthly
             </ThemedText>
           </Pressable>
           <Pressable
             style={[
               billingOptionStyle,
-              billingPeriod === 'annual' && { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)', backgroundColor: colors.background },
+              billingPeriod === 'annual' && { boxShadow: `${Shadow.sm} ${colors.shadow}`, backgroundColor: colors.background },
             ]}
             onPress={() => {
               haptics.light();
@@ -98,13 +100,13 @@ export default function SubscribeScreen() {
             accessibilityLabel="Annual billing"
             accessibilityState={{ selected: billingPeriod === 'annual' }}
           >
-            <ThemedText style={{ fontSize: 15, fontWeight: '600' }} color={billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground}>
+            <ThemedText style={{ fontSize: FontSize.lg, fontWeight: '600' }} color={billingPeriod === 'annual' ? colors.foreground : colors.mutedForeground}>
               Annual
             </ThemedText>
           </Pressable>
         </View>
 
-        <View style={{ gap: 12, marginBottom: 20 }}>
+        <View style={{ gap: Spacing.md, marginBottom: Spacing.xl }}>
           {PAID_TIERS.map((tierConfig) => {
             const isSelected = selectedTier === tierConfig.key;
             const tierIndex = TIER_KEYS.indexOf(tierConfig.key);
@@ -136,18 +138,18 @@ export default function SubscribeScreen() {
                 accessibilityHint={isCurrent ? 'This is your current plan' : isDowngrade ? 'You cannot downgrade to this plan' : `Double tap to select ${tierConfig.name} plan`}
               >
                 {tierConfig.popular && (
-                  <View style={{ position: 'absolute', top: -10, right: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary }}>
-                    <ThemedText style={{ fontSize: 11, fontWeight: '600' }} color={colors.primaryForeground}>
+                  <View style={{ position: 'absolute', top: -HitSlop.md, right: Spacing.lg, paddingHorizontal: HitSlop.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary }}>
+                    <ThemedText style={{ fontSize: FontSize.xs, fontWeight: '600' }} color={colors.primaryForeground}>
                       Popular
                     </ThemedText>
                   </View>
                 )}
 
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <ThemedText style={{ fontSize: 18, fontWeight: '700', lineHeight: 24 }}>{tierConfig.name}</ThemedText>
+                  <ThemedText style={{ fontSize: FontSize['3xl'], fontWeight: '700', lineHeight: LineHeight.loose }} numberOfLines={1}>{tierConfig.name}</ThemedText>
                   {isCurrent && (
-                    <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.muted }}>
-                      <ThemedText style={{ fontSize: 11, fontWeight: '600' }} color={colors.mutedForeground}>
+                    <View style={{ paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.muted }}>
+                      <ThemedText style={{ fontSize: FontSize.xs, fontWeight: '600' }} color={colors.mutedForeground}>
                         Current
                       </ThemedText>
                     </View>
@@ -155,23 +157,23 @@ export default function SubscribeScreen() {
                 </View>
 
                 <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <ThemedText style={{ fontSize: 28, fontWeight: '700', lineHeight: 34 }}>
+                  <ThemedText style={{ fontSize: FontSize['6xl'], fontWeight: '700', lineHeight: LineHeight['3xl'] }}>
                     {billingPeriod === 'monthly' ? pricing.monthly.amount : pricing.annual.amount}
                   </ThemedText>
-                  <ThemedText style={{ fontSize: 14, marginLeft: 2 }} color={colors.mutedForeground}>
+                  <ThemedText style={{ fontSize: FontSize.base, marginLeft: 2 }} color={colors.mutedForeground}>
                     /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                   </ThemedText>
                 </View>
 
-                <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+                <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
                   {tierConfig.limitLabel}
                 </ThemedText>
 
-                <View style={{ gap: 8 }}>
+                <View style={{ gap: Spacing.sm }}>
                   {tierConfig.features.map((feature) => (
                     <View key={feature} style={featureRowStyle}>
-                      <IconSymbol name="checkmark" size={14} color={colors.primary} />
-                      <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+                      <IconSymbol name="checkmark" size={FontSize.base} color={colors.primary} />
+                      <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
                         {feature}
                       </ThemedText>
                     </View>
@@ -183,26 +185,26 @@ export default function SubscribeScreen() {
         </View>
 
         <Pressable
-          style={{ paddingVertical: 16, borderRadius: Radius.lg, borderCurve: 'continuous', alignItems: 'center', marginBottom: 12, backgroundColor: colors.primary }}
+          style={{ paddingVertical: Spacing.lg, minHeight: TouchTarget.min, borderRadius: Radius.lg, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md, backgroundColor: colors.primary }}
           onPress={handleSubscribe}
           disabled={loading}
           accessibilityRole="button"
           accessibilityLabel={loading ? 'Loading' : `Subscribe to ${TIERS[selectedTier].name}`}
           accessibilityState={{ disabled: loading }}
         >
-          <ThemedText style={{ fontSize: 17, fontWeight: '600' }} color={colors.primaryForeground}>
+          <ThemedText style={{ fontSize: FontSize['2xl'], fontWeight: '600' }} color={colors.primaryForeground}>
             {loading ? 'Loading...' : `Subscribe to ${TIERS[selectedTier].name}`}
           </ThemedText>
         </Pressable>
 
-        <Pressable onPress={handleRestore} style={{ alignItems: 'center', paddingVertical: 12 }} accessibilityRole="button" accessibilityLabel="Restore purchases" accessibilityHint="Restore previous subscription purchases">
-          <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+        <Pressable onPress={handleRestore} style={{ alignItems: 'center', paddingVertical: Spacing.md, minHeight: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Restore purchases" accessibilityHint="Restore previous subscription purchases">
+          <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
             Restore Purchases
           </ThemedText>
         </Pressable>
 
-        <View style={{ marginTop: 16, paddingHorizontal: 20 }}>
-          <ThemedText style={{ fontSize: 12, textAlign: 'center', lineHeight: 18 }} color={colors.mutedForeground}>
+        <View style={{ marginTop: Spacing.lg, paddingHorizontal: Spacing.xl }}>
+          <ThemedText style={{ fontSize: FontSize.sm, textAlign: 'center', lineHeight: LineHeight.tight }} color={colors.mutedForeground}>
             By subscribing, you agree to our Terms of Service and Privacy Policy.
           </ThemedText>
         </View>

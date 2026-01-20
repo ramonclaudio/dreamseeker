@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, View } from 'react-native';
+import { Platform, View, useWindowDimensions } from 'react-native';
 
 import { Collapsible } from '@/components/ui/collapsible';
 import { ExternalLink } from '@/components/external-link';
@@ -8,22 +8,30 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts, Colors } from '@/constants/theme';
 import { useColors } from '@/hooks/use-color-scheme';
+import { Spacing } from '@/constants/layout';
+import { Responsive } from '@/constants/ui';
 
 export default function TabTwoScreen() {
   const colors = useColors();
+  const { width } = useWindowDimensions();
+  // Responsive icon: scale based on screen width, min 250, max 350
+  const iconSize = Math.min(Responsive.exploreIcon.maxSize, Math.max(Responsive.exploreIcon.minSize, width * Responsive.exploreIcon.screenRatio));
+  // Offset scales proportionally
+  const bottomOffset = -(iconSize * Responsive.exploreIcon.offsetBottomRatio);
+  const leftOffset = -(iconSize * Responsive.exploreIcon.offsetLeftRatio);
 
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: Colors.light.secondary, dark: Colors.dark.secondary }}
       headerImage={
         <IconSymbol
-          size={310}
+          size={iconSize}
           color={colors.mutedForeground}
           name="chevron.left.forwardslash.chevron.right"
-          style={{ bottom: -90, left: -35, position: 'absolute' }}
+          style={{ bottom: bottomOffset, left: leftOffset, position: 'absolute' }}
         />
       }>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
         <ThemedText variant="title" style={{ fontFamily: Fonts.rounded }}>
           Explore
         </ThemedText>
@@ -57,7 +65,8 @@ export default function TabTwoScreen() {
         </ThemedText>
         <Image
           source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
+          style={{ width: Responsive.reactLogo.size, height: Responsive.reactLogo.size, alignSelf: 'center' }}
+          contentFit="contain"
         />
         <ExternalLink href="https://reactnative.dev/docs/images">
           <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
