@@ -7,7 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Radius, Typography } from '@/constants/theme';
+import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
@@ -346,12 +346,8 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 100 }}
+      contentContainerStyle={{ paddingBottom: 40 }}
       contentInsetAdjustmentBehavior="automatic">
-      <View style={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 }}>
-        <Text style={[Typography.title, { color: colors.text }]}>Settings</Text>
-      </View>
-
       <SettingsSection title="Theme" colors={colors}>
         <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
       </SettingsSection>

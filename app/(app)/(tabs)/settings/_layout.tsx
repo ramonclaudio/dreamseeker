@@ -12,8 +12,7 @@ export default function SettingsLayout() {
       screenOptions={{
         headerShown: true,
         headerBackTitle: 'Settings',
-        headerTransparent: process.env.EXPO_OS !== 'web',
-        headerStyle: process.env.EXPO_OS === 'web' ? { backgroundColor: colors.card } : undefined,
+        headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.foreground,
         headerTitleStyle: { color: colors.text },
         headerShadowVisible: false,

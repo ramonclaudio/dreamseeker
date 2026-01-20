@@ -1,31 +1,19 @@
-import { View, Text, ScrollView, Pressable } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, ScrollView } from 'react-native';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, Typography } from '@/constants/theme';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { haptics } from '@/lib/haptics';
 
 export default function ExportScreen() {
-  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
 
-  const handleClose = () => {
-    haptics.light();
-    router.back();
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 16, paddingTop: insets.top + 8 }}>
-        <View style={{ position: 'absolute', top: 8, width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' }} />
+      <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 16 }}>
+        <View style={{ width: 36, height: 5, borderRadius: 3, marginBottom: 12, backgroundColor: 'rgba(128,128,128,0.3)' }} />
         <Text style={[Typography.subtitle, { color: colors.text }]}>Data Export</Text>
-        <Pressable onPress={handleClose} style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center', padding: 4 }}>
-          <IconSymbol name="xmark.circle.fill" size={28} color={colors.mutedForeground} />
-        </Pressable>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} contentInsetAdjustmentBehavior="automatic">
