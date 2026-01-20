@@ -62,7 +62,7 @@ export default function ForgotPasswordScreen() {
         <View style={styles.successContent}>
           <ThemedText variant="title">Check your email</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
-            We&apos;ve sent a password reset link to {email}
+            A password reset link has been sent to {email}
           </ThemedText>
           <ThemedText style={styles.hint} color={colors.mutedForeground}>
             If you don&apos;t see it, check your spam folder.
@@ -92,7 +92,7 @@ export default function ForgotPasswordScreen() {
         <View style={styles.header}>
           <ThemedText variant="title">Forgot password?</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
-            Enter your email and we&apos;ll send you a reset link
+            Enter your email to receive a password reset link
           </ThemedText>
         </View>
 
