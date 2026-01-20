@@ -5,7 +5,7 @@ import { useMutation } from 'convex/react';
 import * as Clipboard from 'expo-clipboard';
 
 import { api } from '@/convex/_generated/api';
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
@@ -109,9 +109,9 @@ function SettingsSection({ title, children, colors }: { title?: string; children
   return (
     <View style={sectionStyle}>
       {title && <ThemedText style={sectionTitleStyle}>{title}</ThemedText>}
-      <GlassCard style={sectionContentStyle}>
+      <MaterialCard style={sectionContentStyle}>
         {children}
-      </GlassCard>
+      </MaterialCard>
     </View>
   );
 }

@@ -10,7 +10,7 @@ import { useColors } from '@/hooks/use-color-scheme';
 import { Radius, type ColorPalette } from '@/constants/theme';
 import { MaxWidth, Spacing, TouchTarget, HitSlop, FontSize, IconSize } from '@/constants/layout';
 import { Size, EmptyState } from '@/constants/ui';
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 
@@ -18,12 +18,12 @@ type Task = Doc<'tasks'>;
 
 function TaskHistoryItem({ task, colors }: { task: Task; colors: ColorPalette }) {
   return (
-    <GlassCard style={{ flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.sm }}>
+    <MaterialCard style={{ flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.sm }}>
       <View style={{ width: Size.checkbox, height: Size.checkbox, borderRadius: Radius.sm, borderCurve: 'continuous', borderWidth: 2, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary, borderColor: colors.primary }}>
         <ThemedText style={{ fontSize: FontSize.base, fontWeight: 'bold' }} color={colors.primaryForeground}>✓</ThemedText>
       </View>
       <ThemedText style={{ fontSize: FontSize.xl, flex: 1 }} numberOfLines={2} ellipsizeMode="tail">{task.text}</ThemedText>
-    </GlassCard>
+    </MaterialCard>
   );
 }
 

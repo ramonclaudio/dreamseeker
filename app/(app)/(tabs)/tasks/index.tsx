@@ -13,7 +13,8 @@ import { router } from 'expo-router';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
-import { GlassCard } from '@/components/ui/glass-card';
+import { GlassControl } from '@/components/ui/glass-control';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { UpgradeBanner } from '@/components/upgrade-banner';
@@ -44,7 +45,7 @@ const TaskItem = memo(function TaskItem({
 }) {
 
   return (
-    <GlassCard style={taskItemStyle}>
+    <MaterialCard style={taskItemStyle}>
       <Pressable
         onPress={onToggle}
         style={taskContentStyle}
@@ -88,7 +89,7 @@ const TaskItem = memo(function TaskItem({
       >
         <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: '300' }} color={colors.destructive} accessibilityElementsHidden>×</ThemedText>
       </Pressable>
-    </GlassCard>
+    </MaterialCard>
   );
 });
 
@@ -176,30 +177,34 @@ export default function TasksScreen() {
 
       <UpgradeBanner />
 
-      <GlassCard style={{ flexDirection: 'row', marginBottom: Spacing.lg }}>
-        <TextInput
-          style={{ flex: 1, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md + 2, fontSize: FontSize.xl, color: colors.foreground }}
-          placeholder="Add a new task..."
-          placeholderTextColor={colors.mutedForeground}
-          value={newTaskText}
-          onChangeText={setNewTaskText}
-          onSubmitEditing={handleAddTask}
-          returnKeyType="done"
-          accessibilityLabel="New task input"
-          accessibilityHint="Enter a task description and tap Add or press return"
-        />
-        <Pressable
-          onPress={handleAddTask}
-          style={{ paddingHorizontal: Spacing.xl, minHeight: TouchTarget.min, justifyContent: 'center', borderRadius: Radius.md, borderCurve: 'continuous', margin: 4, backgroundColor: colors.primary }}
-          disabled={!newTaskText.trim()}
-          accessibilityRole="button"
-          accessibilityLabel="Add task"
-          accessibilityState={{ disabled: !newTaskText.trim() }}
-          accessibilityHint="Tap to add the new task"
-        >
-          <ThemedText style={{ fontWeight: '600', fontSize: FontSize.base }} color={colors.primaryForeground}>Add</ThemedText>
-        </Pressable>
-      </GlassCard>
+      <View style={{ flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg }}>
+        <MaterialCard style={{ flex: 1 }}>
+          <TextInput
+            style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md + 2, fontSize: FontSize.xl, color: colors.foreground }}
+            placeholder="Add a new task..."
+            placeholderTextColor={colors.mutedForeground}
+            value={newTaskText}
+            onChangeText={setNewTaskText}
+            onSubmitEditing={handleAddTask}
+            returnKeyType="done"
+            accessibilityLabel="New task input"
+            accessibilityHint="Enter a task description and tap Add or press return"
+          />
+        </MaterialCard>
+        <GlassControl isInteractive style={{ justifyContent: 'center', paddingHorizontal: Spacing.xl }}>
+          <Pressable
+            onPress={handleAddTask}
+            disabled={!newTaskText.trim()}
+            style={{ minHeight: TouchTarget.min, justifyContent: 'center', opacity: !newTaskText.trim() ? Opacity.disabled : 1 }}
+            accessibilityRole="button"
+            accessibilityLabel="Add task"
+            accessibilityState={{ disabled: !newTaskText.trim() }}
+            accessibilityHint="Tap to add the new task"
+          >
+            <ThemedText style={{ fontWeight: '600', fontSize: FontSize.base }}>Add</ThemedText>
+          </Pressable>
+        </GlassControl>
+      </View>
     </>
   );
 

@@ -8,6 +8,9 @@ const lightColors = {
   popoverForeground: '#171717',
   primary: '#262626',
   primaryForeground: '#fafafa',
+  // Accent blue for tinted Liquid Glass buttons (HIG: prominent button styling)
+  accentBlue: '#007AFF',
+  accentBlueForeground: '#ffffff',
   secondary: '#f5f5f5',
   secondaryForeground: '#262626',
   muted: '#f5f5f5',
@@ -48,6 +51,9 @@ const darkColors = {
   mutedForeground: '#a3a3a3',
   accent: '#404040',
   accentForeground: '#fafafa',
+  // Accent blue for tinted Liquid Glass buttons (HIG: prominent button styling)
+  accentBlue: '#0A84FF', // iOS system blue (dark mode variant)
+  accentBlueForeground: '#ffffff',
   destructive: '#f87171',
   destructiveForeground: '#fef2f2',
   destructiveBackground: 'rgba(248, 113, 113, 0.15)',

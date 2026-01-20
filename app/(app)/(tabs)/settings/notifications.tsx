@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Alert, Linking, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useAction } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
+import { GlassSwitch } from '@/components/ui/glass-switch';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
@@ -128,13 +129,13 @@ export default function NotificationsScreen() {
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Push Notifications</ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <SettingRow
             icon="bell.fill"
             label="Allow Notifications"
             description={isSimulator ? 'Requires physical device' : 'Receive alerts and updates'}
             colors={colors}>
-            <Switch
+            <GlassSwitch
               value={isEnabled}
               onValueChange={() => {
                 haptics.light();
@@ -145,17 +146,15 @@ export default function NotificationsScreen() {
                 }
               }}
               disabled={isLoading || isSimulator}
-              trackColor={{ false: colors.muted, true: colors.primary }}
-              thumbColor={process.env.EXPO_OS === 'android' ? colors.background : undefined}
             />
           </SettingRow>
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       {isEnabled && (
         <View style={sectionStyle}>
           <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Test</ThemedText>
-          <GlassCard style={cardStyle}>
+          <MaterialCard style={cardStyle}>
             <Pressable
               style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min }, { opacity: pressed || isSendingTest ? Opacity.pressed : 1 }]}
               onPress={handleTestNotification}
@@ -176,13 +175,13 @@ export default function NotificationsScreen() {
               </View>
               <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
             </Pressable>
-          </GlassCard>
+          </MaterialCard>
         </View>
       )}
 
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>About</ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg }}>
             <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
               Push notifications keep you informed about important updates, task reminders, and account activity.
@@ -190,7 +189,7 @@ export default function NotificationsScreen() {
               You can manage notification preferences in your device settings at any time.
             </ThemedText>
           </View>
-        </GlassCard>
+        </MaterialCard>
       </View>
     </ScrollView>
   );

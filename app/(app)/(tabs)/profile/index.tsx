@@ -13,7 +13,7 @@ import {
 import { Image } from 'expo-image';
 import { useQuery } from 'convex/react';
 
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
@@ -429,7 +429,7 @@ export default function ProfileScreen() {
 
             <View style={sectionStyle}>
               <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.md }} color={colors.mutedForeground}>Account Info</ThemedText>
-              <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
+              <MaterialCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <ProfileField
                   label="Name"
                   value={user.name || ''}
@@ -459,12 +459,12 @@ export default function ProfileScreen() {
                   }}
                   colors={colors}
                 />
-              </GlassCard>
+              </MaterialCard>
             </View>
 
             <View style={sectionStyle}>
               <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.md }} color={colors.mutedForeground}>Security</ThemedText>
-              <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
+              <MaterialCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <Pressable
                   style={({ pressed }) => [
                     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg, minHeight: TouchTarget.min, borderRadius: 12, borderCurve: 'continuous' },
@@ -483,7 +483,7 @@ export default function ProfileScreen() {
                   </View>
                   <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
                 </Pressable>
-              </GlassCard>
+              </MaterialCard>
             </View>
 
             <EditModal
