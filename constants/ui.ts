@@ -8,6 +8,19 @@ export const Opacity = {
   muted: 0.6,
 } as const;
 
+// Material blur intensities (HIG: use for content layer, NOT Liquid Glass)
+// Liquid Glass is reserved for controls/navigation only
+export const Material = {
+  ultraThin: 20, // Most translucent - full-screen views, light scheme
+  thin: 40, // More translucent - overlay views, light scheme
+  regular: 60, // Default - overlay views, balanced
+  thick: 80, // More opaque - overlay views, dark scheme
+  ultraThick: 95, // Mostly opaque - heavy blur
+  bar: 50, // System toolbars
+} as const;
+
+export type MaterialLevel = keyof typeof Material;
+
 // Box shadow patterns
 export const Shadow = {
   sm: '0 1px 2px',
