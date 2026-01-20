@@ -3,8 +3,8 @@ import { View, Pressable } from 'react-native';
 
 import { IconSymbol } from './ui/icon-symbol';
 import { ThemedText } from './ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { type TierKey, type FeatureKey, TIER_NAMES, meetsMinTier, hasFeature, getMinTierForFeature } from '@/convex/schema/tiers';
 
@@ -18,8 +18,7 @@ type TierGateProps = {
 
 export function TierGate({ children, minTier, feature, fallback, hideOnDeny = false }: TierGateProps) {
   const { tier, isLoading, showUpgrade } = useSubscription();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   const requiredTier = minTier ?? (feature ? getMinTierForFeature(feature) : 'free');
   const hasAccess = feature ? hasFeature(tier, feature) : meetsMinTier(tier, requiredTier);
@@ -54,8 +53,7 @@ export function UpgradePrompt({ feature, minTier, title, description }: {
   description?: string;
 }) {
   const { showUpgrade } = useSubscription();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const requiredTier = minTier ?? (feature ? getMinTierForFeature(feature) : 'starter');
 
   return (
