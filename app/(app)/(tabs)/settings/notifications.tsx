@@ -104,12 +104,12 @@ export default function NotificationsScreen() {
     try {
       const result = await sendTestNotification();
       if (result.success) {
-        Alert.alert('Success', 'Test notification sent! Check your device.');
+        Alert.alert('Notification Sent', 'Check your device for the test notification.');
       } else {
-        Alert.alert('Error', result.error ?? 'Failed to send test notification.');
+        Alert.alert('Notification Failed', result.error ?? 'Unable to send test notification. Please try again.');
       }
     } catch {
-      Alert.alert('Error', 'Failed to send test notification.');
+      Alert.alert('Notification Failed', 'Unable to send test notification. Please try again.');
     } finally {
       setIsSendingTest(false);
     }

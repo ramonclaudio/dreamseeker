@@ -34,7 +34,7 @@ export default function SubscribeScreen() {
     const result = await subscribe(priceId);
     if (result.error) {
       const message = result.error instanceof Error ? result.error.message : 'Failed to start checkout';
-      Alert.alert('Error', message);
+      Alert.alert('Checkout Failed', message);
     }
   };
 
