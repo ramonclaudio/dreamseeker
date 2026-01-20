@@ -194,8 +194,8 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
     haptics.medium();
     const result = await restore();
     if (result.error) {
-      const message = result.error instanceof Error ? result.error.message : 'Failed to restore subscription';
-      Alert.alert('Error', message);
+      const message = result.error instanceof Error ? result.error.message : 'Unable to restore subscription. Please try again.';
+      Alert.alert('Restore Failed', message);
     }
   };
 
@@ -328,11 +328,11 @@ export default function SettingsScreen() {
       await authClient.signOut();
     } catch (error) {
       setIsDeleting(false);
-      const message = error instanceof Error ? error.message : 'Failed to delete account';
+      const message = error instanceof Error ? error.message : 'Unable to delete account. Please try again.';
       if (process.env.EXPO_OS === 'web') {
         window.alert(message);
       } else {
-        Alert.alert('Error', message);
+        Alert.alert('Deletion Failed', message);
       }
     }
   };

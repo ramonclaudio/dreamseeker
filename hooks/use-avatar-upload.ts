@@ -52,7 +52,7 @@ export function useAvatarUpload(user: User | undefined | null) {
         try { await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> }); } catch {}
       }
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to upload image');
+      Alert.alert('Upload Failed', error instanceof Error ? error.message : 'Unable to upload image. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -68,7 +68,7 @@ export function useAvatarUpload(user: User | undefined | null) {
         try { await deleteFile({ storageId: oldImageStorageId as Id<'_storage'> }); } catch {}
       }
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to remove image');
+      Alert.alert('Removal Failed', error instanceof Error ? error.message : 'Unable to remove image. Please try again.');
     } finally {
       setIsUploading(false);
     }
