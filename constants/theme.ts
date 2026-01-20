@@ -140,7 +140,7 @@ export const Radius = {
   sm: 6,
   md: 8,
   DEFAULT: 10,
-  lg: 10,
+  lg: 12,
   xl: 14,
   '2xl': 18,
   '3xl': 22,

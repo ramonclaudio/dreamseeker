@@ -5,7 +5,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MaterialCard } from '@/components/ui/material-card';
 import { ThemedText } from '@/components/ui/themed-text';
 import { useColors } from '@/hooks/use-color-scheme';
-import { MaxWidth, Spacing, FontSize, IconSize } from '@/constants/layout';
+import { MaxWidth, Spacing, FontSize, IconSize, LineHeight } from '@/constants/layout';
 import { Size } from '@/constants/ui';
 
 const featureItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.md };
@@ -28,7 +28,7 @@ export default function EarlyAccessScreen() {
             <ThemedText style={{ fontSize: FontSize.sm, fontWeight: '600', textTransform: 'uppercase' }} color={colors.primary}>Pro Feature</ThemedText>
           </View>
           <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: 'bold' }}>Early Access Features</ThemedText>
-          <ThemedText style={{ fontSize: FontSize.xl, lineHeight: 24 }} color={colors.mutedForeground}>
+          <ThemedText style={{ fontSize: FontSize.xl, lineHeight: LineHeight.loose }} color={colors.mutedForeground}>
             As a Pro subscriber, you get early access to new features before they&apos;re released to everyone.
           </ThemedText>
         </MaterialCard>
