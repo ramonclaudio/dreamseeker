@@ -1,7 +1,6 @@
 import { useState, useCallback, memo } from 'react';
 import {
   View,
-  Text,
   TextInput,
   Pressable,
   FlatList,
@@ -15,6 +14,7 @@ import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -61,19 +61,18 @@ const TaskItem = memo(function TaskItem({
             },
           ]}>
           {task.isCompleted && (
-            <Text style={{ fontSize: 14, fontWeight: 'bold', color: colors.primaryForeground }} accessibilityElementsHidden>✓</Text>
+            <ThemedText style={{ fontSize: 14, fontWeight: 'bold' }} color={colors.primaryForeground} accessibilityElementsHidden>✓</ThemedText>
           )}
         </View>
-        <Text
+        <ThemedText
           style={{
             fontSize: 16,
             flex: 1,
-            color: colors.foreground,
             textDecorationLine: task.isCompleted ? 'line-through' : 'none',
             opacity: task.isCompleted ? 0.5 : 1,
           }}>
           {task.text}
-        </Text>
+        </ThemedText>
       </Pressable>
       <Pressable
         onPress={onDelete}
@@ -83,7 +82,7 @@ const TaskItem = memo(function TaskItem({
         accessibilityHint="Double tap to delete this task"
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <Text style={{ fontSize: 24, fontWeight: '300', color: colors.destructive }} accessibilityElementsHidden>×</Text>
+        <ThemedText style={{ fontSize: 24, fontWeight: '300' }} color={colors.destructive} accessibilityElementsHidden>×</ThemedText>
       </Pressable>
     </GlassCard>
   );
@@ -153,9 +152,9 @@ export default function TasksScreen() {
   const ListHeader = (
     <>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16 }}>
-        <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
+        <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-        </Text>
+        </ThemedText>
         {canAccess('starter') && (
           <Pressable
             onPress={() => {
@@ -195,7 +194,7 @@ export default function TasksScreen() {
           accessibilityState={{ disabled: !newTaskText.trim() }}
           accessibilityHint="Tap to add the new task"
         >
-          <Text style={{ fontWeight: '600', fontSize: 14, color: colors.primaryForeground }}>Add</Text>
+          <ThemedText style={{ fontWeight: '600', fontSize: 14 }} color={colors.primaryForeground}>Add</ThemedText>
         </Pressable>
       </GlassCard>
     </>
@@ -203,9 +202,9 @@ export default function TasksScreen() {
 
   const ListEmpty = (
     <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-      <Text style={{ fontSize: 16, color: colors.mutedForeground }}>
+      <ThemedText style={{ fontSize: 16 }} color={colors.mutedForeground}>
         No tasks yet. Add one above!
-      </Text>
+      </ThemedText>
     </View>
   );
 

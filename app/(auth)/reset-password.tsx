@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   Pressable,
   KeyboardAvoidingView,
@@ -12,13 +11,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
+import { ThemedText } from '@/components/ui/themed-text';
 
 export default function ResetPasswordScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const { token } = useLocalSearchParams<{ token: string }>();
 
   const [password, setPassword] = useState('');
@@ -86,14 +85,16 @@ export default function ResetPasswordScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.successContent}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Password reset!</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.title}>Password reset!</ThemedText>
+          <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Your password has been successfully reset. You can now sign in with your new password.
-          </Text>
+          </ThemedText>
           <Pressable
             style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={() => router.replace('/sign-in')}>
-            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>Sign In</Text>
+            onPress={() => router.replace('/sign-in')}
+            accessibilityRole="button"
+            accessibilityLabel="Sign in">
+            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>Sign In</ThemedText>
           </Pressable>
         </View>
       </View>
@@ -109,21 +110,21 @@ export default function ResetPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Reset password</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.title}>Reset password</ThemedText>
+          <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Enter your new password below
-          </Text>
+          </ThemedText>
         </View>
 
         {error && (
           <View style={getErrorStyles(colorScheme).container}>
-            <Text style={getErrorStyles(colorScheme).text}>{error}</Text>
+            <ThemedText style={getErrorStyles(colorScheme).text}>{error}</ThemedText>
           </View>
         )}
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.foreground }]}>New Password</Text>
+            <ThemedText style={styles.label}>New Password</ThemedText>
             <TextInput
               style={[
                 styles.input,
@@ -142,11 +143,13 @@ export default function ResetPasswordScreen() {
               }}
               secureTextEntry
               autoComplete="password-new"
+              accessibilityLabel="New password"
+              accessibilityHint="Create a new password with at least 8 characters"
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Confirm Password</Text>
+            <ThemedText style={styles.label}>Confirm Password</ThemedText>
             <TextInput
               style={[
                 styles.input,
@@ -165,6 +168,8 @@ export default function ResetPasswordScreen() {
               }}
               secureTextEntry
               autoComplete="password-new"
+              accessibilityLabel="Confirm password"
+              accessibilityHint="Re-enter your new password to confirm"
             />
           </View>
 
@@ -177,10 +182,13 @@ export default function ResetPasswordScreen() {
               },
             ]}
             onPress={handleResetPassword}
-            disabled={isLoading}>
-            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
+            disabled={isLoading}
+            accessibilityRole="button"
+            accessibilityLabel={isLoading ? 'Resetting password' : 'Reset password'}
+            accessibilityState={{ disabled: isLoading }}>
+            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
               {isLoading ? 'Resetting...' : 'Reset Password'}
-            </Text>
+            </ThemedText>
           </Pressable>
         </View>
       </ScrollView>

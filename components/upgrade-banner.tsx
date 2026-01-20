@@ -1,6 +1,7 @@
-import { Pressable, View, Text } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
 import { NEXT_TIER, TIERS } from '@/constants/subscriptions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -35,14 +36,14 @@ export function UpgradeBanner() {
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <IconSymbol name="star.fill" size={16} color={colors.primary} />
-        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primary }}>
+        <ThemedText style={{ fontSize: 14, fontWeight: '500' }} color={colors.primary}>
           {message}
-        </Text>
+        </ThemedText>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>
+        <ThemedText style={{ fontSize: 14, fontWeight: '600' }} color={colors.primary}>
           Upgrade to {nextTierName}
-        </Text>
+        </ThemedText>
         <IconSymbol name="chevron.right" size={14} color={colors.primary} />
       </View>
     </Pressable>

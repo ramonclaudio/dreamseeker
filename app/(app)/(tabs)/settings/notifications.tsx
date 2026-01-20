@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Alert, Linking, Pressable, ScrollView, Switch, View, Text } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, Switch, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useAction } from 'convex/react';
@@ -7,6 +7,7 @@ import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -31,9 +32,9 @@ function SettingRow({ icon, label, description, children, colors }: {
       <View style={settingRowLeftStyle}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
         <View style={settingRowTextStyle}>
-          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
           {description && (
-            <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
+            <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>{description}</ThemedText>
           )}
         </View>
       </View>
@@ -125,7 +126,7 @@ export default function NotificationsScreen() {
       contentContainerStyle={{ paddingBottom: 40 }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Push Notifications</Text>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Push Notifications</ThemedText>
         <GlassCard style={cardStyle}>
           <SettingRow
             icon="bell.fill"
@@ -152,7 +153,7 @@ export default function NotificationsScreen() {
 
       {isEnabled && (
         <View style={sectionStyle}>
-          <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Test</Text>
+          <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Test</ThemedText>
           <GlassCard style={cardStyle}>
             <Pressable
               style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }, { opacity: pressed || isSendingTest ? 0.7 : 1 }]}
@@ -161,12 +162,12 @@ export default function NotificationsScreen() {
               <View style={settingRowLeftStyle}>
                 <IconSymbol name="paperplane.fill" size={22} color={colors.primary} />
                 <View style={settingRowTextStyle}>
-                  <Text style={{ fontSize: 16, color: colors.text }}>
+                  <ThemedText style={{ fontSize: 16 }}>
                     {isSendingTest ? 'Sending...' : 'Send Test Notification'}
-                  </Text>
-                  <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
+                  </ThemedText>
+                  <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
                     Verify notifications are working
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
               <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
@@ -176,14 +177,14 @@ export default function NotificationsScreen() {
       )}
 
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>About</Text>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>About</ThemedText>
         <GlassCard style={cardStyle}>
           <View style={{ padding: 16 }}>
-            <Text style={{ fontSize: 14, lineHeight: 20, color: colors.mutedForeground }}>
+            <ThemedText style={{ fontSize: 14, lineHeight: 20 }} color={colors.mutedForeground}>
               Push notifications keep you informed about important updates, task reminders, and account activity.
               {'\n\n'}
               You can manage notification preferences in your device settings at any time.
-            </Text>
+            </ThemedText>
           </View>
         </GlassCard>
       </View>

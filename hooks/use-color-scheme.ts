@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Appearance, useColorScheme as useRNColorScheme, Platform } from 'react-native';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Appearance, useColorScheme as useRNColorScheme, Platform, AccessibilityInfo } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { Colors, type ColorPalette } from '@/constants/theme';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -58,4 +59,27 @@ export function useThemeMode(): { mode: ThemeMode; setMode: (mode: ThemeMode) =>
   }, []);
 
   return { mode, setMode };
+}
+
+// Returns colors with high contrast support
+export function useColors(): ColorPalette {
+  const colorScheme = useColorScheme();
+  const [highContrast, setHighContrast] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    // Check initial state - boldText is a proxy for "Increase Contrast" on iOS
+    AccessibilityInfo.isBoldTextEnabled().then(setHighContrast);
+
+    const subscription = AccessibilityInfo.addEventListener('boldTextChanged', setHighContrast);
+    return () => subscription.remove();
+  }, []);
+
+  return useMemo(() => {
+    if (highContrast) {
+      return colorScheme === 'dark' ? Colors.darkHighContrast : Colors.lightHighContrast;
+    }
+    return Colors[colorScheme];
+  }, [colorScheme, highContrast]);
 }

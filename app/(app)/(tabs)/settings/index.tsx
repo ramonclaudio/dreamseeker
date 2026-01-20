@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, View, Text, Platform } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, View, Platform } from 'react-native';
 import { Link } from 'expo-router';
 import { useMutation } from 'convex/react';
 import * as Clipboard from 'expo-clipboard';
@@ -7,8 +7,9 @@ import * as Clipboard from 'expo-clipboard';
 import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
+import { useColorScheme, useColors, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
@@ -35,16 +36,18 @@ function SettingsItem({ icon, label, onPress, destructive, showChevron = true, c
   return (
     <Pressable
       style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}
-      onPress={onPress}>
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}>
       <View style={settingsItemLeftStyle}>
         <IconSymbol
           name={icon}
           size={22}
           color={destructive ? colors.destructive : colors.mutedForeground}
         />
-        <Text style={{ fontSize: 16, color: destructive ? colors.destructive : colors.text }}>
+        <ThemedText style={{ fontSize: 16 }} color={destructive ? colors.destructive : colors.text}>
           {label}
-        </Text>
+        </ThemedText>
       </View>
       {showChevron && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
     </Pressable>
@@ -62,20 +65,19 @@ function SettingsLinkItem({ href, icon, label, colors }: {
     haptics.light();
   };
 
-  const SettingsRow = (
-    <Pressable style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}>
-      <View style={settingsItemLeftStyle}>
-        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
-      </View>
-      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
-    </Pressable>
-  );
-
   if (Platform.OS !== 'ios') {
     return (
       <Link href={href} asChild>
-        {SettingsRow}
+        <Pressable
+          style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}
+          accessibilityRole="link"
+          accessibilityLabel={label}>
+          <View style={settingsItemLeftStyle}>
+            <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
+            <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+          </View>
+          <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+        </Pressable>
       </Link>
     );
   }
@@ -85,7 +87,7 @@ function SettingsLinkItem({ href, icon, label, colors }: {
       <Link.Trigger>
         <View style={settingsItemLeftStyle}>
           <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
+          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
         </View>
       </Link.Trigger>
       <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
@@ -104,7 +106,7 @@ function SettingsLinkItem({ href, icon, label, colors }: {
 function SettingsSection({ title, children, colors }: { title?: string; children: React.ReactNode; colors: (typeof Colors)['light'] }) {
   return (
     <View style={sectionStyle}>
-      {title && <Text style={[sectionTitleStyle, { color: colors.text }]}>{title}</Text>}
+      {title && <ThemedText style={sectionTitleStyle}>{title}</ThemedText>}
       <GlassCard style={sectionContentStyle}>
         {children}
       </GlassCard>
@@ -129,7 +131,7 @@ function ThemePicker({ mode, onModeChange, colors }: {
     <View style={{ padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <Text style={{ fontSize: 16, color: colors.text }}>Theme</Text>
+        <ThemedText style={{ fontSize: 16 }}>Theme</ThemedText>
       </View>
       <View style={{ flexDirection: 'row', borderRadius: Radius.md, borderCurve: 'continuous', padding: 3, backgroundColor: colors.muted }}>
         {THEME_OPTIONS.map((option) => {
@@ -144,10 +146,13 @@ function ThemePicker({ mode, onModeChange, colors }: {
               onPress={() => {
                 haptics.light();
                 onModeChange(option.value);
-              }}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: isSelected ? colors.foreground : colors.mutedForeground }}>
+              }}
+              accessibilityRole="radio"
+              accessibilityLabel={`${option.label} theme`}
+              accessibilityState={{ selected: isSelected }}>
+              <ThemedText style={{ fontSize: 14, fontWeight: '500' }} color={isSelected ? colors.foreground : colors.mutedForeground}>
                 {option.label}
-              </Text>
+              </ThemedText>
             </Pressable>
           );
         })}
@@ -213,51 +218,59 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
         <View style={subscriptionHeaderStyle}>
           <View style={subscriptionInfoStyle}>
             <IconSymbol name="star.fill" size={22} color={colors.primary} />
-            <Text style={{ fontSize: 16, color: colors.text }}>
+            <ThemedText style={{ fontSize: 16 }}>
               {isTrialing ? `${tierName} (Trial)` : `${tierName} Plan`}
-            </Text>
+            </ThemedText>
           </View>
           <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary + '20' }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>Active</Text>
+            <ThemedText style={{ fontSize: 12, fontWeight: '600' }} color={colors.primary}>Active</ThemedText>
           </View>
         </View>
 
         {isCanceled ? (
           <>
-            <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
+            <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
               Cancels on {periodEnd}
-            </Text>
+            </ThemedText>
             <Pressable
               style={[subscriptionButtonStyle, { backgroundColor: colors.primary }]}
               onPress={handleRestore}
-              disabled={loading}>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primaryForeground }}>
+              disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel={loading ? 'Restoring subscription' : 'Restore subscription'}
+              accessibilityState={{ disabled: loading }}>
+              <ThemedText style={{ fontSize: 16, fontWeight: '600' }} color={colors.primaryForeground}>
                 {loading ? 'Restoring...' : 'Restore Subscription'}
-              </Text>
+              </ThemedText>
             </Pressable>
           </>
         ) : (
           <>
-            <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
+            <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
               {isTrialing ? `Trial ends ${periodEnd}` : `Renews ${periodEnd}`}
-            </Text>
+            </ThemedText>
             <View style={buttonRowStyle}>
               {!isPro && (
                 <Pressable
                   style={[subscriptionButtonStyle, { flex: 1, backgroundColor: colors.primary }]}
-                  onPress={handleUpgrade}>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primaryForeground }}>
+                  onPress={handleUpgrade}
+                  accessibilityRole="button"
+                  accessibilityLabel="Upgrade subscription">
+                  <ThemedText style={{ fontSize: 16, fontWeight: '600' }} color={colors.primaryForeground}>
                     Upgrade
-                  </Text>
+                  </ThemedText>
                 </Pressable>
               )}
               <Pressable
                 style={[subscriptionButtonStyle, { flex: 1, borderColor: colors.border, borderWidth: 1 }]}
                 onPress={handleManage}
-                disabled={loading}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: colors.foreground }}>
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={loading ? 'Loading billing' : 'Manage subscription'}
+                accessibilityState={{ disabled: loading }}>
+                <ThemedText style={{ fontSize: 16, fontWeight: '600' }}>
                   {loading ? 'Loading...' : 'Manage'}
-                </Text>
+                </ThemedText>
               </Pressable>
             </View>
           </>
@@ -275,27 +288,28 @@ function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light
       <View style={subscriptionHeaderStyle}>
         <View style={subscriptionInfoStyle}>
           <IconSymbol name="gift" size={22} color={colors.mutedForeground} />
-          <Text style={{ fontSize: 16, color: colors.text }}>{tierName} Plan</Text>
+          <ThemedText style={{ fontSize: 16 }}>{tierName} Plan</ThemedText>
         </View>
       </View>
-      <Text style={{ fontSize: 14, color: colors.mutedForeground }}>
+      <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
         {usageText} · Upgrade for more features
-      </Text>
+      </ThemedText>
 
       <Pressable
         style={[subscriptionButtonStyle, { backgroundColor: colors.primary }]}
-        onPress={handleUpgrade}>
-        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primaryForeground }}>
+        onPress={handleUpgrade}
+        accessibilityRole="button"
+        accessibilityLabel="Upgrade to Pro">
+        <ThemedText style={{ fontSize: 16, fontWeight: '600' }} color={colors.primaryForeground}>
           Upgrade
-        </Text>
+        </ThemedText>
       </Pressable>
     </View>
   );
 }
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const { mode, setMode } = useThemeMode();
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteAccount = useMutation(api.users.deleteAccount);
@@ -402,9 +416,9 @@ export default function SettingsScreen() {
         {isDeleting ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 12 }}>
             <ActivityIndicator color={colors.destructive} />
-            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.destructive }}>
+            <ThemedText style={{ fontSize: 16, fontWeight: '500' }} color={colors.destructive}>
               Deleting account...
-            </Text>
+            </ThemedText>
           </View>
         ) : (
           <SettingsItem

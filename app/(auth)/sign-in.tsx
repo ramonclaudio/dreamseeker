@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   Pressable,
   KeyboardAvoidingView,
@@ -11,14 +10,14 @@ import { Link } from 'expo-router';
 
 import { authClient, signInWithUsername } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
 import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
+import { ThemedText } from '@/components/ui/themed-text';
 
 export default function SignInScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -66,21 +65,21 @@ export default function SignInScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.title}>Welcome back</ThemedText>
+          <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Sign in to your account
-          </Text>
+          </ThemedText>
         </View>
 
         {error && (
           <View style={getErrorStyles(colorScheme).container}>
-            <Text style={getErrorStyles(colorScheme).text}>{error}</Text>
+            <ThemedText style={getErrorStyles(colorScheme).text}>{error}</ThemedText>
           </View>
         )}
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Email or Username</Text>
+            <ThemedText style={styles.label}>Email or Username</ThemedText>
             <TextInput
               style={[
                 styles.input,
@@ -100,17 +99,17 @@ export default function SignInScreen() {
               autoCapitalize="none"
               autoComplete="username"
               autoCorrect={false}
+              accessibilityLabel="Email or username"
+              accessibilityHint="Enter your email address or username"
             />
           </View>
 
           <View style={styles.inputContainer}>
             <View style={styles.passwordHeader}>
-              <Text style={[styles.label, { color: colors.foreground }]}>Password</Text>
+              <ThemedText style={styles.label}>Password</ThemedText>
               <Link href="/forgot-password" asChild>
                 <Pressable>
-                  <Text style={[styles.forgotText, { color: colors.foreground }]}>
-                    Forgot password?
-                  </Text>
+                  <ThemedText style={styles.forgotText}>Forgot password?</ThemedText>
                 </Pressable>
               </Link>
             </View>
@@ -132,6 +131,8 @@ export default function SignInScreen() {
               }}
               secureTextEntry
               autoComplete="password"
+              accessibilityLabel="Password"
+              accessibilityHint="Enter your password"
             />
           </View>
 
@@ -144,15 +145,18 @@ export default function SignInScreen() {
               },
             ]}
             onPress={handleSignIn}
-            disabled={isLoading}>
-            <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
+            disabled={isLoading}
+            accessibilityRole="button"
+            accessibilityLabel={isLoading ? 'Signing in' : 'Sign in'}
+            accessibilityState={{ disabled: isLoading }}>
+            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
               {isLoading ? 'Signing in...' : 'Sign In'}
-            </Text>
+            </ThemedText>
           </Pressable>
 
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or</Text>
+            <ThemedText style={styles.dividerText} color={colors.mutedForeground}>or</ThemedText>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
@@ -160,12 +164,12 @@ export default function SignInScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
+          <ThemedText style={styles.footerText} color={colors.mutedForeground}>
             Don&apos;t have an account?{' '}
-          </Text>
+          </ThemedText>
           <Link href="/sign-up" asChild>
-            <Pressable>
-              <Text style={[styles.linkText, { color: colors.foreground }]}>Sign Up</Text>
+            <Pressable accessibilityRole="link" accessibilityLabel="Sign up" accessibilityHint="Go to create account screen">
+              <ThemedText style={styles.linkText}>Sign Up</ThemedText>
             </Pressable>
           </Link>
         </View>
