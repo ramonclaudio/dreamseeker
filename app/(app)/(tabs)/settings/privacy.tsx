@@ -1,6 +1,6 @@
 import { Linking, Pressable, ScrollView, View } from 'react-native';
 
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
@@ -67,7 +67,7 @@ export default function PrivacyScreen() {
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Device Permissions</ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <PrivacyItem
             icon="camera.fill"
             label="Camera & Photos"
@@ -83,12 +83,12 @@ export default function PrivacyScreen() {
             onPress={handleOpenSettings}
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Data Collection</ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <PrivacyItem
             icon="person.fill"
             label="Account Data"
@@ -109,12 +109,12 @@ export default function PrivacyScreen() {
             description="Handled securely by Stripe"
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Your Rights</ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg }}>
             <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
               You can request a copy of your data or delete your account at any time from Settings → Delete Account.
@@ -122,7 +122,7 @@ export default function PrivacyScreen() {
               We do not sell your personal information to third parties.
             </ThemedText>
           </View>
-        </GlassCard>
+        </MaterialCard>
       </View>
     </ScrollView>
   );
