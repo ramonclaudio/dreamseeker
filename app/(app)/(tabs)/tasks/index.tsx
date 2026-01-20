@@ -87,7 +87,7 @@ const TaskItem = memo(function TaskItem({
         accessibilityHint="Double tap to delete this task"
         hitSlop={{ top: HitSlop.md, bottom: HitSlop.md, left: HitSlop.md, right: HitSlop.md }}
       >
-        <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: '300' }} color={colors.destructive} accessibilityElementsHidden>×</ThemedText>
+        <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: '400' }} color={colors.destructive} accessibilityElementsHidden>×</ThemedText>
       </Pressable>
     </MaterialCard>
   );

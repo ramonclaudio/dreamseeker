@@ -119,7 +119,7 @@ export default function PrivacyScreen() {
             <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
               You can request a copy of your data or delete your account at any time from Settings → Delete Account.
               {'\n\n'}
-              We do not sell your personal information to third parties.
+              Your personal information is never sold to third parties.
             </ThemedText>
           </View>
         </MaterialCard>
