@@ -1,6 +1,17 @@
 import Animated from 'react-native-reanimated';
 
+import { ThemedText } from '@/components/ui/themed-text';
+import { useReduceMotion } from '@/hooks/use-accessibility-settings';
+
 export function HelloWave() {
+  const reduceMotion = useReduceMotion();
+
+  if (reduceMotion) {
+    return (
+      <ThemedText style={{ fontSize: 28, lineHeight: 32, marginTop: -6 }}>👋</ThemedText>
+    );
+  }
+
   return (
     <Animated.Text
       style={{

@@ -1,7 +1,22 @@
-import { View, type ViewProps } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, type ViewProps, Platform, AccessibilityInfo } from 'react-native';
 
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+function useReduceTransparency(): boolean {
+  const [reduceTransparency, setReduceTransparency] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    AccessibilityInfo.isReduceTransparencyEnabled().then(setReduceTransparency);
+    const subscription = AccessibilityInfo.addEventListener('reduceTransparencyChanged', setReduceTransparency);
+    return () => subscription.remove();
+  }, []);
+
+  return reduceTransparency;
+}
 
 let _glassModule: typeof import('expo-glass-effect') | null = null;
 function getGlassModule() {
@@ -25,10 +40,12 @@ type GlassCardProps = ViewProps & { glassStyle?: 'regular' | 'clear'; isInteract
 export function GlassCard({ children, style, glassStyle = 'regular', isInteractive, ...props }: GlassCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
+  const reduceTransparency = useReduceTransparency();
   const cardStyle = [baseCardStyle, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }, style];
 
+  // Fall back to solid View when Reduce Transparency is enabled (HIG accessibility)
   const glass = getGlassModule();
-  if (glass && canUseGlass()) {
+  if (glass && canUseGlass() && !reduceTransparency) {
     const { GlassView } = glass;
     return <GlassView style={cardStyle} glassEffectStyle={glassStyle} isInteractive={isInteractive} {...props}>{children}</GlassView>;
   }
@@ -41,10 +58,12 @@ type GlassContainerProps = ViewProps & { spacing?: number };
 export function GlassCardContainer({ children, style, spacing = 10, ...props }: GlassContainerProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
+  const reduceTransparency = useReduceTransparency();
   const cardStyle = [baseCardStyle, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }, style];
 
+  // Fall back to solid View when Reduce Transparency is enabled (HIG accessibility)
   const glass = getGlassModule();
-  if (glass && canUseGlass()) {
+  if (glass && canUseGlass() && !reduceTransparency) {
     const { GlassContainer } = glass;
     return <GlassContainer spacing={spacing} style={cardStyle} {...props}>{children}</GlassContainer>;
   }

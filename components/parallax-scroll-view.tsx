@@ -1,8 +1,9 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollOffset } from 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useReduceMotion } from '@/hooks/use-accessibility-settings';
 import { Colors } from '@/constants/theme';
 
 const H = 250;
@@ -11,17 +12,39 @@ type Props = PropsWithChildren<{ headerImage: ReactElement; headerBackgroundColo
 export default function ParallaxScrollView({ children, headerImage, headerBackgroundColor }: Props) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
+  const reduceMotion = useReduceMotion();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollOffset(scrollRef);
 
-  const headerStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: interpolate(scrollOffset.value, [-H, 0, H], [-H / 2, 0, H * 0.75]) },
-      { scale: interpolate(scrollOffset.value, [-H, 0, H], [2, 1, 1]) },
-    ],
-  }));
+  const headerStyle = useAnimatedStyle(() => {
+    if (reduceMotion) {
+      return {};
+    }
+    return {
+      transform: [
+        { translateY: interpolate(scrollOffset.value, [-H, 0, H], [-H / 2, 0, H * 0.75]) },
+        { scale: interpolate(scrollOffset.value, [-H, 0, H], [2, 1, 1]) },
+      ],
+    };
+  });
 
-  const blurStyle = useAnimatedStyle(() => ({ opacity: interpolate(scrollOffset.value, [0, H * 0.5, H], [0, 0.5, 1]) }));
+  const blurStyle = useAnimatedStyle(() => {
+    if (reduceMotion) {
+      return { opacity: 0 };
+    }
+    return { opacity: interpolate(scrollOffset.value, [0, H * 0.5, H], [0, 0.5, 1]) };
+  });
+
+  if (reduceMotion) {
+    return (
+      <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentInsetAdjustmentBehavior="automatic">
+        <View style={[{ height: H, overflow: 'hidden' }, { backgroundColor: headerBackgroundColor[colorScheme] }]}>
+          {headerImage}
+        </View>
+        <View style={{ flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 40, gap: 16, overflow: 'hidden', backgroundColor: colors.background }}>{children}</View>
+      </ScrollView>
+    );
+  }
 
   return (
     <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16} contentInsetAdjustmentBehavior="automatic">
