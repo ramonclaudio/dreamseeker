@@ -1,11 +1,12 @@
 import { Image } from 'expo-image';
-import { Platform, View, Text } from 'react-native';
+import { Platform, View } from 'react-native';
 
 import { Collapsible } from '@/components/ui/collapsible';
 import { ExternalLink } from '@/components/external-link';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts, Colors, Typography } from '@/constants/theme';
+import { ThemedText } from '@/components/ui/themed-text';
+import { Fonts, Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabTwoScreen() {
@@ -24,71 +25,71 @@ export default function TabTwoScreen() {
         />
       }>
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Text style={[Typography.title, { color: colors.text, fontFamily: Fonts.rounded }]}>
+        <ThemedText variant="title" style={{ fontFamily: Fonts.rounded }}>
           Explore
-        </Text>
+        </ThemedText>
       </View>
-      <Text style={[Typography.default, { color: colors.text }]}>This app includes example code to help you get started.</Text>
+      <ThemedText>This app includes example code to help you get started.</ThemedText>
       <Collapsible title="File-based routing">
-        <Text style={[Typography.default, { color: colors.text }]}>
+        <ThemedText>
           This app has two screens:{' '}
-          <Text style={Typography.defaultSemiBold}>app/(tabs)/index.tsx</Text> and{' '}
-          <Text style={Typography.defaultSemiBold}>app/(tabs)/explore.tsx</Text>
-        </Text>
-        <Text style={[Typography.default, { color: colors.text }]}>
-          The layout file in <Text style={Typography.defaultSemiBold}>app/(tabs)/_layout.tsx</Text>{' '}
+          <ThemedText variant="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
+          <ThemedText variant="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+        </ThemedText>
+        <ThemedText>
+          The layout file in <ThemedText variant="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
           sets up the tab navigator.
-        </Text>
+        </ThemedText>
         <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <Text style={[Typography.link, { color: colors.mutedForeground }]}>Learn more</Text>
+          <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Android, iOS, and web support">
-        <Text style={[Typography.default, { color: colors.text }]}>
+        <ThemedText>
           You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <Text style={Typography.defaultSemiBold}>w</Text> in the terminal running this project.
-        </Text>
+          <ThemedText variant="defaultSemiBold">w</ThemedText> in the terminal running this project.
+        </ThemedText>
       </Collapsible>
       <Collapsible title="Images">
-        <Text style={[Typography.default, { color: colors.text }]}>
-          For static images, you can use the <Text style={Typography.defaultSemiBold}>@2x</Text> and{' '}
-          <Text style={Typography.defaultSemiBold}>@3x</Text> suffixes to provide files for
+        <ThemedText>
+          For static images, you can use the <ThemedText variant="defaultSemiBold">@2x</ThemedText> and{' '}
+          <ThemedText variant="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
           different screen densities
-        </Text>
+        </ThemedText>
         <Image
           source={require('@/assets/images/react-logo.png')}
           style={{ width: 100, height: 100, alignSelf: 'center' }}
         />
         <ExternalLink href="https://reactnative.dev/docs/images">
-          <Text style={[Typography.link, { color: colors.mutedForeground }]}>Learn more</Text>
+          <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Light and dark mode components">
-        <Text style={[Typography.default, { color: colors.text }]}>
+        <ThemedText>
           This template has light and dark mode support. The{' '}
-          <Text style={Typography.defaultSemiBold}>useColorScheme()</Text> hook lets you inspect
+          <ThemedText variant="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
           what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </Text>
+        </ThemedText>
         <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <Text style={[Typography.link, { color: colors.mutedForeground }]}>Learn more</Text>
+          <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Animations">
-        <Text style={[Typography.default, { color: colors.text }]}>
+        <ThemedText>
           This template includes an example of an animated component. The{' '}
-          <Text style={Typography.defaultSemiBold}>components/HelloWave.tsx</Text> component uses
+          <ThemedText variant="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
           the powerful{' '}
-          <Text style={[Typography.defaultSemiBold, { fontFamily: Fonts.mono }]}>
+          <ThemedText variant="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
             react-native-reanimated
-          </Text>{' '}
+          </ThemedText>{' '}
           library to create a waving hand animation.
-        </Text>
+        </ThemedText>
         {Platform.select({
           ios: (
-            <Text style={[Typography.default, { color: colors.text }]}>
-              The <Text style={Typography.defaultSemiBold}>components/ParallaxScrollView.tsx</Text>{' '}
+            <ThemedText>
+              The <ThemedText variant="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
               component provides a parallax effect for the header image.
-            </Text>
+            </ThemedText>
           ),
         })}
       </Collapsible>

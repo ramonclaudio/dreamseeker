@@ -1,7 +1,8 @@
-import { Linking, Pressable, ScrollView, View, Text } from 'react-native';
+import { Linking, Pressable, ScrollView, View } from 'react-native';
 
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -23,8 +24,8 @@ function PrivacyItem({ icon, label, description, onPress, colors }: {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
-          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
+          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+          <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>{description}</ThemedText>
         </View>
       </View>
       {onPress && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
@@ -61,7 +62,7 @@ export default function PrivacyScreen() {
       contentContainerStyle={{ paddingBottom: 40 }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Device Permissions</Text>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Device Permissions</ThemedText>
         <GlassCard style={cardStyle}>
           <PrivacyItem
             icon="camera.fill"
@@ -82,7 +83,7 @@ export default function PrivacyScreen() {
       </View>
 
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Data Collection</Text>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Data Collection</ThemedText>
         <GlassCard style={cardStyle}>
           <PrivacyItem
             icon="person.fill"
@@ -108,14 +109,14 @@ export default function PrivacyScreen() {
       </View>
 
       <View style={sectionStyle}>
-        <Text style={[sectionTitleStyle, { color: colors.mutedForeground }]}>Your Rights</Text>
+        <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Your Rights</ThemedText>
         <GlassCard style={cardStyle}>
           <View style={{ padding: 16 }}>
-            <Text style={{ fontSize: 14, lineHeight: 20, color: colors.mutedForeground }}>
+            <ThemedText style={{ fontSize: 14, lineHeight: 20 }} color={colors.mutedForeground}>
               You can request a copy of your data or delete your account at any time from Settings → Delete Account.
               {'\n\n'}
               We do not sell your personal information to third parties.
-            </Text>
+            </ThemedText>
           </View>
         </GlassCard>
       </View>

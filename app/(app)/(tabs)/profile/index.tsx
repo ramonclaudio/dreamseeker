@@ -8,15 +8,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Text,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from 'convex/react';
 
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Radius, Typography } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ThemedText } from '@/components/ui/themed-text';
+import { Colors, Radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useAvatarUpload } from '@/hooks/use-avatar-upload';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
@@ -42,10 +42,14 @@ function ProfileField({ label, value, onPress, colors }: {
         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
         { opacity: pressed ? 0.7 : 1 },
       ]}
-      onPress={onPress}>
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Edit ${label}`}
+      accessibilityValue={{ text: value || 'Not set' }}
+      accessibilityHint={`Double tap to edit your ${label.toLowerCase()}`}>
       <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ fontSize: 12, fontWeight: '500', textTransform: 'uppercase', color: colors.mutedForeground }}>{label}</Text>
-        <Text selectable style={{ fontSize: 16, color: colors.text }}>{value || 'Not set'}</Text>
+        <ThemedText style={{ fontSize: 12, fontWeight: '500', textTransform: 'uppercase' }} color={colors.mutedForeground}>{label}</ThemedText>
+        <ThemedText selectable style={{ fontSize: 16 }}>{value || 'Not set'}</ThemedText>
       </View>
       <IconSymbol name="pencil" size={18} color={colors.mutedForeground} />
     </Pressable>
@@ -98,26 +102,26 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={[modalHeaderBaseStyle, { paddingTop: 16 }]}>
-          <Pressable onPress={handleClose} hitSlop={8}>
-            <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
+          <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">
+            <ThemedText color={colors.mutedForeground}>Cancel</ThemedText>
           </Pressable>
-          <Text style={[Typography.subtitle, { color: colors.text }]}>{title}</Text>
-          <Pressable onPress={handleSave} hitSlop={8} disabled={isLoading}>
-            <Text style={{ color: colors.foreground, fontWeight: '600', opacity: isLoading ? 0.5 : 1 }}>
+          <ThemedText variant="subtitle" accessibilityRole="header">{title}</ThemedText>
+          <Pressable onPress={handleSave} hitSlop={8} disabled={isLoading} accessibilityRole="button" accessibilityLabel={isLoading ? 'Saving' : 'Save'} accessibilityState={{ disabled: isLoading }}>
+            <ThemedText style={{ fontWeight: '600', opacity: isLoading ? 0.5 : 1 }}>
               {isLoading ? 'Saving...' : 'Save'}
-            </Text>
+            </ThemedText>
           </Pressable>
         </View>
 
         <View style={{ flex: 1, padding: 20, gap: 20 }}>
           {error && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
-              <Text style={{ fontSize: 14, textAlign: 'center', color: colors.destructive }}>{error}</Text>
+              <ThemedText style={{ fontSize: 14, textAlign: 'center' }} color={colors.destructive}>{error}</ThemedText>
             </View>
           )}
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>{label}</Text>
+            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>{label}</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder={placeholder}
@@ -130,6 +134,8 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
               keyboardType={keyboardType}
               autoCapitalize={autoCapitalize}
               autoFocus
+              accessibilityLabel={label}
+              accessibilityHint={`Enter your ${label.toLowerCase()}`}
             />
           </View>
         </View>
@@ -204,7 +210,6 @@ function ChangePasswordModal({
         }
       } else {
         setSuccess(true);
-        setTimeout(handleClose, 2000);
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');
@@ -219,28 +224,30 @@ function ChangePasswordModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={[modalHeaderBaseStyle, { paddingTop: 16 }]}>
-          <Pressable onPress={handleClose} hitSlop={8}>
-            <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
+          <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel={success ? 'Done' : 'Cancel'}>
+            <ThemedText style={{ fontWeight: success ? '600' : '400' }} color={success ? colors.foreground : colors.mutedForeground}>
+              {success ? 'Done' : 'Cancel'}
+            </ThemedText>
           </Pressable>
-          <Text style={[Typography.subtitle, { color: colors.text }]}>Change Password</Text>
+          <ThemedText variant="subtitle" accessibilityRole="header">Change Password</ThemedText>
           <View style={{ width: 50 }} />
         </View>
 
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
           {error && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.destructive}15`, borderColor: colors.destructive }]}>
-              <Text style={{ fontSize: 14, textAlign: 'center', color: colors.destructive }}>{error}</Text>
+              <ThemedText style={{ fontSize: 14, textAlign: 'center' }} color={colors.destructive}>{error}</ThemedText>
             </View>
           )}
 
           {success && (
             <View style={[errorContainerStyle, { backgroundColor: `${colors.success}15`, borderColor: colors.success }]}>
-              <Text style={{ fontSize: 14, textAlign: 'center', color: colors.success }}>Password changed successfully!</Text>
+              <ThemedText style={{ fontSize: 14, textAlign: 'center' }} color={colors.success}>Password changed successfully!</ThemedText>
             </View>
           )}
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Current Password</Text>
+            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>Current Password</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter current password"
@@ -252,11 +259,13 @@ function ChangePasswordModal({
               }}
               secureTextEntry
               autoComplete="current-password"
+              accessibilityLabel="Current password"
+              accessibilityHint="Enter your current password"
             />
           </View>
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>New Password</Text>
+            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>New Password</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Enter new password"
@@ -268,11 +277,13 @@ function ChangePasswordModal({
               }}
               secureTextEntry
               autoComplete="new-password"
+              accessibilityLabel="New password"
+              accessibilityHint="Enter a new password with at least 8 characters"
             />
           </View>
 
           <View style={inputGroupStyle}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Confirm New Password</Text>
+            <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>Confirm New Password</ThemedText>
             <TextInput
               style={[inputStyle, { backgroundColor: colors.secondary, color: colors.foreground, borderWidth: 1, borderColor: colors.border }]}
               placeholder="Confirm new password"
@@ -284,21 +295,26 @@ function ChangePasswordModal({
               }}
               secureTextEntry
               autoComplete="new-password"
+              accessibilityLabel="Confirm new password"
+              accessibilityHint="Re-enter your new password to confirm"
             />
           </View>
 
           <Pressable
             style={[buttonStyle, { backgroundColor: colors.primary, opacity: isLoading || success ? 0.7 : 1 }]}
             onPress={handleChangePassword}
-            disabled={isLoading || success}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primaryForeground }}>
+            disabled={isLoading || success}
+            accessibilityRole="button"
+            accessibilityLabel={isLoading ? 'Changing password' : 'Change password'}
+            accessibilityState={{ disabled: isLoading || success }}>
+            <ThemedText style={{ fontSize: 14, fontWeight: '500' }} color={colors.primaryForeground}>
               {isLoading ? 'Changing...' : 'Change Password'}
-            </Text>
+            </ThemedText>
           </Pressable>
 
-          <Text style={{ fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18, color: colors.mutedForeground }}>
+          <ThemedText style={{ fontSize: 13, textAlign: 'center', marginTop: 16, lineHeight: 18 }} color={colors.mutedForeground}>
             For security, you will remain signed in on this device. All other sessions will be signed out.
-          </Text>
+          </ThemedText>
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
@@ -306,8 +322,7 @@ function ChangePasswordModal({
 }
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const user = useQuery(api.auth.getCurrentUser);
   const { isUploading: isUploadingAvatar, showOptions: showAvatarOptions, avatarInitial } = useAvatarUpload(user);
 
@@ -367,7 +382,11 @@ export default function ProfileScreen() {
               <Pressable
                 onPress={showAvatarOptions}
                 disabled={isUploadingAvatar}
-                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                accessibilityRole="button"
+                accessibilityLabel="Change profile photo"
+                accessibilityHint="Double tap to choose a new profile photo"
+                accessibilityState={{ disabled: isUploadingAvatar }}>
                 <View style={{ position: 'relative' }}>
                   {user.image ? (
                     <Image
@@ -378,7 +397,7 @@ export default function ProfileScreen() {
                     />
                   ) : (
                     <View style={{ width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: colors.primary }}>
-                      <Text style={{ fontSize: 36, lineHeight: 36, fontWeight: '600', textAlign: 'center', includeFontPadding: false, color: colors.primaryForeground }}>{avatarInitial}</Text>
+                      <ThemedText style={{ fontSize: 36, lineHeight: 36, fontWeight: '600', textAlign: 'center', includeFontPadding: false }} color={colors.primaryForeground}>{avatarInitial}</ThemedText>
                     </View>
                   )}
                   {isUploadingAvatar ? (
@@ -392,13 +411,13 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </Pressable>
-              <Text style={{ fontSize: 13, color: colors.mutedForeground }}>
+              <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>
                 Tap to change photo
-              </Text>
+              </ThemedText>
             </View>
 
             <View style={sectionStyle}>
-              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12, color: colors.mutedForeground }}>Account Info</Text>
+              <ThemedText style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12 }} color={colors.mutedForeground}>Account Info</ThemedText>
               <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <ProfileField
                   label="Name"
@@ -433,7 +452,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={sectionStyle}>
-              <Text style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12, color: colors.mutedForeground }}>Security</Text>
+              <ThemedText style={{ fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginLeft: 12 }} color={colors.mutedForeground}>Security</ThemedText>
               <GlassCard style={{ borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
                 <Pressable
                   style={({ pressed }) => [
@@ -443,10 +462,13 @@ export default function ProfileScreen() {
                   onPress={() => {
                     haptics.selection();
                     setShowChangePassword(true);
-                  }}>
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Change password"
+                  accessibilityHint="Double tap to open change password form">
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                     <IconSymbol name="lock.fill" size={22} color={colors.mutedForeground} />
-                    <Text style={{ fontSize: 16, color: colors.text }}>Change Password</Text>
+                    <ThemedText style={{ fontSize: 16 }}>Change Password</ThemedText>
                   </View>
                   <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
                 </Pressable>
