@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
@@ -110,7 +110,7 @@ export default function AboutScreen() {
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
           App
         </ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <AboutItem
             icon="info.circle.fill"
             label="Version"
@@ -124,14 +124,14 @@ export default function AboutScreen() {
             value={Constants.expoConfig?.sdkVersion ?? 'Unknown'}
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
           Device
         </ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <AboutItem
             icon="gear"
             label="Device"
@@ -145,14 +145,14 @@ export default function AboutScreen() {
             value={osVersion}
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
           Links
         </ThemedText>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <AboutItem
             icon="link"
             label="GitHub"
@@ -173,17 +173,17 @@ export default function AboutScreen() {
             onPress={handleOpenTerms}
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       <View style={sectionStyle}>
-        <GlassCard style={cardStyle}>
+        <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg, alignItems: 'center' }}>
             <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
               © Copyright 2026 | All rights reserved.
             </ThemedText>
           </View>
-        </GlassCard>
+        </MaterialCard>
       </View>
     </ScrollView>
   );

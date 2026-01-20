@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GlassControl } from '@/components/ui/glass-control';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius } from '@/constants/theme';
@@ -184,18 +185,20 @@ export default function SubscribeScreen() {
           })}
         </View>
 
-        <Pressable
-          style={{ paddingVertical: Spacing.lg, minHeight: TouchTarget.min, borderRadius: Radius.lg, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md, backgroundColor: colors.primary }}
-          onPress={handleSubscribe}
-          disabled={loading}
-          accessibilityRole="button"
-          accessibilityLabel={loading ? 'Loading' : `Subscribe to ${TIERS[selectedTier].name}`}
-          accessibilityState={{ disabled: loading }}
-        >
-          <ThemedText style={{ fontSize: FontSize['2xl'], fontWeight: '600' }} color={colors.primaryForeground}>
-            {loading ? 'Loading...' : `Subscribe to ${TIERS[selectedTier].name}`}
-          </ThemedText>
-        </Pressable>
+        <GlassControl isInteractive style={{ marginBottom: Spacing.md }}>
+          <Pressable
+            style={{ paddingVertical: Spacing.lg, minHeight: TouchTarget.min, alignItems: 'center', justifyContent: 'center' }}
+            onPress={handleSubscribe}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={loading ? 'Loading' : `Subscribe to ${TIERS[selectedTier].name}`}
+            accessibilityState={{ disabled: loading }}
+          >
+            <ThemedText style={{ fontSize: FontSize['2xl'], fontWeight: '600' }}>
+              {loading ? 'Loading...' : `Subscribe to ${TIERS[selectedTier].name}`}
+            </ThemedText>
+          </Pressable>
+        </GlassControl>
 
         <Pressable onPress={handleRestore} style={{ alignItems: 'center', paddingVertical: Spacing.md, minHeight: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Restore purchases" accessibilityHint="Restore previous subscription purchases">
           <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
