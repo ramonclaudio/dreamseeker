@@ -4,12 +4,14 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
-const dividerStyle = { height: 0.5, marginLeft: 50 };
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
+const dividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
+const sectionStyle = { marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
+const sectionTitleStyle = { fontSize: FontSize.md, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: Spacing.xs, opacity: 0.6 };
 const cardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
 
 function PrivacyItem({ icon, label, description, onPress, colors }: {
@@ -20,26 +22,29 @@ function PrivacyItem({ icon, label, description, onPress, colors }: {
   colors: ColorPalette;
 }) {
   const content = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
-          <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>{description}</ThemedText>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.lg }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 }}>
+        <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
+        <View style={{ flex: 1, gap: Spacing.xs / 2 }}>
+          <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
+          <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>{description}</ThemedText>
         </View>
       </View>
-      {onPress && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
+      {onPress && <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />}
     </View>
   );
 
   if (onPress) {
     return (
       <Pressable
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1, minHeight: TouchTarget.min })}
         onPress={() => {
           haptics.light();
           onPress();
-        }}>
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={description}>
         {content}
       </Pressable>
     );
@@ -58,7 +63,7 @@ export default function PrivacyScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Device Permissions</ThemedText>
@@ -110,8 +115,8 @@ export default function PrivacyScreen() {
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Your Rights</ThemedText>
         <GlassCard style={cardStyle}>
-          <View style={{ padding: 16 }}>
-            <ThemedText style={{ fontSize: 14, lineHeight: 20 }} color={colors.mutedForeground}>
+          <View style={{ padding: Spacing.lg }}>
+            <ThemedText style={{ fontSize: FontSize.base, lineHeight: 20 }} color={colors.mutedForeground}>
               You can request a copy of your data or delete your account at any time from Settings → Delete Account.
               {'\n\n'}
               We do not sell your personal information to third parties.

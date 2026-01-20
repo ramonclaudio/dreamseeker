@@ -5,6 +5,7 @@ import {
   Pressable,
   FlatList,
   ActivityIndicator,
+  KeyboardAvoidingView,
   type ListRenderItem,
 } from 'react-native';
 import { useQuery, useMutation, useConvexAuth } from 'convex/react';
@@ -19,14 +20,16 @@ import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { Spacing, TouchTarget, FontSize, HitSlop, MaxWidth, IconSize } from '@/constants/layout';
+import { Opacity, Size, Keyboard } from '@/constants/ui';
 import { haptics } from '@/lib/haptics';
 
 type Task = Doc<'tasks'>;
 
-const taskItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 8 };
-const taskContentStyle = { flex: 1, flexDirection: 'row' as const, alignItems: 'center' as const };
-const checkboxStyle = { width: 24, height: 24, borderRadius: Radius.sm, borderCurve: 'continuous' as const, borderWidth: 2, marginRight: 12, justifyContent: 'center' as const, alignItems: 'center' as const };
-const deleteButtonStyle = { padding: 8, minWidth: 44, minHeight: 44, justifyContent: 'center' as const, alignItems: 'center' as const };
+const taskItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: Spacing.md + 2, paddingHorizontal: Spacing.lg, marginBottom: Spacing.sm };
+const taskContentStyle = { flex: 1, flexDirection: 'row' as const, alignItems: 'center' as const, minHeight: TouchTarget.min };
+const checkboxStyle = { width: Size.checkbox, height: Size.checkbox, borderRadius: Radius.sm, borderCurve: 'continuous' as const, borderWidth: 2, marginRight: Spacing.md, justifyContent: 'center' as const, alignItems: 'center' as const };
+const deleteButtonStyle = { padding: Spacing.sm, minWidth: TouchTarget.min, minHeight: TouchTarget.min, justifyContent: 'center' as const, alignItems: 'center' as const };
 
 const TaskItem = memo(function TaskItem({
   task,
@@ -49,7 +52,7 @@ const TaskItem = memo(function TaskItem({
         accessibilityState={{ checked: task.isCompleted }}
         accessibilityLabel={`${task.text}, ${task.isCompleted ? 'completed' : 'not completed'}`}
         accessibilityHint="Double tap to toggle"
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        hitSlop={{ top: HitSlop.md, bottom: HitSlop.md, left: HitSlop.md, right: HitSlop.md }}
       >
         <View
           style={[
@@ -60,16 +63,18 @@ const TaskItem = memo(function TaskItem({
             },
           ]}>
           {task.isCompleted && (
-            <ThemedText style={{ fontSize: 14, fontWeight: 'bold' }} color={colors.primaryForeground} accessibilityElementsHidden>✓</ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: 'bold' }} color={colors.primaryForeground} accessibilityElementsHidden>✓</ThemedText>
           )}
         </View>
         <ThemedText
           style={{
-            fontSize: 16,
+            fontSize: FontSize.xl,
             flex: 1,
             textDecorationLine: task.isCompleted ? 'line-through' : 'none',
             opacity: task.isCompleted ? 0.5 : 1,
-          }}>
+          }}
+          numberOfLines={2}
+          ellipsizeMode="tail">
           {task.text}
         </ThemedText>
       </Pressable>
@@ -79,9 +84,9 @@ const TaskItem = memo(function TaskItem({
         accessibilityRole="button"
         accessibilityLabel={`Delete task "${task.text}"`}
         accessibilityHint="Double tap to delete this task"
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        hitSlop={{ top: HitSlop.md, bottom: HitSlop.md, left: HitSlop.md, right: HitSlop.md }}
       >
-        <ThemedText style={{ fontSize: 24, fontWeight: '300' }} color={colors.destructive} accessibilityElementsHidden>×</ThemedText>
+        <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: '300' }} color={colors.destructive} accessibilityElementsHidden>×</ThemedText>
       </Pressable>
     </GlassCard>
   );
@@ -149,8 +154,8 @@ export default function TasksScreen() {
 
   const ListHeader = (
     <>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16 }}>
-        <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: Spacing.lg }}>
+        <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </ThemedText>
         {canAccess('starter') && (
@@ -159,21 +164,21 @@ export default function TasksScreen() {
               haptics.light();
               router.push('/history');
             }}
-            style={({ pressed }) => [{ padding: 10, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' }, { opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [{ padding: HitSlop.md, minWidth: TouchTarget.min, minHeight: TouchTarget.min, justifyContent: 'center', alignItems: 'center' }, { opacity: pressed ? Opacity.pressed : 1 }]}
             accessibilityRole="button"
             accessibilityLabel="View completed tasks history"
             accessibilityHint="Opens a list of your completed tasks"
           >
-            <IconSymbol name="clock.arrow.circlepath" size={24} color={colors.mutedForeground} />
+            <IconSymbol name="clock.arrow.circlepath" size={IconSize['3xl']} color={colors.mutedForeground} />
           </Pressable>
         )}
       </View>
 
       <UpgradeBanner />
 
-      <GlassCard style={{ flexDirection: 'row', marginBottom: 16 }}>
+      <GlassCard style={{ flexDirection: 'row', marginBottom: Spacing.lg }}>
         <TextInput
-          style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: colors.foreground }}
+          style={{ flex: 1, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md + 2, fontSize: FontSize.xl, color: colors.foreground }}
           placeholder="Add a new task..."
           placeholderTextColor={colors.mutedForeground}
           value={newTaskText}
@@ -185,44 +190,50 @@ export default function TasksScreen() {
         />
         <Pressable
           onPress={handleAddTask}
-          style={{ paddingHorizontal: 20, justifyContent: 'center', borderRadius: Radius.md, borderCurve: 'continuous', margin: 4, backgroundColor: colors.primary }}
+          style={{ paddingHorizontal: Spacing.xl, minHeight: TouchTarget.min, justifyContent: 'center', borderRadius: Radius.md, borderCurve: 'continuous', margin: 4, backgroundColor: colors.primary }}
           disabled={!newTaskText.trim()}
           accessibilityRole="button"
           accessibilityLabel="Add task"
           accessibilityState={{ disabled: !newTaskText.trim() }}
           accessibilityHint="Tap to add the new task"
         >
-          <ThemedText style={{ fontWeight: '600', fontSize: 14 }} color={colors.primaryForeground}>Add</ThemedText>
+          <ThemedText style={{ fontWeight: '600', fontSize: FontSize.base }} color={colors.primaryForeground}>Add</ThemedText>
         </Pressable>
       </GlassCard>
     </>
   );
 
   const ListEmpty = (
-    <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-      <ThemedText style={{ fontSize: 16 }} color={colors.mutedForeground}>
+    <View style={{ paddingVertical: Spacing['4xl'], alignItems: 'center' }}>
+      <ThemedText style={{ fontSize: FontSize.xl }} color={colors.mutedForeground}>
         No tasks yet. Add one above!
       </ThemedText>
     </View>
   );
 
   return (
-    <FlatList
-      data={tasks}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
+    <KeyboardAvoidingView
+      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 20 }}
-      contentInsetAdjustmentBehavior="automatic"
-      ListHeaderComponent={ListHeader}
-      ListEmptyComponent={ListEmpty}
-      removeClippedSubviews
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      initialNumToRender={10}
-      getItemLayout={(_, index) => ({ length: 72, offset: 72 * index, index })}
-      accessibilityRole="list"
-      accessibilityLabel="Task list"
-    />
+      keyboardVerticalOffset={Keyboard.verticalOffset}>
+      <FlatList
+        data={tasks}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: Spacing['4xl'], paddingHorizontal: Spacing.xl, maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
+        contentInsetAdjustmentBehavior="automatic"
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={ListEmpty}
+        removeClippedSubviews
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        initialNumToRender={10}
+        getItemLayout={(_, index) => ({ length: 72, offset: 72 * index, index })}
+        accessibilityRole="list"
+        accessibilityLabel="Task list"
+        keyboardShouldPersistTaps="handled"
+      />
+    </KeyboardAvoidingView>
   );
 }

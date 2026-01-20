@@ -30,6 +30,7 @@ const lightColors = {
   tabIconSelected: '#262626',
   separator: 'rgba(60, 60, 67, 0.29)', // iOS standard separator
   overlay: 'rgba(0, 0, 0, 0.4)',
+  shadow: 'rgba(0, 0, 0, 0.1)', // Subtle shadow for elevated elements
 };
 
 const darkColors = {
@@ -63,6 +64,7 @@ const darkColors = {
   tabIconSelected: '#e5e5e5',
   separator: 'rgba(84, 84, 88, 0.6)', // iOS standard dark separator
   overlay: 'rgba(0, 0, 0, 0.6)',
+  shadow: 'rgba(0, 0, 0, 0.3)', // Darker shadow for dark mode visibility
 };
 
 // High contrast variants (for iOS Increase Contrast setting)
@@ -142,9 +144,9 @@ export const Radius = {
 export const Typography = {
   default: { fontSize: 16, lineHeight: 24 },
   defaultSemiBold: { fontSize: 16, lineHeight: 24, fontWeight: '600' as const },
-  title: { fontSize: 32, fontWeight: 'bold' as const, lineHeight: 32 },
-  subtitle: { fontSize: 20, fontWeight: 'bold' as const },
-  link: { lineHeight: 30, fontSize: 16 },
+  title: { fontSize: 30, lineHeight: 38, fontWeight: '700' as const, letterSpacing: -0.5 },
+  subtitle: { fontSize: 20, lineHeight: 26, fontWeight: '600' as const },
+  link: { fontSize: 16, lineHeight: 24 },
 };
 
 export const Fonts = process.env.EXPO_OS === 'ios'

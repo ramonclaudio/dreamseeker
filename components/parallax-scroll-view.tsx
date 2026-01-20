@@ -1,17 +1,24 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollOffset } from 'react-native-reanimated';
 import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { useReduceMotion } from '@/hooks/use-accessibility-settings';
+import { Spacing, MaxWidth } from '@/constants/layout';
+import { Responsive } from '@/constants/ui';
 
-const H = 250;
+// Responsive header height: 25% of screen, clamped 200-300
+function useHeaderHeight() {
+  const { height } = useWindowDimensions();
+  return Math.min(Responsive.header.maxHeight, Math.max(Responsive.header.minHeight, height * Responsive.header.screenRatio));
+}
 type Props = PropsWithChildren<{ headerImage: ReactElement; headerBackgroundColor: { dark: string; light: string } }>;
 
 export default function ParallaxScrollView({ children, headerImage, headerBackgroundColor }: Props) {
   const colorScheme = useColorScheme();
   const colors = useColors();
   const reduceMotion = useReduceMotion();
+  const H = useHeaderHeight();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollOffset(scrollRef);
 
@@ -34,13 +41,26 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
     return { opacity: interpolate(scrollOffset.value, [0, H * 0.5, H], [0, 0.5, 1]) };
   });
 
+  const contentStyle = {
+    flex: 1,
+    paddingTop: Spacing['3xl'],
+    paddingHorizontal: Spacing['3xl'],
+    paddingBottom: Spacing['4xl'],
+    gap: Spacing.lg,
+    overflow: 'hidden' as const,
+    backgroundColor: colors.background,
+    maxWidth: MaxWidth.wide,
+    alignSelf: 'center' as const,
+    width: '100%' as const,
+  };
+
   if (reduceMotion) {
     return (
       <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentInsetAdjustmentBehavior="automatic">
         <View style={[{ height: H, overflow: 'hidden' }, { backgroundColor: headerBackgroundColor[colorScheme] }]}>
           {headerImage}
         </View>
-        <View style={{ flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 40, gap: 16, overflow: 'hidden', backgroundColor: colors.background }}>{children}</View>
+        <View style={contentStyle}>{children}</View>
       </ScrollView>
     );
   }
@@ -55,7 +75,7 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
           </Animated.View>
         )}
       </Animated.View>
-      <View style={{ flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 40, gap: 16, overflow: 'hidden', backgroundColor: colors.background }}>{children}</View>
+      <View style={contentStyle}>{children}</View>
     </Animated.ScrollView>
   );
 }

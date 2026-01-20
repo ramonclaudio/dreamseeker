@@ -64,7 +64,7 @@ export default function SignInScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Welcome back</ThemedText>
+          <ThemedText variant="title">Welcome back</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
             Sign in to your account
           </ThemedText>
@@ -107,7 +107,7 @@ export default function SignInScreen() {
             <View style={styles.passwordHeader}>
               <ThemedText style={styles.label}>Password</ThemedText>
               <Link href="/forgot-password" asChild>
-                <Pressable>
+                <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Forgot password" accessibilityHint="Navigate to password reset">
                   <ThemedText style={styles.forgotText}>Forgot password?</ThemedText>
                 </Pressable>
               </Link>
@@ -167,7 +167,7 @@ export default function SignInScreen() {
             Don&apos;t have an account?{' '}
           </ThemedText>
           <Link href="/sign-up" asChild>
-            <Pressable accessibilityRole="link" accessibilityLabel="Sign up" accessibilityHint="Go to create account screen">
+            <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Sign up" accessibilityHint="Go to create account screen">
               <ThemedText style={styles.linkText}>Sign Up</ThemedText>
             </Pressable>
           </Link>

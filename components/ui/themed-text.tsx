@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Text, type TextProps, type TextStyle, Platform, AccessibilityInfo } from 'react-native';
 
+import { Accessibility } from '@/constants/ui';
 import { Typography } from '@/constants/theme';
 import { useColors } from '@/hooks/use-color-scheme';
 
@@ -51,7 +52,7 @@ export function ThemedText({ style, variant = 'default', color, ...props }: Them
   return (
     <Text
       allowFontScaling={true}
-      maxFontSizeMultiplier={2}
+      maxFontSizeMultiplier={Accessibility.maxFontSizeMultiplier}
       style={[
         variantStyle,
         { color: color ?? colors.text, fontWeight: adjustedWeight },
