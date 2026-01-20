@@ -1,7 +1,8 @@
-import { Alert, Linking, Pressable, ScrollView, View, Text } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, View } from 'react-native';
 
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -28,8 +29,8 @@ function HelpItem({ icon, label, description, onPress, colors }: {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
         <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 16, color: colors.text }}>{label}</Text>
-          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{description}</Text>
+          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+          <ThemedText style={{ fontSize: 13 }} color={colors.mutedForeground}>{description}</ThemedText>
         </View>
       </View>
       <IconSymbol name="arrow.up.right" size={16} color={colors.mutedForeground} />
@@ -44,8 +45,8 @@ function FAQItem({ question, answer, colors }: {
 }) {
   return (
     <View style={faqItemStyle}>
-      <Text style={[faqQuestionStyle, { color: colors.text }]}>{question}</Text>
-      <Text style={[faqAnswerStyle, { color: colors.mutedForeground }]}>{answer}</Text>
+      <ThemedText style={faqQuestionStyle}>{question}</ThemedText>
+      <ThemedText style={faqAnswerStyle} color={colors.mutedForeground}>{answer}</ThemedText>
     </View>
   );
 }
@@ -74,7 +75,7 @@ export default function HelpScreen() {
       contentContainerStyle={{ paddingBottom: 40 }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={{ marginTop: 24, paddingHorizontal: 20, gap: 8 }}>
-        <Text style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6, color: colors.mutedForeground }}>Contact</Text>
+        <ThemedText style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6 }} color={colors.mutedForeground}>Contact</ThemedText>
         <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <HelpItem
             icon="envelope.fill"
@@ -95,7 +96,7 @@ export default function HelpScreen() {
       </View>
 
       <View style={{ marginTop: 24, paddingHorizontal: 20, gap: 8 }}>
-        <Text style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6, color: colors.mutedForeground }}>FAQ</Text>
+        <ThemedText style={{ fontSize: 13, fontWeight: '500', textTransform: 'uppercase', marginLeft: 4, opacity: 0.6 }} color={colors.mutedForeground}>FAQ</ThemedText>
         <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <FAQItem
             question="How do I upgrade my subscription?"
