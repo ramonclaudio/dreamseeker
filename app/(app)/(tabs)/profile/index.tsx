@@ -28,7 +28,7 @@ const inputGroupStyle = { gap: 8 };
 const inputStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, fontSize: 16 };
 const buttonStyle = { borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 16, alignItems: 'center' as const, marginTop: 8 };
 const errorContainerStyle = { borderWidth: 1, borderRadius: Radius.md, borderCurve: 'continuous' as const, padding: 12 };
-const modalHeaderStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: 'rgba(128, 128, 128, 0.2)' };
+const modalHeaderBaseStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: 'rgba(128, 128, 128, 0.2)' };
 
 function ProfileField({ label, value, onPress, colors }: {
   label: string;
@@ -97,7 +97,7 @@ function EditModal({ visible, onClose, title, label, value: initialValue, onSave
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={modalHeaderStyle}>
+        <View style={[modalHeaderBaseStyle, { paddingTop: 16 }]}>
           <Pressable onPress={handleClose} hitSlop={8}>
             <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
           </Pressable>
@@ -218,7 +218,7 @@ function ChangePasswordModal({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={modalHeaderStyle}>
+        <View style={[modalHeaderBaseStyle, { paddingTop: 16 }]}>
           <Pressable onPress={handleClose} hitSlop={8}>
             <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
           </Pressable>
@@ -359,12 +359,8 @@ export default function ProfileScreen() {
     <>
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         contentInsetAdjustmentBehavior="automatic">
-        <View style={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: colors.background }}>
-          <Text style={[Typography.title, { color: colors.text }]}>Profile</Text>
-        </View>
-
         {user && (
           <>
             <View style={{ alignItems: 'center', paddingVertical: 20, gap: 8 }}>
