@@ -2,7 +2,7 @@ import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { ThemedText } from '@/components/ui/themed-text';
 import { useColors } from '@/hooks/use-color-scheme';
 import { MaxWidth, Spacing, FontSize, IconSize } from '@/constants/layout';
@@ -22,7 +22,7 @@ export default function EarlyAccessScreen() {
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.xl, paddingBottom: Math.max(Spacing.xl, insets.bottom), gap: Spacing.xl, maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }} contentInsetAdjustmentBehavior="automatic">
-        <GlassCard style={{ padding: Spacing.xl, gap: Spacing.sm }}>
+        <MaterialCard style={{ padding: Spacing.xl, gap: Spacing.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
             <IconSymbol name="sparkles" size={IconSize.md} color={colors.primary} />
             <ThemedText style={{ fontSize: FontSize.sm, fontWeight: '600', textTransform: 'uppercase' }} color={colors.primary}>Pro Feature</ThemedText>
@@ -31,9 +31,9 @@ export default function EarlyAccessScreen() {
           <ThemedText style={{ fontSize: FontSize.xl, lineHeight: 24 }} color={colors.mutedForeground}>
             As a Pro subscriber, you get early access to new features before they&apos;re released to everyone.
           </ThemedText>
-        </GlassCard>
+        </MaterialCard>
 
-        <GlassCard style={{ padding: Spacing.xl, gap: Spacing.lg }}>
+        <MaterialCard style={{ padding: Spacing.xl, gap: Spacing.lg }}>
           <ThemedText style={{ fontSize: FontSize['3xl'], fontWeight: '600' }}>Coming Soon</ThemedText>
           {[
             'AI-powered task suggestions',
@@ -46,7 +46,7 @@ export default function EarlyAccessScreen() {
               <ThemedText style={{ fontSize: FontSize.xl }}>{text}</ThemedText>
             </View>
           ))}
-        </GlassCard>
+        </MaterialCard>
       </ScrollView>
     </View>
   );

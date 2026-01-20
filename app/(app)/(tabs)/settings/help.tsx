@@ -1,6 +1,6 @@
 import { Alert, Linking, Pressable, ScrollView, View } from 'react-native';
 
-import { GlassCard } from '@/components/ui/glass-card';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
@@ -80,7 +80,7 @@ export default function HelpScreen() {
       contentInsetAdjustmentBehavior="automatic">
       <View style={{ marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm }}>
         <ThemedText style={{ fontSize: FontSize.md, fontWeight: '500', textTransform: 'uppercase', marginLeft: Spacing.xs, opacity: 0.6 }} color={colors.mutedForeground}>Contact</ThemedText>
-        <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
+        <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <HelpItem
             icon="envelope.fill"
             label="Email Support"
@@ -96,12 +96,12 @@ export default function HelpScreen() {
             onPress={handleOpenGitHub}
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
 
       <View style={{ marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm }}>
         <ThemedText style={{ fontSize: FontSize.md, fontWeight: '500', textTransform: 'uppercase', marginLeft: Spacing.xs, opacity: 0.6 }} color={colors.mutedForeground}>FAQ</ThemedText>
-        <GlassCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
+        <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <FAQItem
             question="How do I upgrade my subscription?"
             answer="Go to Settings → Subscription and tap Upgrade to see available plans."
@@ -119,7 +119,7 @@ export default function HelpScreen() {
             answer="Make sure notifications are enabled in Settings → Notifications. You must use a physical device."
             colors={colors}
           />
-        </GlassCard>
+        </MaterialCard>
       </View>
     </ScrollView>
   );
