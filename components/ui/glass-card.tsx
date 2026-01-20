@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, type ViewProps, Platform, AccessibilityInfo } from 'react-native';
 
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 
 function useReduceTransparency(): boolean {
   const [reduceTransparency, setReduceTransparency] = useState(false);
@@ -38,8 +38,7 @@ const baseCardStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as co
 type GlassCardProps = ViewProps & { glassStyle?: 'regular' | 'clear'; isInteractive?: boolean };
 
 export function GlassCard({ children, style, glassStyle = 'regular', isInteractive, ...props }: GlassCardProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const reduceTransparency = useReduceTransparency();
   const cardStyle = [baseCardStyle, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }, style];
 
@@ -56,8 +55,7 @@ export function GlassCard({ children, style, glassStyle = 'regular', isInteracti
 type GlassContainerProps = ViewProps & { spacing?: number };
 
 export function GlassCardContainer({ children, style, spacing = 10, ...props }: GlassContainerProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const reduceTransparency = useReduceTransparency();
   const cardStyle = [baseCardStyle, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }, style];
 

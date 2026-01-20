@@ -5,16 +5,15 @@ import { useQuery } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors, Radius } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
+import { Radius, type ColorPalette } from '@/constants/theme';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 
 type Task = Doc<'tasks'>;
 
-function TaskHistoryItem({ task, colorScheme }: { task: Task; colorScheme: 'light' | 'dark' }) {
-  const colors = Colors[colorScheme];
+function TaskHistoryItem({ task, colors }: { task: Task; colors: ColorPalette }) {
   return (
     <GlassCard style={{ flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, marginBottom: 8 }}>
       <View style={{ width: 24, height: 24, borderRadius: Radius.sm, borderCurve: 'continuous', borderWidth: 2, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary, borderColor: colors.primary }}>
@@ -26,13 +25,12 @@ function TaskHistoryItem({ task, colorScheme }: { task: Task; colorScheme: 'ligh
 }
 
 export default function HistoryScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const completedTasks = useQuery(api.tasks.listCompleted);
 
   const renderItem: ListRenderItem<Task> = useCallback(({ item }) => (
-    <TaskHistoryItem task={item} colorScheme={colorScheme} />
-  ), [colorScheme]);
+    <TaskHistoryItem task={item} colors={colors} />
+  ), [colors]);
 
   const keyExtractor = useCallback((item: Task) => item._id, []);
 

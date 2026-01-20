@@ -2,12 +2,10 @@ import { Link, Stack } from 'expo-router';
 import { View } from 'react-native';
 
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 
 export default function NotFoundScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   return (
     <>

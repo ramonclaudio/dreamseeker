@@ -6,8 +6,8 @@ import * as Device from 'expo-device';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius, type ColorPalette } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
 const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
@@ -26,7 +26,7 @@ function AboutItem({
   label: string;
   value?: string;
   onPress?: () => void;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   const content = (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
@@ -68,8 +68,7 @@ function AboutItem({
 }
 
 export default function AboutScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   const appVersion =
     Application.nativeApplicationVersion ??

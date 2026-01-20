@@ -15,22 +15,22 @@ import * as Notifications from 'expo-notifications';
 import { authClient } from '@/lib/auth-client';
 import { env } from '@/lib/env';
 import { StripeProvider } from '@/providers/stripe-provider';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
 import { isValidDeepLink } from '@/lib/deep-link';
-import { Colors } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/offline-banner';
 
 const convex = new ConvexReactClient(env.convexUrl, { expectAuth: true, unsavedChangesWarning: false });
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const colors = useColors();
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.dark.background, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: Colors.dark.destructive }}>Something went wrong</Text>
-      <Text style={{ fontSize: 14, color: Colors.dark.mutedForeground, textAlign: 'center', marginBottom: 12 }}>{error.message}</Text>
-      <Pressable style={{ backgroundColor: Colors.dark.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' }} onPress={retry}>
-        <Text style={{ color: Colors.dark.primaryForeground, fontWeight: '600' }}>Try Again</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.destructive }}>Something went wrong</Text>
+      <Text style={{ fontSize: 14, color: colors.mutedForeground, textAlign: 'center', marginBottom: 12 }}>{error.message}</Text>
+      <Pressable style={{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, borderCurve: 'continuous' }} onPress={retry}>
+        <Text style={{ color: colors.primaryForeground, fontWeight: '600' }}>Try Again</Text>
       </Pressable>
     </View>
   );
@@ -100,7 +100,7 @@ function RootNavigator() {
   }, [isLoading]);
 
   const { width } = Dimensions.get('window');
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   // Apply background to body on web
   useEffect(() => {

@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "expostarterapp",
     "userInterfaceStyle": "automatic",
-    "buildCacheProvider": "eas",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ramonclaudio.expo-starter-app",

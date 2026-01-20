@@ -1,8 +1,7 @@
 import { Stack } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { meetsMinTier, type TierKey } from '@/convex/schema/tiers';
 
@@ -12,8 +11,7 @@ export const unstable_settings = {
 };
 
 export default function AppLayout() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const { tier, isLoading } = useSubscription();
 
   // Show loading while subscription status is being fetched

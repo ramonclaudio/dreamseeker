@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
+import { Radius, type ColorPalette } from '@/constants/theme';
 import { useColorScheme, useColors, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
@@ -31,7 +31,7 @@ function SettingsItem({ icon, label, onPress, destructive, showChevron = true, c
   onPress: () => void;
   destructive?: boolean;
   showChevron?: boolean;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   return (
     <Pressable
@@ -58,7 +58,7 @@ function SettingsLinkItem({ href, icon, label, colors }: {
   href: '/settings/notifications' | '/settings/privacy' | '/settings/help' | '/settings/about';
   icon: Parameters<typeof IconSymbol>[0]['name'];
   label: string;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   const handleCopyLink = async () => {
     await Clipboard.setStringAsync(href);
@@ -103,7 +103,7 @@ function SettingsLinkItem({ href, icon, label, colors }: {
   );
 }
 
-function SettingsSection({ title, children, colors }: { title?: string; children: React.ReactNode; colors: (typeof Colors)['light'] }) {
+function SettingsSection({ title, children, colors }: { title?: string; children: React.ReactNode; colors: ColorPalette }) {
   return (
     <View style={sectionStyle}>
       {title && <ThemedText style={sectionTitleStyle}>{title}</ThemedText>}
@@ -123,7 +123,7 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
 function ThemePicker({ mode, onModeChange, colors }: {
   mode: ThemeMode;
   onModeChange: (mode: ThemeMode) => void;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   const colorScheme = useColorScheme();
   const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
@@ -161,7 +161,7 @@ function ThemePicker({ mode, onModeChange, colors }: {
   );
 }
 
-function SubscriptionSectionContent({ colors }: { colors: (typeof Colors)['light'] }) {
+function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
   const {
     tier,
     tierName,
