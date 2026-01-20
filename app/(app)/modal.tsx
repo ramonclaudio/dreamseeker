@@ -6,14 +6,15 @@ import { BlurView } from 'expo-blur';
 import { ThemedText } from '@/components/ui/themed-text';
 import { type ColorPalette } from '@/constants/theme';
 import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
+import { Spacing, TouchTarget } from '@/constants/layout';
 
 const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: ColorPalette }) => (
-  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 8 }}>
+  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.sm }}>
     <ThemedText variant="title">Modal</ThemedText>
     <ThemedText style={{ textAlign: 'center' }} color={colors.mutedForeground}>
       This modal uses a blur background on iOS and web.
     </ThemedText>
-    <Link href={isPresented ? '../' : '/'} style={{ marginTop: 12, paddingVertical: 15 }}>
+    <Link href={isPresented ? '../' : '/'} style={{ marginTop: Spacing.md, paddingVertical: Spacing.lg, minHeight: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="link" accessibilityLabel={isPresented ? 'Dismiss modal' : 'Go to home screen'}>
       <ThemedText variant="link" color={colors.mutedForeground}>{isPresented ? 'Dismiss' : 'Go home'}</ThemedText>
     </Link>
   </View>

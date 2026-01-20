@@ -9,21 +9,23 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
+import { MaxWidth, Spacing, TouchTarget, FontSize, IconSize } from '@/constants/layout';
+import { Opacity, Shadow, Size } from '@/constants/ui';
 import { useColorScheme, useColors, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 
-const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
-const sectionTitleStyle = { fontSize: 13, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: 4, opacity: 0.6 };
+const sectionStyle = { marginTop: Spacing['2xl'], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
+const sectionTitleStyle = { fontSize: FontSize.md, fontWeight: '500' as const, textTransform: 'uppercase' as const, marginLeft: Spacing.xs, opacity: 0.6 };
 const sectionContentStyle = { borderRadius: Radius.lg, borderCurve: 'continuous' as const, overflow: 'hidden' as const };
-const settingsItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 16 };
-const settingsItemLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };
-const dividerStyle = { height: 0.5, marginLeft: 50 };
-const subscriptionContainerStyle = { padding: 16, gap: 12 };
+const settingsItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: Spacing.lg, minHeight: TouchTarget.min };
+const settingsItemLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.md };
+const dividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
+const subscriptionContainerStyle = { padding: Spacing.lg, gap: Spacing.md };
 const subscriptionHeaderStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const };
-const subscriptionInfoStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };
-const buttonRowStyle = { flexDirection: 'row' as const, gap: 8 };
+const subscriptionInfoStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.md };
+const buttonRowStyle = { flexDirection: 'row' as const, gap: Spacing.sm };
 
 function SettingsItem({ icon, label, onPress, destructive, showChevron = true, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -35,21 +37,21 @@ function SettingsItem({ icon, label, onPress, destructive, showChevron = true, c
 }) {
   return (
     <Pressable
-      style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? Opacity.pressed : 1 }]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}>
       <View style={settingsItemLeftStyle}>
         <IconSymbol
           name={icon}
-          size={22}
+          size={IconSize['2xl']}
           color={destructive ? colors.destructive : colors.mutedForeground}
         />
-        <ThemedText style={{ fontSize: 16 }} color={destructive ? colors.destructive : colors.text}>
+        <ThemedText style={{ fontSize: FontSize.xl }} color={destructive ? colors.destructive : colors.text}>
           {label}
         </ThemedText>
       </View>
-      {showChevron && <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />}
+      {showChevron && <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />}
     </Pressable>
   );
 }
@@ -69,14 +71,14 @@ function SettingsLinkItem({ href, icon, label, colors }: {
     return (
       <Link href={href} asChild>
         <Pressable
-          style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? 0.7 : 1 }]}
+          style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? Opacity.pressed : 1 }]}
           accessibilityRole="link"
           accessibilityLabel={label}>
           <View style={settingsItemLeftStyle}>
-            <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-            <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+            <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
+            <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
           </View>
-          <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+          <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
         </Pressable>
       </Link>
     );
@@ -86,11 +88,11 @@ function SettingsLinkItem({ href, icon, label, colors }: {
     <Link href={href} style={settingsItemStyle}>
       <Link.Trigger>
         <View style={settingsItemLeftStyle}>
-          <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-          <ThemedText style={{ fontSize: 16 }}>{label}</ThemedText>
+          <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
+          <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
         </View>
       </Link.Trigger>
-      <IconSymbol name="chevron.right" size={16} color={colors.mutedForeground} />
+      <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
       <Link.Preview />
       <Link.Menu>
         <Link.MenuAction
@@ -128,10 +130,10 @@ function ThemePicker({ mode, onModeChange, colors }: {
   const colorScheme = useColorScheme();
   const icon = colorScheme === 'dark' ? 'moon.fill' : 'sun.max.fill';
   return (
-    <View style={{ padding: 16, gap: 12 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <IconSymbol name={icon} size={22} color={colors.mutedForeground} />
-        <ThemedText style={{ fontSize: 16 }}>Theme</ThemedText>
+    <View style={{ padding: Spacing.lg, gap: Spacing.md }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+        <IconSymbol name={icon} size={IconSize['2xl']} color={colors.mutedForeground} />
+        <ThemedText style={{ fontSize: FontSize.xl }}>Theme</ThemedText>
       </View>
       <View style={{ flexDirection: 'row', borderRadius: Radius.md, borderCurve: 'continuous', padding: 3, backgroundColor: colors.muted }}>
         {THEME_OPTIONS.map((option) => {
@@ -140,8 +142,8 @@ function ThemePicker({ mode, onModeChange, colors }: {
             <Pressable
               key={option.value}
               style={[
-                { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: Radius.sm, borderCurve: 'continuous' },
-                isSelected && { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)', backgroundColor: colors.background },
+                { flex: 1, paddingVertical: Spacing.md, minHeight: TouchTarget.min, alignItems: 'center', justifyContent: 'center', borderRadius: Radius.sm, borderCurve: 'continuous' },
+                isSelected && { boxShadow: `${Shadow.sm} ${colors.shadow}`, backgroundColor: colors.background },
               ]}
               onPress={() => {
                 haptics.light();
@@ -150,7 +152,7 @@ function ThemePicker({ mode, onModeChange, colors }: {
               accessibilityRole="radio"
               accessibilityLabel={`${option.label} theme`}
               accessibilityState={{ selected: isSelected }}>
-              <ThemedText style={{ fontSize: 14, fontWeight: '500' }} color={isSelected ? colors.foreground : colors.mutedForeground}>
+              <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }} color={isSelected ? colors.foreground : colors.mutedForeground}>
                 {option.label}
               </ThemedText>
             </Pressable>
@@ -197,7 +199,7 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
     }
   };
 
-  const subscriptionButtonStyle = { paddingVertical: 12, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, marginTop: 4 };
+  const subscriptionButtonStyle = { paddingVertical: Spacing.md, minHeight: TouchTarget.min, justifyContent: 'center' as const, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, marginTop: Spacing.xs };
 
   if (isLoading) {
     return (
@@ -217,19 +219,19 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
       <View style={subscriptionContainerStyle}>
         <View style={subscriptionHeaderStyle}>
           <View style={subscriptionInfoStyle}>
-            <IconSymbol name="star.fill" size={22} color={colors.primary} />
-            <ThemedText style={{ fontSize: 16 }}>
+            <IconSymbol name="star.fill" size={IconSize['2xl']} color={colors.primary} />
+            <ThemedText style={{ fontSize: FontSize.xl }}>
               {isTrialing ? `${tierName} (Trial)` : `${tierName} Plan`}
             </ThemedText>
           </View>
-          <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary + '20' }}>
-            <ThemedText style={{ fontSize: 12, fontWeight: '600' }} color={colors.primary}>Active</ThemedText>
+          <View style={{ paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary + '20' }}>
+            <ThemedText style={{ fontSize: FontSize.sm, fontWeight: '600' }} color={colors.primary}>Active</ThemedText>
           </View>
         </View>
 
         {isCanceled ? (
           <>
-            <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
               Cancels on {periodEnd}
             </ThemedText>
             <Pressable
@@ -239,14 +241,14 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
               accessibilityRole="button"
               accessibilityLabel={loading ? 'Restoring subscription' : 'Restore subscription'}
               accessibilityState={{ disabled: loading }}>
-              <ThemedText style={{ fontSize: 16, fontWeight: '600' }} color={colors.primaryForeground}>
+              <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.primaryForeground}>
                 {loading ? 'Restoring...' : 'Restore Subscription'}
               </ThemedText>
             </Pressable>
           </>
         ) : (
           <>
-            <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
               {isTrialing ? `Trial ends ${periodEnd}` : `Renews ${periodEnd}`}
             </ThemedText>
             <View style={buttonRowStyle}>
@@ -256,7 +258,7 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
                   onPress={handleUpgrade}
                   accessibilityRole="button"
                   accessibilityLabel="Upgrade subscription">
-                  <ThemedText style={{ fontSize: 16, fontWeight: '600' }} color={colors.primaryForeground}>
+                  <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.primaryForeground}>
                     Upgrade
                   </ThemedText>
                 </Pressable>
@@ -268,7 +270,7 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
                 accessibilityRole="button"
                 accessibilityLabel={loading ? 'Loading billing' : 'Manage subscription'}
                 accessibilityState={{ disabled: loading }}>
-                <ThemedText style={{ fontSize: 16, fontWeight: '600' }}>
+                <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }}>
                   {loading ? 'Loading...' : 'Manage'}
                 </ThemedText>
               </Pressable>
@@ -287,11 +289,11 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
     <View style={subscriptionContainerStyle}>
       <View style={subscriptionHeaderStyle}>
         <View style={subscriptionInfoStyle}>
-          <IconSymbol name="gift" size={22} color={colors.mutedForeground} />
-          <ThemedText style={{ fontSize: 16 }}>{tierName} Plan</ThemedText>
+          <IconSymbol name="gift" size={IconSize['2xl']} color={colors.mutedForeground} />
+          <ThemedText style={{ fontSize: FontSize.xl }}>{tierName} Plan</ThemedText>
         </View>
       </View>
-      <ThemedText style={{ fontSize: 14 }} color={colors.mutedForeground}>
+      <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
         {usageText} · Upgrade for more features
       </ThemedText>
 
@@ -300,7 +302,7 @@ function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
         onPress={handleUpgrade}
         accessibilityRole="button"
         accessibilityLabel="Upgrade to Pro">
-        <ThemedText style={{ fontSize: 16, fontWeight: '600' }} color={colors.primaryForeground}>
+        <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.primaryForeground}>
           Upgrade
         </ThemedText>
       </Pressable>
@@ -360,7 +362,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <SettingsSection title="Theme" colors={colors}>
         <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
@@ -414,9 +416,9 @@ export default function SettingsScreen() {
 
       <SettingsSection title="Danger Zone" colors={colors}>
         {isDeleting ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: Spacing.lg, gap: Spacing.md }}>
             <ActivityIndicator color={colors.destructive} />
-            <ThemedText style={{ fontSize: 16, fontWeight: '500' }} color={colors.destructive}>
+            <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '500' }} color={colors.destructive}>
               Deleting account...
             </ThemedText>
           </View>
