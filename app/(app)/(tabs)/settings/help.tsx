@@ -4,7 +4,7 @@ import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
 import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -12,7 +12,7 @@ import { haptics } from '@/lib/haptics';
 const dividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
 const faqItemStyle = { padding: Spacing.lg, gap: Spacing.xs };
 const faqQuestionStyle = { fontSize: FontSize.xl, fontWeight: '500' as const };
-const faqAnswerStyle = { fontSize: FontSize.base, lineHeight: 20 };
+const faqAnswerStyle = { fontSize: FontSize.base, lineHeight: LineHeight.base };
 
 function HelpItem({ icon, label, description, onPress, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
