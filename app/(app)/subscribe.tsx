@@ -50,7 +50,7 @@ export default function SubscribeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
-        <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.3)' }} />
+        <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: colors.separator }} />
       </View>
       <ScrollView
         style={{ flex: 1 }}

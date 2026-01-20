@@ -2,8 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { DynamicColorIOS } from 'react-native';
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useTabBadges } from '@/hooks/use-tab-badges';
 
 export const unstable_settings = { initialRouteName: '(home)' };
@@ -14,8 +13,7 @@ const Badge = NativeTabs.Trigger.Badge;
 const VectorIcon = NativeTabs.Trigger.VectorIcon;
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const badges = useTabBadges();
 
   const dynamicColor =

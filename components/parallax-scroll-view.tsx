@@ -2,16 +2,15 @@ import type { PropsWithChildren, ReactElement } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollOffset } from 'react-native-reanimated';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { useReduceMotion } from '@/hooks/use-accessibility-settings';
-import { Colors } from '@/constants/theme';
 
 const H = 250;
 type Props = PropsWithChildren<{ headerImage: ReactElement; headerBackgroundColor: { dark: string; light: string } }>;
 
 export default function ParallaxScrollView({ children, headerImage, headerBackgroundColor }: Props) {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const reduceMotion = useReduceMotion();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollOffset(scrollRef);

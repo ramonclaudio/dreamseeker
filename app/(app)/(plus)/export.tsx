@@ -1,19 +1,17 @@
 import { View, ScrollView } from 'react-native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 
 export default function ExportScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 16 }}>
-        <View style={{ width: 36, height: 5, borderRadius: 3, marginBottom: 12, backgroundColor: 'rgba(128,128,128,0.3)' }} />
+        <View style={{ width: 36, height: 5, borderRadius: 3, marginBottom: 12, backgroundColor: colors.separator }} />
         <ThemedText variant="subtitle">Data Export</ThemedText>
       </View>
 

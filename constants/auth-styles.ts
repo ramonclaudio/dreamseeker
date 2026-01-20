@@ -1,12 +1,11 @@
 import { type TextStyle, type ViewStyle } from 'react-native';
 
-import { Colors, Radius } from './theme';
+import { type ColorPalette, Radius } from './theme';
 
-export function getErrorStyles(colorScheme: 'light' | 'dark'): { container: ViewStyle; text: TextStyle } {
-  const colors = Colors[colorScheme];
+export function getErrorStyles(colors: ColorPalette): { container: ViewStyle; text: TextStyle } {
   return {
     container: {
-      backgroundColor: colorScheme === 'light' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(248, 113, 113, 0.15)',
+      backgroundColor: colors.destructiveBackground,
       borderWidth: 1,
       borderColor: colors.destructive,
       borderRadius: Radius.md,

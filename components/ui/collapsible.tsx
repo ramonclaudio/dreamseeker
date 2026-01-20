@@ -3,13 +3,11 @@ import { TouchableOpacity, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   return (
     <View style={{ backgroundColor: colors.background }}>

@@ -10,13 +10,12 @@ import { Link, router } from 'expo-router';
 
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
-import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 
 export default function SignUpScreen() {
-  const colorScheme = useColorScheme();
   const colors = useColors();
 
   const [name, setName] = useState('');
@@ -153,8 +152,8 @@ export default function SignUpScreen() {
         </View>
 
         {error && (
-          <View style={getErrorStyles(colorScheme).container}>
-            <ThemedText style={getErrorStyles(colorScheme).text}>{error}</ThemedText>
+          <View style={getErrorStyles(colors).container}>
+            <ThemedText style={getErrorStyles(colors).text}>{error}</ThemedText>
           </View>
         )}
 

@@ -3,8 +3,8 @@ import { Linking, Pressable, ScrollView, View } from 'react-native';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius, type ColorPalette } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
 const dividerStyle = { height: 0.5, marginLeft: 50 };
@@ -17,7 +17,7 @@ function PrivacyItem({ icon, label, description, onPress, colors }: {
   label: string;
   description: string;
   onPress?: () => void;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   const content = (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
@@ -49,8 +49,7 @@ function PrivacyItem({ icon, label, description, onPress, colors }: {
 }
 
 export default function PrivacyScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   const handleOpenSettings = () => {
     Linking.openSettings();

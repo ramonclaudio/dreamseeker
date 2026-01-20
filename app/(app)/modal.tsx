@@ -4,10 +4,10 @@ import { Platform, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { type ColorPalette } from '@/constants/theme';
+import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 
-const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: typeof Colors.light }) => (
+const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: ColorPalette }) => (
   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 8 }}>
     <ThemedText variant="title">Modal</ThemedText>
     <ThemedText style={{ textAlign: 'center' }} color={colors.mutedForeground}>
@@ -21,7 +21,7 @@ const ModalContent = ({ isPresented, colors }: { isPresented: boolean; colors: t
 
 export default function ModalScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const isPresented = router.canGoBack();
 
   if (Platform.OS === 'android') {

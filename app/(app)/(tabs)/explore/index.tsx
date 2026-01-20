@@ -7,11 +7,10 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts, Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 
 export default function TabTwoScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   return (
     <ParallaxScrollView

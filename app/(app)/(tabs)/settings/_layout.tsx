@@ -1,11 +1,9 @@
 import { Stack } from 'expo-router';
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 
 export default function SettingsLayout() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   return (
     <Stack

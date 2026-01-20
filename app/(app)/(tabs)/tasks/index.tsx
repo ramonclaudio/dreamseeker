@@ -16,9 +16,9 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { UpgradeBanner } from '@/components/upgrade-banner';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
-import { Colors, Radius } from '@/constants/theme';
+import { Radius, type ColorPalette } from '@/constants/theme';
 import { haptics } from '@/lib/haptics';
 
 type Task = Doc<'tasks'>;
@@ -32,14 +32,13 @@ const TaskItem = memo(function TaskItem({
   task,
   onToggle,
   onDelete,
-  colorScheme,
+  colors,
 }: {
   task: Task;
   onToggle: () => void;
   onDelete: () => void;
-  colorScheme: 'light' | 'dark';
+  colors: ColorPalette;
 }) {
-  const colors = Colors[colorScheme];
 
   return (
     <GlassCard style={taskItemStyle}>
@@ -89,8 +88,7 @@ const TaskItem = memo(function TaskItem({
 });
 
 export default function TasksScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const [newTaskText, setNewTaskText] = useState('');
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { canCreateTask, canAccess, showUpgrade } = useSubscription();
@@ -133,11 +131,11 @@ export default function TasksScreen() {
   const renderItem: ListRenderItem<Task> = useCallback(({ item }) => (
     <TaskItem
       task={item}
-      colorScheme={colorScheme}
+      colors={colors}
       onToggle={() => handleToggleTask(item._id)}
       onDelete={() => handleDeleteTask(item._id)}
     />
-  ), [colorScheme, handleToggleTask, handleDeleteTask]);
+  ), [colors, handleToggleTask, handleDeleteTask]);
 
   const keyExtractor = useCallback((item: Task) => item._id, []);
 

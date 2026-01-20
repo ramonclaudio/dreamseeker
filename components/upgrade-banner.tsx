@@ -2,15 +2,14 @@ import { Pressable, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
 import { NEXT_TIER, TIERS } from '@/constants/subscriptions';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
 
 export function UpgradeBanner() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const { tier, taskLimit, tasksRemaining, showUpgrade } = useSubscription();
 
   if (tier === 'pro') return null;
