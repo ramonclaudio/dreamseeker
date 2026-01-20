@@ -36,7 +36,7 @@ export default function HistoryScreen() {
   const keyExtractor = useCallback((item: Task) => item._id, []);
 
   const ListHeader = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
       <View style={{ width: 60 }} />
       <Text style={[Typography.subtitle, { color: colors.text }]}>Task History</Text>
       <Pressable onPress={() => router.back()} hitSlop={8} style={{ width: 60, alignItems: 'flex-end' }}>

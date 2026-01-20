@@ -33,7 +33,7 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
           </Animated.View>
         )}
       </Animated.View>
-      <View style={{ flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 100, gap: 16, overflow: 'hidden', backgroundColor: colors.background }}>{children}</View>
+      <View style={{ flex: 1, paddingTop: 32, paddingHorizontal: 32, paddingBottom: 40, gap: 16, overflow: 'hidden', backgroundColor: colors.background }}>{children}</View>
     </Animated.ScrollView>
   );
 }
