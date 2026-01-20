@@ -3,8 +3,8 @@ import { Alert, Linking, Pressable, ScrollView, View } from 'react-native';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius, type ColorPalette } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
 const dividerStyle = { height: 0.5, marginLeft: 50 };
@@ -17,7 +17,7 @@ function HelpItem({ icon, label, description, onPress, colors }: {
   label: string;
   description: string;
   onPress?: () => void;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   return (
     <Pressable
@@ -41,7 +41,7 @@ function HelpItem({ icon, label, description, onPress, colors }: {
 function FAQItem({ question, answer, colors }: {
   question: string;
   answer: string;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   return (
     <View style={faqItemStyle}>
@@ -52,8 +52,7 @@ function FAQItem({ question, answer, colors }: {
 }
 
 export default function HelpScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
 
   const handleOpenGitHub = () => {
     Linking.openURL('https://github.com/ramonclaudio/expo-starter-app/issues');

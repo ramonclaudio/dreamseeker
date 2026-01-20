@@ -8,8 +8,8 @@ import { api } from '@/convex/_generated/api';
 import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius, type ColorPalette } from '@/constants/theme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
 
 const sectionStyle = { marginTop: 24, paddingHorizontal: 20, gap: 8 };
@@ -25,7 +25,7 @@ function SettingRow({ icon, label, description, children, colors }: {
   label: string;
   description?: string;
   children?: React.ReactNode;
-  colors: (typeof Colors)['light'];
+  colors: ColorPalette;
 }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
@@ -44,8 +44,7 @@ function SettingRow({ icon, label, description, children, colors }: {
 }
 
 export default function NotificationsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = useColors();
   const sendTestNotification = useAction(api.notifications.sendTestNotification);
 
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus>('undetermined');
