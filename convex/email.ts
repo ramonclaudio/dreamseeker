@@ -1,8 +1,7 @@
 import { Resend, vOnEmailEventArgs } from '@convex-dev/resend';
 import { components, internal } from './_generated/api';
-import { ActionCtx, internalMutation, internalAction } from './_generated/server';
-import { v } from 'convex/values';
-import { resetPasswordTemplate, emailVerificationTemplate, paymentFailedTemplate } from './email_templates';
+import { ActionCtx, internalMutation } from './_generated/server';
+import { resetPasswordTemplate, emailVerificationTemplate } from './email_templates';
 import { env } from './env';
 
 export const resend: Resend = new Resend(components.resend, {
@@ -48,17 +47,6 @@ export const sendResetPassword = async (ctx: ActionCtx, { to, url }: { to: strin
 export const sendEmailVerification = async (ctx: ActionCtx, { to, url }: { to: string; url: string }) => {
   await sendEmail(ctx, { to, subject: 'Verify your email address', html: emailVerificationTemplate(url), idempotencyKey: generateIdempotencyKey('email-verification', to) });
 };
-
-export const sendPaymentFailedEmail = async (ctx: ActionCtx, { to, portalUrl }: { to: string; portalUrl: string }) => {
-  await sendEmail(ctx, { to, subject: 'Action Required: Payment Failed', html: paymentFailedTemplate(portalUrl), idempotencyKey: generateIdempotencyKey('payment-failed', to) });
-};
-
-export const sendPaymentFailedEmailInternal = internalAction({
-  args: { to: v.string(), portalUrl: v.string() },
-  handler: async (ctx, args) => {
-    await sendPaymentFailedEmail(ctx, args);
-  },
-});
 
 export const handleEmailEvent = internalMutation({
   args: vOnEmailEventArgs,

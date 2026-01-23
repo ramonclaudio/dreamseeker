@@ -103,12 +103,6 @@ export default function HelpScreen() {
         <ThemedText style={{ fontSize: FontSize.md, fontWeight: '500', textTransform: 'uppercase', marginLeft: Spacing.xs, opacity: 0.6 }} color={colors.mutedForeground}>FAQ</ThemedText>
         <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <FAQItem
-            question="How do I upgrade my subscription?"
-            answer="Go to Settings → Subscription and tap Upgrade to see available plans."
-            colors={colors}
-          />
-          <View style={[dividerStyle, { backgroundColor: colors.border }]} />
-          <FAQItem
             question="How do I delete my account?"
             answer="Go to Settings → Delete Account. This will permanently remove all your data."
             colors={colors}
