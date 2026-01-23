@@ -14,7 +14,6 @@ import * as Notifications from 'expo-notifications';
 
 import { authClient } from '@/lib/auth-client';
 import { env } from '@/lib/env';
-import { StripeProvider } from '@/providers/stripe-provider';
 import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
 import { confettiRef } from '@/lib/confetti';
 import { usePushNotifications, useNotificationListeners, clearBadge, getInitialNotificationResponse } from '@/hooks/use-push-notifications';
@@ -48,9 +47,7 @@ export const unstable_settings = { initialRouteName: '(auth)' };
 export default function RootLayout() {
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-      <StripeProvider>
-        <RootNavigator />
-      </StripeProvider>
+      <RootNavigator />
     </ConvexBetterAuthProvider>
   );
 }

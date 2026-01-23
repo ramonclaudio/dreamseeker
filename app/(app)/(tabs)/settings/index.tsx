@@ -12,7 +12,6 @@ import { Radius, type ColorPalette } from '@/constants/theme';
 import { MaxWidth, Spacing, TouchTarget, FontSize, IconSize } from '@/constants/layout';
 import { Opacity, Shadow, Size } from '@/constants/ui';
 import { useColorScheme, useColors, useThemeMode, type ThemeMode } from '@/hooks/use-color-scheme';
-import { useSubscription } from '@/hooks/use-subscription';
 import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 
@@ -22,10 +21,6 @@ const sectionContentStyle = { borderRadius: Radius.lg, borderCurve: 'continuous'
 const settingsItemStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: Spacing.lg, minHeight: TouchTarget.min };
 const settingsItemLeftStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.md };
 const dividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
-const subscriptionContainerStyle = { padding: Spacing.lg, gap: Spacing.md };
-const subscriptionHeaderStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const };
-const subscriptionInfoStyle = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: Spacing.md };
-const buttonRowStyle = { flexDirection: 'row' as const, gap: Spacing.sm };
 
 function SettingsItem({ icon, label, onPress, destructive, showChevron = true, colors }: {
   icon: Parameters<typeof IconSymbol>[0]['name'];
@@ -163,153 +158,6 @@ function ThemePicker({ mode, onModeChange, colors }: {
   );
 }
 
-function SubscriptionSectionContent({ colors }: { colors: ColorPalette }) {
-  const {
-    tier,
-    tierName,
-    taskCount,
-    taskLimit,
-    subscription,
-    isActive,
-    isTrialing,
-    isCanceled,
-    isLoading,
-    loading,
-    showUpgrade,
-    manageBilling,
-    restore,
-  } = useSubscription();
-
-  const handleUpgrade = () => {
-    haptics.medium();
-    showUpgrade();
-  };
-
-  const handleManage = async () => {
-    haptics.light();
-    await manageBilling();
-  };
-
-  const handleRestore = async () => {
-    haptics.medium();
-    const result = await restore();
-    if (result.error) {
-      const message = result.error instanceof Error ? result.error.message : 'Unable to restore subscription. Please try again.';
-      Alert.alert('Restore Failed', message);
-    }
-  };
-
-  const subscriptionButtonStyle = { paddingVertical: Spacing.md, minHeight: TouchTarget.min, justifyContent: 'center' as const, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, marginTop: Spacing.xs };
-
-  if (isLoading) {
-    return (
-      <View style={subscriptionContainerStyle}>
-        <ActivityIndicator color={colors.mutedForeground} />
-      </View>
-    );
-  }
-
-  if (isActive) {
-    const periodEnd = subscription?.currentPeriodEnd
-      ? new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()
-      : null;
-    const isPro = tier === 'pro';
-
-    return (
-      <View style={subscriptionContainerStyle}>
-        <View style={subscriptionHeaderStyle}>
-          <View style={subscriptionInfoStyle}>
-            <IconSymbol name="star.fill" size={IconSize['2xl']} color={colors.primary} />
-            <ThemedText style={{ fontSize: FontSize.xl }}>
-              {isTrialing ? `${tierName} (Trial)` : `${tierName} Plan`}
-            </ThemedText>
-          </View>
-          <View style={{ paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderCurve: 'continuous', backgroundColor: colors.primary + '20' }}>
-            <ThemedText style={{ fontSize: FontSize.sm, fontWeight: '600' }} color={colors.primary}>Active</ThemedText>
-          </View>
-        </View>
-
-        {isCanceled ? (
-          <>
-            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-              Cancels on {periodEnd}
-            </ThemedText>
-            <Pressable
-              style={[subscriptionButtonStyle, { backgroundColor: colors.primary }]}
-              onPress={handleRestore}
-              disabled={loading}
-              accessibilityRole="button"
-              accessibilityLabel={loading ? 'Restoring subscription' : 'Restore subscription'}
-              accessibilityState={{ disabled: loading }}>
-              <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.primaryForeground}>
-                {loading ? 'Restoring...' : 'Restore Subscription'}
-              </ThemedText>
-            </Pressable>
-          </>
-        ) : (
-          <>
-            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-              {isTrialing ? `Trial ends ${periodEnd}` : `Renews ${periodEnd}`}
-            </ThemedText>
-            <View style={buttonRowStyle}>
-              {!isPro && (
-                <Pressable
-                  style={[subscriptionButtonStyle, { flex: 1, backgroundColor: colors.primary }]}
-                  onPress={handleUpgrade}
-                  accessibilityRole="button"
-                  accessibilityLabel="Upgrade subscription">
-                  <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.primaryForeground}>
-                    Upgrade
-                  </ThemedText>
-                </Pressable>
-              )}
-              <Pressable
-                style={[subscriptionButtonStyle, { flex: 1, borderColor: colors.border, borderWidth: 1 }]}
-                onPress={handleManage}
-                disabled={loading}
-                accessibilityRole="button"
-                accessibilityLabel={loading ? 'Loading billing' : 'Manage subscription'}
-                accessibilityState={{ disabled: loading }}>
-                <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }}>
-                  {loading ? 'Loading...' : 'Manage'}
-                </ThemedText>
-              </Pressable>
-            </View>
-          </>
-        )}
-      </View>
-    );
-  }
-
-  const usageText = taskLimit !== null
-    ? `${taskCount}/${taskLimit} tasks used`
-    : `${taskCount} tasks`;
-
-  return (
-    <View style={subscriptionContainerStyle}>
-      <View style={subscriptionHeaderStyle}>
-        <View style={subscriptionInfoStyle}>
-          <IconSymbol name="gift" size={IconSize['2xl']} color={colors.mutedForeground} />
-          <ThemedText style={{ fontSize: FontSize.xl }}>{tierName} Plan</ThemedText>
-        </View>
-      </View>
-      <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-        {usageText} · Upgrade for more features
-      </ThemedText>
-
-      <Pressable
-        style={[subscriptionButtonStyle, { backgroundColor: colors.primary }]}
-        onPress={handleUpgrade}
-        accessibilityRole="button"
-        accessibilityLabel="Upgrade to Pro">
-        <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.primaryForeground}>
-          Upgrade
-        </ThemedText>
-      </Pressable>
-    </View>
-  );
-}
-
 export default function SettingsScreen() {
   const colors = useColors();
   const { mode, setMode } = useThemeMode();
@@ -366,10 +214,6 @@ export default function SettingsScreen() {
       contentInsetAdjustmentBehavior="automatic">
       <SettingsSection title="Theme" colors={colors}>
         <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
-      </SettingsSection>
-
-      <SettingsSection title="Subscription" colors={colors}>
-        <SubscriptionSectionContent colors={colors} />
       </SettingsSection>
 
       <SettingsSection title="Preferences" colors={colors}>

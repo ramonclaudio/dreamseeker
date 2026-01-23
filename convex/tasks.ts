@@ -2,9 +2,6 @@ import { query, mutation, type QueryCtx, type MutationCtx } from './_generated/s
 import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
 import { authComponent } from './auth';
-import { components } from './_generated/api';
-import { type TierKey, TIER_LIMITS } from './schema/tiers';
-import { getTierFromPriceId } from './subscriptions';
 
 const MAX_TASK_TEXT_LENGTH = 500;
 
@@ -21,12 +18,6 @@ const getOwnedTask = async (ctx: MutationCtx, id: Id<'tasks'>, userId: string) =
   if (!task) throw new Error('Task not found');
   if (task.userId !== userId) throw new Error('Forbidden');
   return task;
-};
-
-const getUserTier = async (ctx: MutationCtx, userId: string): Promise<TierKey> => {
-  const subscriptions = await ctx.runQuery(components.stripe.public.listSubscriptionsByUserId, { userId });
-  const active = subscriptions.find((sub) => sub.status === 'active' || sub.status === 'trialing');
-  return getTierFromPriceId(active?.priceId);
 };
 
 export const list = query({
@@ -55,14 +46,6 @@ export const create = mutation({
     const trimmedText = args.text.trim();
     if (trimmedText.length === 0) throw new Error('Task text cannot be empty');
     if (trimmedText.length > MAX_TASK_TEXT_LENGTH) throw new Error(`Task text cannot exceed ${MAX_TASK_TEXT_LENGTH} characters`);
-
-    const tierKey = await getUserTier(ctx, userId);
-    const taskLimit = TIER_LIMITS[tierKey];
-
-    if (taskLimit !== null) {
-      const existing = await ctx.db.query('tasks').withIndex('by_user', (q) => q.eq('userId', userId)).collect();
-      if (existing.length >= taskLimit) throw new Error('LIMIT_REACHED');
-    }
 
     return await ctx.db.insert('tasks', { userId, text: trimmedText, isCompleted: false, createdAt: Date.now() });
   },

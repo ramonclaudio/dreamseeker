@@ -29,14 +29,3 @@ export const emailVerificationTemplate = (url: string): string => `
   <p style="${baseStyles.small}">Or copy this link: ${url}</p>
 </div>
 `;
-
-export const paymentFailedTemplate = (portalUrl: string): string => `
-<div style="${baseStyles.container}">
-  <h2>Payment Failed</h2>
-  <p>We were unable to process your subscription payment. Please update your payment method to avoid service interruption.</p>
-  <a href="${portalUrl}" style="${baseStyles.button}">
-    Update Payment Method
-  </a>
-  <p style="${baseStyles.muted}">If you believe this is an error or need assistance, please contact support.</p>
-</div>
-`;

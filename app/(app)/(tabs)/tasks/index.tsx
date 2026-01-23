@@ -9,19 +9,15 @@ import {
   type ListRenderItem,
 } from 'react-native';
 import { useQuery, useMutation, useConvexAuth } from 'convex/react';
-import { router } from 'expo-router';
 
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { GlassControl } from '@/components/ui/glass-control';
 import { MaterialCard } from '@/components/ui/material-card';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useColors } from '@/hooks/use-color-scheme';
-import { useSubscription } from '@/hooks/use-subscription';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { Spacing, TouchTarget, FontSize, HitSlop, MaxWidth, IconSize } from '@/constants/layout';
+import { Spacing, TouchTarget, FontSize, HitSlop, MaxWidth } from '@/constants/layout';
 import { Opacity, Size, Keyboard } from '@/constants/ui';
 import { haptics } from '@/lib/haptics';
 
@@ -97,7 +93,6 @@ export default function TasksScreen() {
   const colors = useColors();
   const [newTaskText, setNewTaskText] = useState('');
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const { canCreateTask, canAccess, showUpgrade } = useSubscription();
 
   const tasks = useQuery(api.tasks.list, isAuthenticated ? {} : 'skip');
   const createTask = useMutation(api.tasks.create);
@@ -106,21 +101,13 @@ export default function TasksScreen() {
 
   const handleAddTask = async () => {
     if (!newTaskText.trim()) return;
-    if (!canCreateTask) {
-      haptics.warning();
-      showUpgrade();
-      return;
-    }
 
     haptics.medium();
     try {
       await createTask({ text: newTaskText.trim() });
       setNewTaskText('');
     } catch (error) {
-      if (error instanceof Error && error.message === 'LIMIT_REACHED') {
-        haptics.warning();
-        showUpgrade();
-      }
+      console.error('Failed to create task:', error);
     }
   };
 
@@ -159,23 +146,7 @@ export default function TasksScreen() {
         <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </ThemedText>
-        {canAccess('starter') && (
-          <Pressable
-            onPress={() => {
-              haptics.light();
-              router.push('/history');
-            }}
-            style={({ pressed }) => [{ padding: HitSlop.md, minWidth: TouchTarget.min, minHeight: TouchTarget.min, justifyContent: 'center', alignItems: 'center' }, { opacity: pressed ? Opacity.pressed : 1 }]}
-            accessibilityRole="button"
-            accessibilityLabel="View completed tasks history"
-            accessibilityHint="Opens a list of your completed tasks"
-          >
-            <IconSymbol name="clock.arrow.circlepath" size={IconSize['3xl']} color={colors.mutedForeground} />
-          </Pressable>
-        )}
       </View>
-
-      <UpgradeBanner />
 
       <View style={{ flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg }}>
         <MaterialCard style={{ flex: 1 }}>

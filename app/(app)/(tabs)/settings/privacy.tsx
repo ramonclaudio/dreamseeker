@@ -102,13 +102,6 @@ export default function PrivacyScreen() {
             description="Your tasks and completion history"
             colors={colors}
           />
-          <View style={[dividerStyle, { backgroundColor: colors.border }]} />
-          <PrivacyItem
-            icon="creditcard.fill"
-            label="Payment Data"
-            description="Handled securely by Stripe"
-            colors={colors}
-          />
         </MaterialCard>
       </View>
 

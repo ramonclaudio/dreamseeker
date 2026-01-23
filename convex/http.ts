@@ -1,54 +1,12 @@
 import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
-import { components, internal } from './_generated/api';
-import { registerRoutes as registerStripeRoutes } from '@convex-dev/stripe';
-import { StripeSubscriptions } from '@convex-dev/stripe';
 import { authComponent, createAuth } from './auth';
 import { resend } from './email';
 import { env } from './env';
-import type Stripe from 'stripe';
 
 const http = httpRouter();
-const stripeClient = new StripeSubscriptions(components.stripe, {});
 
 authComponent.registerRoutes(http, createAuth, { cors: true });
-
-registerStripeRoutes(http, components.stripe, {
-  events: {
-    'invoice.payment_failed': async (ctx, event: Stripe.InvoicePaymentFailedEvent) => {
-      const invoice = event.data.object;
-      const customerEmail = invoice.customer_email;
-      const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
-
-      if (!customerEmail || !customerId) {
-        console.error('[Stripe] Payment failed but no customer email found:', invoice.id);
-        return;
-      }
-
-      console.log('[Stripe] Payment failed for customer:', customerId, 'email:', customerEmail);
-
-      try {
-        const portalSession = await stripeClient.createCustomerPortalSession(ctx, {
-          customerId,
-          returnUrl: env.siteUrl,
-        });
-
-        if (portalSession?.url) {
-          await ctx.runAction(internal.email.sendPaymentFailedEmailInternal, {
-            to: customerEmail,
-            portalUrl: portalSession.url,
-          });
-          console.log('[Stripe] Payment failed email sent to:', customerEmail);
-        }
-      } catch (error) {
-        console.error('[Stripe] Failed to send payment failed email:', error);
-      }
-    },
-  },
-  onEvent: async (_ctx, event: Stripe.Event) => {
-    console.log('[Stripe] Webhook event:', event.type);
-  },
-});
 
 http.route({
   path: '/resend-webhook',
@@ -114,7 +72,6 @@ const privacyContent = `
 <h2>Third-Party Services</h2>
 <p>We use the following third-party services:</p>
 <ul>
-  <li><strong>Stripe:</strong> For payment processing</li>
   <li><strong>Resend:</strong> For email delivery</li>
   <li><strong>Expo:</strong> For push notifications</li>
   <li><strong>Apple:</strong> For Sign in with Apple</li>
@@ -158,15 +115,6 @@ const termsContent = `
   <li>Attempt to gain unauthorized access</li>
   <li>Use the service for any illegal purpose</li>
 </ul>
-
-<h2>Subscriptions and Payments</h2>
-<p>Some features require a paid subscription. By subscribing, you agree to:</p>
-<ul>
-  <li>Pay all applicable fees</li>
-  <li>Provide accurate billing information</li>
-  <li>Authorize recurring charges until cancelled</li>
-</ul>
-<p>Subscriptions renew automatically unless cancelled before the renewal date. Refunds are handled according to applicable app store policies.</p>
 
 <h2>Intellectual Property</h2>
 <p>The service and its content are protected by copyright, trademark, and other laws. You may not reproduce, modify, or distribute any content without permission.</p>
