@@ -1,20 +1,35 @@
-import type { PropsWithChildren, ReactElement } from 'react';
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { BlurView } from 'expo-blur';
-import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollOffset } from 'react-native-reanimated';
-import { useColorScheme, useColors } from '@/hooks/use-color-scheme';
-import { useReduceMotion } from '@/hooks/use-accessibility-settings';
-import { Spacing, MaxWidth } from '@/constants/layout';
-import { Responsive } from '@/constants/ui';
+import type { PropsWithChildren, ReactElement } from "react";
+import { ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { BlurView } from "expo-blur";
+import Animated, {
+  interpolate,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useScrollOffset,
+} from "react-native-reanimated";
+import { useColorScheme, useColors } from "@/hooks/use-color-scheme";
+import { useReduceMotion } from "@/hooks/use-accessibility-settings";
+import { Spacing, MaxWidth } from "@/constants/layout";
+import { Responsive } from "@/constants/ui";
 
 // Responsive header height: 25% of screen, clamped 200-300
 function useHeaderHeight() {
   const { height } = useWindowDimensions();
-  return Math.min(Responsive.header.maxHeight, Math.max(Responsive.header.minHeight, height * Responsive.header.screenRatio));
+  return Math.min(
+    Responsive.header.maxHeight,
+    Math.max(Responsive.header.minHeight, height * Responsive.header.screenRatio),
+  );
 }
-type Props = PropsWithChildren<{ headerImage: ReactElement; headerBackgroundColor: { dark: string; light: string } }>;
+type Props = PropsWithChildren<{
+  headerImage: ReactElement;
+  headerBackgroundColor: { dark: string; light: string };
+}>;
 
-export default function ParallaxScrollView({ children, headerImage, headerBackgroundColor }: Props) {
+export default function ParallaxScrollView({
+  children,
+  headerImage,
+  headerBackgroundColor,
+}: Props) {
   const colorScheme = useColorScheme();
   const colors = useColors();
   const reduceMotion = useReduceMotion();
@@ -43,39 +58,66 @@ export default function ParallaxScrollView({ children, headerImage, headerBackgr
 
   const contentStyle = {
     flex: 1,
-    paddingTop: Spacing['3xl'],
-    paddingHorizontal: Spacing['3xl'],
-    paddingBottom: Spacing['4xl'],
+    paddingTop: Spacing["3xl"],
+    paddingHorizontal: Spacing["3xl"],
+    paddingBottom: Spacing["4xl"],
     gap: Spacing.lg,
-    overflow: 'hidden' as const,
+    overflow: "hidden" as const,
     backgroundColor: colors.background,
     maxWidth: MaxWidth.wide,
-    alignSelf: 'center' as const,
-    width: '100%' as const,
+    alignSelf: "center" as const,
+    width: "100%" as const,
   };
 
   if (reduceMotion) {
     return (
-      <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentInsetAdjustmentBehavior="automatic">
-        <View style={[{ height: H, overflow: 'hidden' }, { backgroundColor: headerBackgroundColor[colorScheme] }]}>
+      <ScrollView
+        style={{ backgroundColor: colors.background, flex: 1 }}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <View
+          style={[
+            { height: H, overflow: "hidden" },
+            { backgroundColor: headerBackgroundColor[colorScheme] },
+          ]}
+        >
           {headerImage}
         </View>
-        <View style={contentStyle}>{children}</View>
+        <View collapsable={false} style={contentStyle}>
+          {children}
+        </View>
       </ScrollView>
     );
   }
 
   return (
-    <Animated.ScrollView ref={scrollRef} style={{ backgroundColor: colors.background, flex: 1 }} scrollEventThrottle={16} contentInsetAdjustmentBehavior="automatic">
-      <Animated.View style={[{ height: H, overflow: 'hidden' }, { backgroundColor: headerBackgroundColor[colorScheme] }, headerStyle]}>
+    <Animated.ScrollView
+      ref={scrollRef}
+      style={{ backgroundColor: colors.background, flex: 1 }}
+      scrollEventThrottle={16}
+      contentInsetAdjustmentBehavior="automatic"
+    >
+      <Animated.View
+        style={[
+          { height: H, overflow: "hidden" },
+          { backgroundColor: headerBackgroundColor[colorScheme] },
+          headerStyle,
+        ]}
+      >
         {headerImage}
-        {process.env.EXPO_OS !== 'android' && (
+        {process.env.EXPO_OS !== "android" && (
           <Animated.View style={[StyleSheet.absoluteFillObject, blurStyle]}>
-            <BlurView intensity={60} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            <BlurView
+              intensity={60}
+              tint={colorScheme === "dark" ? "dark" : "light"}
+              style={StyleSheet.absoluteFill}
+            />
           </Animated.View>
         )}
       </Animated.View>
-      <View style={contentStyle}>{children}</View>
+      <View collapsable={false} style={contentStyle}>
+        {children}
+      </View>
     </Animated.ScrollView>
   );
 }
