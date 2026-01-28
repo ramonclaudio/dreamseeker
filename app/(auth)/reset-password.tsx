@@ -1,26 +1,19 @@
-import { useState } from 'react';
-import {
-  View,
-  TextInput,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from "react";
+import { View, TextInput, Pressable, KeyboardAvoidingView, ScrollView } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 
-import { authClient } from '@/lib/auth-client';
-import { haptics } from '@/lib/haptics';
-import { useColors } from '@/hooks/use-color-scheme';
-import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
-import { ThemedText } from '@/components/ui/themed-text';
+import { authClient } from "@/lib/auth-client";
+import { haptics } from "@/lib/haptics";
+import { useColors } from "@/hooks/use-color-scheme";
+import { authStyles as styles, getErrorStyles } from "@/constants/auth-styles";
+import { ThemedText } from "@/components/ui/themed-text";
 
 export default function ResetPasswordScreen() {
   const colors = useColors();
   const { token } = useLocalSearchParams<{ token: string }>();
 
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,25 +24,25 @@ export default function ResetPasswordScreen() {
 
     if (!password || !confirmPassword) {
       haptics.error();
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
     if (password.length < 8) {
       haptics.error();
-      setError('Password must be at least 8 characters');
+      setError("Password must be at least 8 characters");
       return;
     }
 
     if (password !== confirmPassword) {
       haptics.error();
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (!token) {
       haptics.error();
-      setError('Invalid reset link. Please request a new one.');
+      setError("Invalid reset link. Please request a new one.");
       return;
     }
 
@@ -62,9 +55,12 @@ export default function ResetPasswordScreen() {
 
       if (response.error) {
         haptics.error();
-        const message = response.error.message ?? 'Failed to reset password';
-        if (message.toLowerCase().includes('expired') || message.toLowerCase().includes('invalid')) {
-          setError('This reset link has expired. Please request a new one.');
+        const message = response.error.message ?? "Failed to reset password";
+        if (
+          message.toLowerCase().includes("expired") ||
+          message.toLowerCase().includes("invalid")
+        ) {
+          setError("This reset link has expired. Please request a new one.");
         } else {
           setError(message);
         }
@@ -74,7 +70,7 @@ export default function ResetPasswordScreen() {
       }
     } catch {
       haptics.error();
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -90,10 +86,13 @@ export default function ResetPasswordScreen() {
           </ThemedText>
           <Pressable
             style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={() => router.replace('/sign-in')}
+            onPress={() => router.replace("/sign-in")}
             accessibilityRole="button"
-            accessibilityLabel="Sign in">
-            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>Sign In</ThemedText>
+            accessibilityLabel="Sign in"
+          >
+            <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
+              Sign In
+            </ThemedText>
           </Pressable>
         </View>
       </View>
@@ -102,12 +101,14 @@ export default function ResetPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}>
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        contentInsetAdjustmentBehavior="automatic">
+        contentInsetAdjustmentBehavior="automatic"
+      >
         <View style={styles.header}>
           <ThemedText variant="title">Reset password</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
@@ -117,7 +118,9 @@ export default function ResetPasswordScreen() {
 
         {error && (
           <View style={getErrorStyles(colors).container}>
-            <ThemedText style={getErrorStyles(colors).text}>{error}</ThemedText>
+            <ThemedText selectable style={getErrorStyles(colors).text}>
+              {error}
+            </ThemedText>
           </View>
         )}
 
@@ -183,10 +186,11 @@ export default function ResetPasswordScreen() {
             onPress={handleResetPassword}
             disabled={isLoading}
             accessibilityRole="button"
-            accessibilityLabel={isLoading ? 'Resetting password' : 'Reset password'}
-            accessibilityState={{ disabled: isLoading }}>
+            accessibilityLabel={isLoading ? "Resetting password" : "Reset password"}
+            accessibilityState={{ disabled: isLoading }}
+          >
             <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
-              {isLoading ? 'Resetting...' : 'Reset Password'}
+              {isLoading ? "Resetting..." : "Reset Password"}
             </ThemedText>
           </Pressable>
         </View>

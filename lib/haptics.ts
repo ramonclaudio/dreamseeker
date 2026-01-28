@@ -1,7 +1,6 @@
-import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
+import * as Haptics from "expo-haptics";
 
-const supported = Platform.OS === 'ios' || Platform.OS === 'android';
+const supported = process.env.EXPO_OS === "ios";
 
 export const haptics = {
   selection: () => supported && Haptics.selectionAsync(),
