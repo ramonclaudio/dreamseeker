@@ -1,10 +1,9 @@
-import { Platform } from 'react-native';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import { useAppleAuth } from '@/hooks/use-apple-auth';
-import { haptics } from '@/lib/haptics';
-import { Size } from '@/constants/ui';
-import { Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import * as AppleAuthentication from "expo-apple-authentication";
+import { useAppleAuth } from "@/hooks/use-apple-auth";
+import { haptics } from "@/lib/haptics";
+import { Size } from "@/constants/ui";
+import { Radius } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 type Props = {
   onSuccess?: () => void;
@@ -15,7 +14,7 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
   const colorScheme = useColorScheme();
   const { isAvailable, isLoading, signInWithApple } = useAppleAuth();
 
-  if (Platform.OS !== 'ios' || !isAvailable) {
+  if (process.env.EXPO_OS !== "ios" || !isAvailable) {
     return null;
   }
 
@@ -26,7 +25,7 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
     if (result.success) {
       haptics.success();
       onSuccess?.();
-    } else if (result.error && result.error !== 'Cancelled') {
+    } else if (result.error && result.error !== "Cancelled") {
       haptics.error();
       onError?.(result.error);
     }
@@ -36,12 +35,12 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
     <AppleAuthentication.AppleAuthenticationButton
       buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
       buttonStyle={
-        colorScheme === 'dark'
+        colorScheme === "dark"
           ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
           : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
       }
       cornerRadius={Radius.lg}
-      style={[{ width: '100%', height: Size.appleButton }, isLoading && { opacity: 0.7 }]}
+      style={[{ width: "100%", height: Size.appleButton }, isLoading && { opacity: 0.7 }]}
       onPress={handlePress}
     />
   );

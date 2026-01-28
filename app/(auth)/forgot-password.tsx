@@ -1,25 +1,18 @@
-import { useState } from 'react';
-import {
-  View,
-  TextInput,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import { Link, router } from 'expo-router';
+import { useState } from "react";
+import { View, TextInput, Pressable, KeyboardAvoidingView, ScrollView } from "react-native";
+import { Link, router } from "expo-router";
 
-import { authClient } from '@/lib/auth-client';
-import { haptics } from '@/lib/haptics';
-import { env } from '@/lib/env';
-import { useColors } from '@/hooks/use-color-scheme';
-import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
-import { ThemedText } from '@/components/ui/themed-text';
+import { authClient } from "@/lib/auth-client";
+import { haptics } from "@/lib/haptics";
+import { env } from "@/lib/env";
+import { useColors } from "@/hooks/use-color-scheme";
+import { authStyles as styles, getErrorStyles } from "@/constants/auth-styles";
+import { ThemedText } from "@/components/ui/themed-text";
 
 export default function ForgotPasswordScreen() {
   const colors = useColors();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +23,7 @@ export default function ForgotPasswordScreen() {
 
     if (!email.trim()) {
       haptics.error();
-      setError('Please enter your email address');
+      setError("Please enter your email address");
       return;
     }
 
@@ -43,14 +36,14 @@ export default function ForgotPasswordScreen() {
 
       if (response.error) {
         haptics.error();
-        setError(response.error.message ?? 'Failed to send reset email');
+        setError(response.error.message ?? "Failed to send reset email");
       } else {
         haptics.success();
         setIsSubmitted(true);
       }
     } catch {
       haptics.error();
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -69,9 +62,10 @@ export default function ForgotPasswordScreen() {
           </ThemedText>
           <Pressable
             style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={() => router.replace('/sign-in')}
+            onPress={() => router.replace("/sign-in")}
             accessibilityRole="button"
-            accessibilityLabel="Back to sign in">
+            accessibilityLabel="Back to sign in"
+          >
             <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
               Back to Sign In
             </ThemedText>
@@ -83,12 +77,14 @@ export default function ForgotPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}>
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        contentInsetAdjustmentBehavior="automatic">
+        contentInsetAdjustmentBehavior="automatic"
+      >
         <View style={styles.header}>
           <ThemedText variant="title">Forgot password?</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
@@ -98,7 +94,9 @@ export default function ForgotPasswordScreen() {
 
         {error && (
           <View style={getErrorStyles(colors).container}>
-            <ThemedText style={getErrorStyles(colors).text}>{error}</ThemedText>
+            <ThemedText selectable style={getErrorStyles(colors).text}>
+              {error}
+            </ThemedText>
           </View>
         )}
 
@@ -140,20 +138,26 @@ export default function ForgotPasswordScreen() {
             onPress={handleForgotPassword}
             disabled={isLoading}
             accessibilityRole="button"
-            accessibilityLabel={isLoading ? 'Sending reset link' : 'Send reset link'}
-            accessibilityState={{ disabled: isLoading }}>
+            accessibilityLabel={isLoading ? "Sending reset link" : "Send reset link"}
+            accessibilityState={{ disabled: isLoading }}
+          >
             <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
-              {isLoading ? 'Sending...' : 'Send Reset Link'}
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </ThemedText>
           </Pressable>
         </View>
 
         <View style={styles.footer}>
           <ThemedText style={styles.footerText} color={colors.mutedForeground}>
-            Remember your password?{' '}
+            Remember your password?{" "}
           </ThemedText>
           <Link href="/sign-in" asChild>
-            <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Sign in" accessibilityHint="Go back to sign in screen">
+            <Pressable
+              style={styles.linkTouchTarget}
+              accessibilityRole="link"
+              accessibilityLabel="Sign in"
+              accessibilityHint="Go back to sign in screen"
+            >
               <ThemedText style={styles.linkText}>Sign In</ThemedText>
             </Pressable>
           </Link>

@@ -1,25 +1,19 @@
-import { useState } from 'react';
-import {
-  View,
-  TextInput,
-  Pressable,
-  KeyboardAvoidingView,
-  ScrollView,
-} from 'react-native';
-import { Link } from 'expo-router';
+import { useState } from "react";
+import { View, TextInput, Pressable, KeyboardAvoidingView, ScrollView } from "react-native";
+import { Link } from "expo-router";
 
-import { authClient, signInWithUsername } from '@/lib/auth-client';
-import { haptics } from '@/lib/haptics';
-import { useColors } from '@/hooks/use-color-scheme';
-import { authStyles as styles, getErrorStyles } from '@/constants/auth-styles';
-import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
-import { ThemedText } from '@/components/ui/themed-text';
+import { authClient, signInWithUsername } from "@/lib/auth-client";
+import { haptics } from "@/lib/haptics";
+import { useColors } from "@/hooks/use-color-scheme";
+import { authStyles as styles, getErrorStyles } from "@/constants/auth-styles";
+import { AppleSignInButton } from "@/components/ui/apple-sign-in-button";
+import { ThemedText } from "@/components/ui/themed-text";
 
 export default function SignInScreen() {
   const colors = useColors();
 
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,26 +24,26 @@ export default function SignInScreen() {
     const trimmed = identifier.trim();
     if (!trimmed || !password) {
       haptics.error();
-      setError('Please enter email/username and password');
+      setError("Please enter email/username and password");
       return;
     }
 
     setIsLoading(true);
     try {
-      const isEmail = trimmed.includes('@');
+      const isEmail = trimmed.includes("@");
       const response = isEmail
         ? await authClient.signIn.email({ email: trimmed, password })
         : await signInWithUsername({ username: trimmed.toLowerCase(), password });
 
       if (response.error) {
         haptics.error();
-        setError('Invalid email/username or password');
+        setError("Invalid email/username or password");
       } else {
         haptics.success();
       }
     } catch {
       haptics.error();
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -57,12 +51,14 @@ export default function SignInScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}>
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        contentInsetAdjustmentBehavior="automatic">
+        contentInsetAdjustmentBehavior="automatic"
+      >
         <View style={styles.header}>
           <ThemedText variant="title">Welcome back</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
@@ -72,7 +68,9 @@ export default function SignInScreen() {
 
         {error && (
           <View style={getErrorStyles(colors).container}>
-            <ThemedText style={getErrorStyles(colors).text}>{error}</ThemedText>
+            <ThemedText selectable style={getErrorStyles(colors).text}>
+              {error}
+            </ThemedText>
           </View>
         )}
 
@@ -107,7 +105,12 @@ export default function SignInScreen() {
             <View style={styles.passwordHeader}>
               <ThemedText style={styles.label}>Password</ThemedText>
               <Link href="/forgot-password" asChild>
-                <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Forgot password" accessibilityHint="Navigate to password reset">
+                <Pressable
+                  style={styles.linkTouchTarget}
+                  accessibilityRole="link"
+                  accessibilityLabel="Forgot password"
+                  accessibilityHint="Navigate to password reset"
+                >
                   <ThemedText style={styles.forgotText}>Forgot password?</ThemedText>
                 </Pressable>
               </Link>
@@ -146,16 +149,19 @@ export default function SignInScreen() {
             onPress={handleSignIn}
             disabled={isLoading}
             accessibilityRole="button"
-            accessibilityLabel={isLoading ? 'Signing in' : 'Sign in'}
-            accessibilityState={{ disabled: isLoading }}>
+            accessibilityLabel={isLoading ? "Signing in" : "Sign in"}
+            accessibilityState={{ disabled: isLoading }}
+          >
             <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? "Signing in..." : "Sign In"}
             </ThemedText>
           </Pressable>
 
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <ThemedText style={styles.dividerText} color={colors.mutedForeground}>or</ThemedText>
+            <ThemedText style={styles.dividerText} color={colors.mutedForeground}>
+              or
+            </ThemedText>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
@@ -164,10 +170,15 @@ export default function SignInScreen() {
 
         <View style={styles.footer}>
           <ThemedText style={styles.footerText} color={colors.mutedForeground}>
-            Don&apos;t have an account?{' '}
+            Don&apos;t have an account?{" "}
           </ThemedText>
           <Link href="/sign-up" asChild>
-            <Pressable style={styles.linkTouchTarget} accessibilityRole="link" accessibilityLabel="Sign up" accessibilityHint="Go to create account screen">
+            <Pressable
+              style={styles.linkTouchTarget}
+              accessibilityRole="link"
+              accessibilityLabel="Sign up"
+              accessibilityHint="Go to create account screen"
+            >
               <ThemedText style={styles.linkText}>Sign Up</ThemedText>
             </Pressable>
           </Link>

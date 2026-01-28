@@ -1,21 +1,24 @@
-import { Image } from 'expo-image';
-import { Platform, View, useWindowDimensions } from 'react-native';
+import { Image } from "expo-image";
+import { View, useWindowDimensions } from "react-native";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ThemedText } from '@/components/ui/themed-text';
-import { Fonts, Colors } from '@/constants/theme';
-import { useColors } from '@/hooks/use-color-scheme';
-import { Spacing } from '@/constants/layout';
-import { Responsive } from '@/constants/ui';
+import { Collapsible } from "@/components/ui/collapsible";
+import { ExternalLink } from "@/components/external-link";
+import ParallaxScrollView from "@/components/parallax-scroll-view";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ThemedText } from "@/components/ui/themed-text";
+import { Fonts, Colors } from "@/constants/theme";
+import { useColors } from "@/hooks/use-color-scheme";
+import { Spacing } from "@/constants/layout";
+import { Responsive } from "@/constants/ui";
 
 export default function TabTwoScreen() {
   const colors = useColors();
   const { width } = useWindowDimensions();
   // Responsive icon: scale based on screen width, min 250, max 350
-  const iconSize = Math.min(Responsive.exploreIcon.maxSize, Math.max(Responsive.exploreIcon.minSize, width * Responsive.exploreIcon.screenRatio));
+  const iconSize = Math.min(
+    Responsive.exploreIcon.maxSize,
+    Math.max(Responsive.exploreIcon.minSize, width * Responsive.exploreIcon.screenRatio),
+  );
   // Offset scales proportionally
   const bottomOffset = -(iconSize * Responsive.exploreIcon.offsetBottomRatio);
   const leftOffset = -(iconSize * Responsive.exploreIcon.offsetLeftRatio);
@@ -28,10 +31,11 @@ export default function TabTwoScreen() {
           size={iconSize}
           color={colors.mutedForeground}
           name="chevron.left.forwardslash.chevron.right"
-          style={{ bottom: bottomOffset, left: leftOffset, position: 'absolute' }}
+          style={{ bottom: bottomOffset, left: leftOffset, position: "absolute" }}
         />
-      }>
-      <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+      }
+    >
+      <View style={{ flexDirection: "row", gap: Spacing.sm }}>
         <ThemedText variant="title" style={{ fontFamily: Fonts.rounded }}>
           Explore
         </ThemedText>
@@ -39,67 +43,76 @@ export default function TabTwoScreen() {
       <ThemedText>This app includes example code to help you get started.</ThemedText>
       <Collapsible title="File-based routing">
         <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText variant="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
+          This app has two screens:{" "}
+          <ThemedText variant="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{" "}
           <ThemedText variant="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
         </ThemedText>
         <ThemedText>
-          The layout file in <ThemedText variant="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
+          The layout file in{" "}
+          <ThemedText variant="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText> sets up the tab
+          navigator.
         </ThemedText>
         <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
+          <ThemedText variant="link" color={colors.mutedForeground}>
+            Learn more
+          </ThemedText>
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Android, iOS, and web support">
         <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
+          You can open this project on Android, iOS, and the web. To open the web version, press{" "}
           <ThemedText variant="defaultSemiBold">w</ThemedText> in the terminal running this project.
         </ThemedText>
       </Collapsible>
       <Collapsible title="Images">
         <ThemedText>
-          For static images, you can use the <ThemedText variant="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText variant="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
+          For static images, you can use the <ThemedText variant="defaultSemiBold">@2x</ThemedText>{" "}
+          and <ThemedText variant="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
           different screen densities
         </ThemedText>
         <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: Responsive.reactLogo.size, height: Responsive.reactLogo.size, alignSelf: 'center' }}
+          source={require("@/assets/images/react-logo.png")}
+          style={{
+            width: Responsive.reactLogo.size,
+            height: Responsive.reactLogo.size,
+            alignSelf: "center",
+          }}
           contentFit="contain"
         />
         <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
+          <ThemedText variant="link" color={colors.mutedForeground}>
+            Learn more
+          </ThemedText>
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Light and dark mode components">
         <ThemedText>
-          This template has light and dark mode support. The{' '}
+          This template has light and dark mode support. The{" "}
           <ThemedText variant="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
           what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
         </ThemedText>
         <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText variant="link" color={colors.mutedForeground}>Learn more</ThemedText>
+          <ThemedText variant="link" color={colors.mutedForeground}>
+            Learn more
+          </ThemedText>
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Animations">
         <ThemedText>
-          This template includes an example of an animated component. The{' '}
+          This template includes an example of an animated component. The{" "}
           <ThemedText variant="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
+          the powerful{" "}
           <ThemedText variant="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
             react-native-reanimated
-          </ThemedText>{' '}
+          </ThemedText>{" "}
           library to create a waving hand animation.
         </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText variant="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
+        {process.env.EXPO_OS === "ios" && (
+          <ThemedText>
+            The <ThemedText variant="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{" "}
+            component provides a parallax effect for the header image.
+          </ThemedText>
+        )}
       </Collapsible>
     </ParallaxScrollView>
   );
