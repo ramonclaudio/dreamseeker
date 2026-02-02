@@ -28,9 +28,9 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    if (password.length < 8) {
+    if (password.length < 10) {
       haptics.error();
-      setError("Password must be at least 8 characters");
+      setError("Password must be at least 10 characters");
       return;
     }
 
@@ -136,7 +136,7 @@ export default function ResetPasswordScreen() {
                   borderColor: error ? colors.destructive : colors.border,
                 },
               ]}
-              placeholder="At least 8 characters"
+              placeholder="At least 10 characters"
               placeholderTextColor={colors.mutedForeground}
               value={password}
               onChangeText={(text) => {
@@ -146,7 +146,7 @@ export default function ResetPasswordScreen() {
               secureTextEntry
               autoComplete="password-new"
               accessibilityLabel="New password"
-              accessibilityHint="Create a new password with at least 8 characters"
+              accessibilityHint="Create a new password with at least 10 characters"
             />
           </View>
 
