@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { AccessibilityInfo, Platform } from "react-native";
+import { useState, useEffect } from "react";
+import { AccessibilityInfo } from "react-native";
 
 export interface AccessibilitySettings {
   reduceMotion: boolean;

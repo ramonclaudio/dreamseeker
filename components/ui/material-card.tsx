@@ -1,31 +1,10 @@
-import { useState, useEffect } from "react";
-import { View, type ViewProps, AccessibilityInfo, StyleSheet } from "react-native";
+import { View, type ViewProps, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 
 import { Radius } from "@/constants/theme";
 import { Material, type MaterialLevel } from "@/constants/ui";
 import { useColors } from "@/hooks/use-color-scheme";
-
-/**
- * Hook to detect iOS Reduce Transparency accessibility setting.
- * Falls back to solid views when enabled (HIG compliance).
- */
-function useReduceTransparency(): boolean {
-  const [reduceTransparency, setReduceTransparency] = useState(false);
-
-  useEffect(() => {
-    if (process.env.EXPO_OS !== "ios") return;
-
-    AccessibilityInfo.isReduceTransparencyEnabled().then(setReduceTransparency);
-    const subscription = AccessibilityInfo.addEventListener(
-      "reduceTransparencyChanged",
-      setReduceTransparency,
-    );
-    return () => subscription.remove();
-  }, []);
-
-  return reduceTransparency;
-}
+import { useReduceTransparency } from "@/hooks/use-accessibility-settings";
 
 const baseCardStyle = {
   borderRadius: Radius.lg,
