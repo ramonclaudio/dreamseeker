@@ -7,6 +7,7 @@ const crons = cronJobs();
 crons.interval('Remove old emails from the resend component', { hours: 1 }, internal.crons.cleanupResend);
 crons.interval('Check push notification receipts', { minutes: 15 }, internal.notifications.checkPushReceipts);
 crons.interval('Clean up old push receipts', { hours: 24 }, internal.notifications.cleanupOldReceipts);
+crons.interval('Clean up stale push tokens', { hours: 24 }, internal.notifications.cleanupStaleTokens);
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
