@@ -21,10 +21,19 @@ export const deleteAccount = mutation({
       .query('pushTokens')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
-    for (const token of pushTokens) await ctx.db.delete("pushTokens", token._id);
+    for (const token of pushTokens) {
+      const receipts = await ctx.db
+        .query('pushReceipts')
+        .withIndex('by_token', (q) => q.eq('token', token.token))
+        .collect();
+      for (const receipt of receipts) await ctx.db.delete(receipt._id);
+      await ctx.db.delete(token._id);
+    }
 
     if (user.image && !user.image.includes('/') && !user.image.startsWith('http')) {
-      try { await ctx.storage.delete(user.image as Id<'_storage'>); } catch {}
+      try { await ctx.storage.delete(user.image as Id<'_storage'>); } catch (error) {
+        console.error('[User] Failed to delete avatar storage:', error instanceof Error ? error.message : error);
+      }
     }
 
     await deleteAllByField(ctx, 'session', 'userId', userId);
