@@ -5,7 +5,7 @@ import {
   DefaultTheme,
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
-import { Stack, usePathname, useGlobalSearchParams, ErrorBoundaryProps, router } from "expo-router";
+import { Stack, usePathname, useGlobalSearchParams, type ErrorBoundaryProps, type Href, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useCallback } from "react";
@@ -108,7 +108,7 @@ function useNotificationDeepLink() {
   const handleNotificationResponse = useCallback((response: Notifications.NotificationResponse) => {
     const url = response.notification.request.content.data?.url;
     if (typeof url === "string" && isValidDeepLink(url)) {
-      router.push(url as any);
+      router.push(url as Href);
     }
   }, []);
 
