@@ -1,7 +1,7 @@
 import { Resend, vOnEmailEventArgs } from '@convex-dev/resend';
 import { components, internal } from './_generated/api';
 import { ActionCtx, internalMutation } from './_generated/server';
-import { resetPasswordTemplate, emailVerificationTemplate } from './email_templates';
+import { resetPasswordTemplate, otpVerificationTemplate } from './email_templates';
 import { env } from './env';
 
 export const resend: Resend = new Resend(components.resend, {
@@ -35,17 +35,21 @@ const sendEmail = async (ctx: ActionCtx, options: {
   }
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const generateIdempotencyKey = (type: string, email: string): string => {
-  const emailHash = email.split('').reduce((acc, char) => ((acc << 5) - acc + char.charCodeAt(0)) | 0, 0);
-  return `${type}-${Math.abs(emailHash).toString(36)}-${Date.now()}`;
+  const timeBucket = Math.floor(Date.now() / 60000); // 1-minute dedup window
+  return `${type}-${encodeURIComponent(email)}-${timeBucket}`;
 };
 
 export const sendResetPassword = async (ctx: ActionCtx, { to, url }: { to: string; url: string }) => {
+  if (!EMAIL_REGEX.test(to)) throw new Error('Invalid email address');
   await sendEmail(ctx, { to, subject: 'Reset your password', html: resetPasswordTemplate(url), idempotencyKey: generateIdempotencyKey('reset-password', to) });
 };
 
-export const sendEmailVerification = async (ctx: ActionCtx, { to, url }: { to: string; url: string }) => {
-  await sendEmail(ctx, { to, subject: 'Verify your email address', html: emailVerificationTemplate(url), idempotencyKey: generateIdempotencyKey('email-verification', to) });
+export const sendOTPVerification = async (ctx: ActionCtx, { to, otp }: { to: string; otp: string }) => {
+  if (!EMAIL_REGEX.test(to)) throw new Error('Invalid email address');
+  await sendEmail(ctx, { to, subject: 'Your verification code', html: otpVerificationTemplate(otp), idempotencyKey: generateIdempotencyKey('otp-verification', to) });
 };
 
 export const handleEmailEvent = internalMutation({
