@@ -11,14 +11,6 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_user_completed', ['userId', 'isCompleted']),
 
-  userFiles: defineTable({
-    userId: v.string(),
-    storageId: v.string(),
-    createdAt: v.number(),
-  })
-    .index('by_user', ['userId'])
-    .index('by_storage_id', ['storageId']),
-
   pushTokens: defineTable({
     userId: v.string(),
     token: v.string(),
