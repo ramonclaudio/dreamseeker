@@ -20,6 +20,9 @@ export default function SignUpScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleSignUp = async () => {
     haptics.light();
@@ -74,11 +77,44 @@ export default function SignUpScreen() {
     }
   };
 
-  const handleResendEmail = async () => {
+  const handleVerifyOtp = async () => {
+    haptics.light();
+    setOtpError(null);
+
+    if (otp.length !== 6) {
+      haptics.error();
+      setOtpError("Please enter the 6-digit code");
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const response = await authClient.emailOtp.verifyEmail({
+        email: email.trim(),
+        otp,
+      });
+
+      if (response.error) {
+        haptics.error();
+        setOtpError("Invalid or expired code. Please try again.");
+      } else {
+        haptics.success();
+        router.replace("/sign-in");
+      }
+    } catch {
+      haptics.error();
+      setOtpError("Verification failed. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendCode = async () => {
     haptics.light();
     setIsLoading(true);
+    setOtpError(null);
     try {
-      await authClient.sendVerificationEmail({ email: email.trim() });
+      await authClient.emailOtp.sendVerificationOtp({ email: email.trim(), type: "email-verification" });
       haptics.success();
     } catch {
       haptics.error();
@@ -95,42 +131,82 @@ export default function SignUpScreen() {
         <View style={{ alignItems: "center", gap: Spacing.lg }}>
           <IconSymbol name="envelope.badge" size={IconSize["6xl"]} color={colors.primary} />
           <ThemedText variant="title" style={{ textAlign: "center" }}>
-            Check your email
+            Verify your email
           </ThemedText>
           <ThemedText
             style={[styles.subtitle, { textAlign: "center" }]}
             color={colors.mutedForeground}
           >
-            We sent a verification link to{"\n"}
+            Enter the 6-digit code sent to{"\n"}
             <ThemedText style={{ fontWeight: "600" }}>{email}</ThemedText>
-          </ThemedText>
-          <ThemedText style={[styles.hint, { textAlign: "center" }]} color={colors.mutedForeground}>
-            Click the link in your email to verify your account, then sign in.
           </ThemedText>
         </View>
 
+        {otpError && (
+          <View style={getErrorStyles(colors).container}>
+            <ThemedText selectable style={getErrorStyles(colors).text}>
+              {otpError}
+            </ThemedText>
+          </View>
+        )}
+
         <View style={{ gap: Spacing.md, marginTop: Spacing["3xl"] }}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.secondary,
+                color: colors.foreground,
+                borderColor: colors.border,
+                textAlign: "center",
+                fontSize: 24,
+                letterSpacing: 8,
+                fontVariant: ["tabular-nums"],
+              },
+            ]}
+            placeholder="000000"
+            placeholderTextColor={colors.mutedForeground}
+            value={otp}
+            onChangeText={(text) => {
+              setOtp(text.replace(/\D/g, "").slice(0, 6));
+              setOtpError(null);
+            }}
+            keyboardType="number-pad"
+            maxLength={6}
+            autoFocus
+            accessibilityLabel="Verification code"
+            accessibilityHint="Enter the 6-digit code from your email"
+          />
+
           <Pressable
-            style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={() => router.replace("/sign-in")}
+            style={[
+              styles.button,
+              {
+                backgroundColor: colors.primary,
+                opacity: isVerifying || otp.length !== 6 ? 0.7 : 1,
+              },
+            ]}
+            onPress={handleVerifyOtp}
+            disabled={isVerifying || otp.length !== 6}
             accessibilityRole="button"
-            accessibilityLabel="Go to sign in"
+            accessibilityLabel={isVerifying ? "Verifying code" : "Verify code"}
+            accessibilityState={{ disabled: isVerifying || otp.length !== 6 }}
           >
             <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
-              Go to Sign In
+              {isVerifying ? "Verifying..." : "Verify"}
             </ThemedText>
           </Pressable>
 
           <Pressable
             style={[styles.button, { backgroundColor: colors.secondary }]}
-            onPress={handleResendEmail}
+            onPress={handleResendCode}
             disabled={isLoading}
             accessibilityRole="button"
-            accessibilityLabel={isLoading ? "Sending email" : "Resend verification email"}
+            accessibilityLabel={isLoading ? "Sending code" : "Resend verification code"}
             accessibilityState={{ disabled: isLoading }}
           >
             <ThemedText style={styles.buttonText}>
-              {isLoading ? "Sending..." : "Resend Email"}
+              {isLoading ? "Sending..." : "Resend Code"}
             </ThemedText>
           </Pressable>
         </View>
