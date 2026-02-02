@@ -7,7 +7,6 @@ export type TabBadges = {
   tasks: string | null;
   explore: string | null;
   profile: string | null;
-  settings: string | null;
 };
 
 /**
@@ -35,6 +34,5 @@ export function useTabBadges(): TabBadges {
     tasks: tasksBadge,
     explore: null,
     profile: null,
-    settings: null,
   };
 }
