@@ -48,7 +48,7 @@ export function useAppleAuth() {
 
       return { success: true };
     } catch (err) {
-      if ((err as any).code === "ERR_REQUEST_CANCELED") {
+      if (err instanceof Error && 'code' in err && (err as Error & { code: string }).code === "ERR_REQUEST_CANCELED") {
         return { success: false, error: "Cancelled" };
       }
       const message = err instanceof Error ? err.message : "Apple Sign-In failed";
