@@ -46,6 +46,13 @@ const ANDROID_MAPPING = {
   "envelope.badge": "email-alert",
   "exclamationmark.bubble.fill": "alert-circle",
   "creditcard.fill": "credit-card",
+  "map.fill": "map-marker",
+  "safari.fill": "compass",
+  "bag.fill": "shopping",
+  "mappin.and.ellipse": "map-marker",
+  "star.leadinghalf.filled": "star-half-full",
+  "leaf.fill": "leaf",
+  "cup.and.saucer.fill": "coffee",
 } as const;
 
 export type IconSymbolName = keyof typeof ANDROID_MAPPING;

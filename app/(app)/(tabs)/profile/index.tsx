@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   Pressable,
   ScrollView,
   View,
@@ -10,7 +11,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Image } from "expo-image";
-import { useQuery } from "convex/react";
+import { Link } from "expo-router";
+import { useQuery, useMutation } from "convex/react";
+import * as Clipboard from "expo-clipboard";
 
 import { MaterialCard } from "@/components/ui/material-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -26,8 +29,8 @@ import {
   IconSize,
   LineHeight,
 } from "@/constants/layout";
-import { Opacity, Size, Duration, Responsive } from "@/constants/ui";
-import { useColors } from "@/hooks/use-color-scheme";
+import { Opacity, Size, Duration, Responsive, Shadow } from "@/constants/ui";
+import { useColorScheme, useColors, useThemeMode, type ThemeMode } from "@/hooks/use-color-scheme";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { authClient } from "@/lib/auth-client";
 import { haptics } from "@/lib/haptics";
@@ -316,8 +319,8 @@ function ChangePasswordModal({
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError("New password must be at least 8 characters");
+    if (newPassword.length < 10) {
+      setError("New password must be at least 10 characters");
       return;
     }
 
@@ -494,7 +497,7 @@ function ChangePasswordModal({
               secureTextEntry
               autoComplete="new-password"
               accessibilityLabel="New password"
-              accessibilityHint="Enter a new password with at least 8 characters"
+              accessibilityHint="Enter a new password with at least 10 characters"
             />
           </View>
 
@@ -563,9 +566,224 @@ function ChangePasswordModal({
   );
 }
 
+const settingsItemStyle = {
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  justifyContent: "space-between" as const,
+  padding: Spacing.lg,
+  minHeight: TouchTarget.min,
+};
+const settingsItemLeftStyle = {
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  gap: Spacing.md,
+};
+const settingsDividerStyle = { height: Size.divider, marginLeft: Size.dividerMargin };
+const settingsSectionTitleStyle = {
+  fontSize: FontSize.md,
+  fontWeight: "600" as const,
+  textTransform: "uppercase" as const,
+  marginLeft: Spacing.md,
+};
+const settingsSectionContentStyle = {
+  borderRadius: Radius.lg,
+  borderCurve: "continuous" as const,
+  overflow: "hidden" as const,
+};
+
+function SettingsItem({
+  icon,
+  label,
+  onPress,
+  destructive,
+  showChevron = true,
+  colors,
+}: {
+  icon: Parameters<typeof IconSymbol>[0]["name"];
+  label: string;
+  onPress: () => void;
+  destructive?: boolean;
+  showChevron?: boolean;
+  colors: ColorPalette;
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? Opacity.pressed : 1 }]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={settingsItemLeftStyle}>
+        <IconSymbol
+          name={icon}
+          size={IconSize["2xl"]}
+          color={destructive ? colors.destructive : colors.mutedForeground}
+        />
+        <ThemedText
+          style={{ fontSize: FontSize.xl }}
+          color={destructive ? colors.destructive : colors.text}
+        >
+          {label}
+        </ThemedText>
+      </View>
+      {showChevron && (
+        <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
+      )}
+    </Pressable>
+  );
+}
+
+function SettingsLinkItem({
+  href,
+  icon,
+  label,
+  colors,
+}: {
+  href: "/profile/notifications" | "/profile/privacy" | "/profile/help" | "/profile/about";
+  icon: Parameters<typeof IconSymbol>[0]["name"];
+  label: string;
+  colors: ColorPalette;
+}) {
+  const handleCopyLink = async () => {
+    await Clipboard.setStringAsync(href);
+    haptics.light();
+  };
+
+  if (process.env.EXPO_OS !== "ios") {
+    return (
+      <Link href={href} asChild>
+        <Pressable
+          style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? Opacity.pressed : 1 }]}
+          accessibilityRole="link"
+          accessibilityLabel={label}
+        >
+          <View style={settingsItemLeftStyle}>
+            <IconSymbol name={icon} size={IconSize["2xl"]} color={colors.mutedForeground} />
+            <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
+          </View>
+          <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
+        </Pressable>
+      </Link>
+    );
+  }
+
+  return (
+    <Link href={href} style={settingsItemStyle}>
+      <Link.Trigger>
+        <View style={settingsItemLeftStyle}>
+          <IconSymbol name={icon} size={IconSize["2xl"]} color={colors.mutedForeground} />
+          <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
+        </View>
+      </Link.Trigger>
+      <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
+      <Link.Preview />
+      <Link.Menu>
+        <Link.MenuAction title="Copy Link" icon="doc.on.doc" onPress={handleCopyLink} />
+      </Link.Menu>
+    </Link>
+  );
+}
+
+function SettingsSection({
+  title,
+  children,
+  colors,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  colors: ColorPalette;
+}) {
+  return (
+    <View style={sectionStyle}>
+      {title && (
+        <ThemedText style={settingsSectionTitleStyle} color={colors.mutedForeground}>
+          {title}
+        </ThemedText>
+      )}
+      <MaterialCard style={settingsSectionContentStyle}>{children}</MaterialCard>
+    </View>
+  );
+}
+
+const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+function ThemePicker({
+  mode,
+  onModeChange,
+  colors,
+}: {
+  mode: ThemeMode;
+  onModeChange: (mode: ThemeMode) => void;
+  colors: ColorPalette;
+}) {
+  const colorScheme = useColorScheme();
+  const icon = colorScheme === "dark" ? "moon.fill" : "sun.max.fill";
+  return (
+    <View style={{ padding: Spacing.lg, gap: Spacing.md }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.md }}>
+        <IconSymbol name={icon} size={IconSize["2xl"]} color={colors.mutedForeground} />
+        <ThemedText style={{ fontSize: FontSize.xl }}>Theme</ThemedText>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          borderRadius: Radius.md,
+          borderCurve: "continuous",
+          padding: Spacing.xxs,
+          backgroundColor: colors.muted,
+        }}
+      >
+        {THEME_OPTIONS.map((option) => {
+          const isSelected = mode === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              style={[
+                {
+                  flex: 1,
+                  paddingVertical: Spacing.md,
+                  minHeight: TouchTarget.min,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: Radius.sm,
+                  borderCurve: "continuous",
+                },
+                isSelected && {
+                  boxShadow: `${Shadow.sm} ${colors.shadow}`,
+                  backgroundColor: colors.background,
+                },
+              ]}
+              onPress={() => {
+                haptics.light();
+                onModeChange(option.value);
+              }}
+              accessibilityRole="radio"
+              accessibilityLabel={`${option.label} theme`}
+              accessibilityState={{ selected: isSelected }}
+            >
+              <ThemedText
+                style={{ fontSize: FontSize.base, fontWeight: "500" }}
+                color={isSelected ? colors.foreground : colors.mutedForeground}
+              >
+                {option.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export default function ProfileScreen() {
   const colors = useColors();
+  const { mode, setMode } = useThemeMode();
   const user = useQuery(api.auth.getCurrentUser);
+  const deleteAccountMutation = useMutation(api.users.deleteAccount);
   const {
     isUploading: isUploadingAvatar,
     showOptions: showAvatarOptions,
@@ -577,6 +795,7 @@ export default function ProfileScreen() {
   const [showEditUsername, setShowEditUsername] = useState(false);
   const [showEditEmail, setShowEditEmail] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleUpdateName = async (name: string) => {
     const { error } = await authClient.updateUser({ name });
@@ -616,6 +835,58 @@ export default function ProfileScreen() {
     }
     haptics.success();
   };
+
+  const handleSignOut = () => {
+    haptics.medium();
+    authClient.signOut();
+  };
+
+  const performDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteAccountMutation();
+      await authClient.signOut();
+    } catch (error) {
+      setIsDeleting(false);
+      const message =
+        error instanceof Error ? error.message : "Unable to delete account. Please try again.";
+      if (process.env.EXPO_OS === "web") {
+        window.alert(message);
+      } else {
+        Alert.alert("Deletion Failed", message);
+      }
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    if (isDeleting) return;
+    haptics.warning();
+    const message =
+      "Are you sure you want to delete your account? This will permanently delete all your data including tasks, sessions, and profile information. This action cannot be undone.";
+
+    if (process.env.EXPO_OS === "web") {
+      if (window.confirm(message)) {
+        performDeleteAccount();
+      }
+    } else {
+      Alert.alert("Delete Account", message, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: performDeleteAccount,
+        },
+      ]);
+    }
+  };
+
+  if (!user) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -830,6 +1101,83 @@ export default function ProfileScreen() {
                 </Pressable>
               </MaterialCard>
             </View>
+
+            <SettingsSection title="Appearance" colors={colors}>
+              <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
+            </SettingsSection>
+
+            <SettingsSection title="Preferences" colors={colors}>
+              <SettingsLinkItem
+                href="/profile/notifications"
+                icon="bell.fill"
+                label="Notifications"
+                colors={colors}
+              />
+              <View style={[settingsDividerStyle, { backgroundColor: colors.border }]} />
+              <SettingsLinkItem
+                href="/profile/privacy"
+                icon="hand.raised.fill"
+                label="Privacy"
+                colors={colors}
+              />
+            </SettingsSection>
+
+            <SettingsSection title="Support" colors={colors}>
+              <SettingsLinkItem
+                href="/profile/help"
+                icon="questionmark.circle.fill"
+                label="Help"
+                colors={colors}
+              />
+              <View style={[settingsDividerStyle, { backgroundColor: colors.border }]} />
+              <SettingsLinkItem
+                href="/profile/about"
+                icon="info.circle.fill"
+                label="About"
+                colors={colors}
+              />
+            </SettingsSection>
+
+            <SettingsSection title="Account" colors={colors}>
+              <SettingsItem
+                icon="rectangle.portrait.and.arrow.right"
+                label="Sign Out"
+                onPress={handleSignOut}
+                showChevron={false}
+                colors={colors}
+              />
+            </SettingsSection>
+
+            <SettingsSection title="Danger Zone" colors={colors}>
+              {isDeleting ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: Spacing.lg,
+                    gap: Spacing.md,
+                  }}
+                >
+                  <ActivityIndicator color={colors.destructive} />
+                  <ThemedText
+                    style={{ fontSize: FontSize.xl, fontWeight: "500" }}
+                    color={colors.destructive}
+                  >
+                    Deleting account...
+                  </ThemedText>
+                </View>
+              ) : (
+                <SettingsItem
+                  icon="trash.fill"
+                  label="Delete Account"
+                  onPress={handleDeleteAccount}
+                  destructive
+                  showChevron={false}
+                  colors={colors}
+                />
+              )}
+            </SettingsSection>
 
             <EditModal
               visible={showEditName}

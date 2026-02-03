@@ -55,13 +55,6 @@ export default function TabLayout() {
         <Label>Profile</Label>
         {badges.profile !== null && <Badge>{badges.profile}</Badge>}
       </NativeTabs.Trigger>
-
-      {/* Settings Tab */}
-      <NativeTabs.Trigger name="settings">
-        <Icon sf={{ default: "gearshape", selected: "gearshape.fill" }} md="settings" />
-        <Label>Settings</Label>
-        {badges.settings !== null && <Badge>{badges.settings}</Badge>}
-      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

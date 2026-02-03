@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Text, type TextProps, type TextStyle, AccessibilityInfo } from "react-native";
+import { Text, type TextProps, type TextStyle } from "react-native";
 
 import { Accessibility } from "@/constants/ui";
 import { Typography } from "@/constants/theme";
 import { useColors } from "@/hooks/use-color-scheme";
+import { useBoldText } from "@/hooks/use-accessibility-settings";
 
 type FontWeight = TextStyle["fontWeight"];
 
@@ -26,20 +26,6 @@ const BOLD_WEIGHT_MAP: Record<string, FontWeight> = {
   normal: "700",
   bold: "900",
 };
-
-function useBoldText(): boolean {
-  const [boldText, setBoldText] = useState(false);
-
-  useEffect(() => {
-    if (process.env.EXPO_OS !== "ios") return;
-
-    AccessibilityInfo.isBoldTextEnabled().then(setBoldText);
-    const subscription = AccessibilityInfo.addEventListener("boldTextChanged", setBoldText);
-    return () => subscription.remove();
-  }, []);
-
-  return boldText;
-}
 
 export function ThemedText({ style, variant = "default", color, ...props }: ThemedTextProps) {
   const colors = useColors();
