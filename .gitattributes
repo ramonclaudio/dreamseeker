@@ -1,6 +1,7 @@
 # Branch-specific files — use ours merge strategy to prevent
 # overwriting during cross-branch syncs (main → stripe, main → revenuecat).
 
+.gitattributes merge=ours
 README.md merge=ours
 .env.example merge=ours
 package.json merge=ours
