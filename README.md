@@ -14,9 +14,9 @@ Production-ready Expo starter with authentication, backend, and email. Payment-a
 ## Branches
 
 ```
-main       → Clean base, no payments (you are here)
+main       → Clean base, no payments
 stripe     → Stripe integration
-revenuecat → RevenueCat integration
+revenuecat → RevenueCat integration (you are here)
 ```
 
 Choose your branch based on payment needs. All branches share the same core features.
