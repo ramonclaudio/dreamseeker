@@ -2,13 +2,13 @@ import { createClient, type GenericCtx } from '@convex-dev/better-auth';
 import { requireActionCtx } from '@convex-dev/better-auth/utils';
 import { convex, crossDomain } from '@convex-dev/better-auth/plugins';
 import { betterAuth, type BetterAuthOptions } from 'better-auth/minimal';
-import { username } from 'better-auth/plugins';
+import { username, emailOTP } from 'better-auth/plugins';
 import { expo } from '@better-auth/expo';
 import { components } from './_generated/api';
 import { DataModel, Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 import authConfig from './auth.config';
-import { sendEmailVerification, sendResetPassword } from './email';
+import { sendOTPVerification, sendResetPassword } from './email';
 import { env } from './env';
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
@@ -40,10 +40,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
     },
   },
   emailVerification: {
-    sendVerificationEmail: async ({ user, url }) => {
-      await sendEmailVerification(requireActionCtx(ctx), { to: user.email, url });
-    },
-    sendOnSignUp: true,
+    sendOnSignUp: false,
     autoSignInAfterVerification: true,
   },
   session: { expiresIn: SEVEN_DAYS, updateAge: ONE_DAY, cookieCache: { enabled: true, maxAge: ONE_MINUTE * 5 } },
@@ -58,11 +55,21 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
       '/forgot-password': { window: ONE_HOUR, max: 3 },
       '/reset-password': { window: ONE_MINUTE * 15, max: 5 },
       '/change-password': { window: ONE_MINUTE * 15, max: 5 },
+      '/email-otp/verify-email': { window: ONE_MINUTE * 15, max: 5 },
     },
   },
   plugins: [
     expo(),
     username({ minUsernameLength: 3, maxUsernameLength: 20 }),
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 300,
+      sendVerificationOnSignUp: true,
+      overrideDefaultEmailVerification: true,
+      async sendVerificationOTP({ email, otp }) {
+        await sendOTPVerification(requireActionCtx(ctx), { to: email, otp });
+      },
+    }),
     convex({ authConfig }),
     crossDomain({ siteUrl: env.siteUrl }),
   ],

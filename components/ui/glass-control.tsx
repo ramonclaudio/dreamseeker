@@ -1,37 +1,16 @@
-import { useState, useEffect } from "react";
-import { View, type ViewProps, AccessibilityInfo } from "react-native";
+import { View, type ViewProps } from "react-native";
 
 import { Spacing } from "@/constants/layout";
 import { Radius } from "@/constants/theme";
 import { useColors } from "@/hooks/use-color-scheme";
-
-/**
- * Hook to detect iOS Reduce Transparency accessibility setting.
- * Falls back to solid views when enabled (HIG compliance).
- */
-function useReduceTransparency(): boolean {
-  const [reduceTransparency, setReduceTransparency] = useState(false);
-
-  useEffect(() => {
-    if (process.env.EXPO_OS !== "ios") return;
-
-    AccessibilityInfo.isReduceTransparencyEnabled().then(setReduceTransparency);
-    const subscription = AccessibilityInfo.addEventListener(
-      "reduceTransparencyChanged",
-      setReduceTransparency,
-    );
-    return () => subscription.remove();
-  }, []);
-
-  return reduceTransparency;
-}
+import { useReduceTransparency } from "@/hooks/use-accessibility-settings";
 
 let _glassModule: typeof import("expo-glass-effect") | null = null;
 function getGlassModule() {
   if (_glassModule === null && process.env.EXPO_OS === "ios") {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     try {
-      _glassModule = require("expo-glass-effect");
+      // Dynamic require needed for conditional iOS-only loading
+      _glassModule = require("expo-glass-effect"); // eslint-disable-line @typescript-eslint/no-require-imports
     } catch {
       _glassModule = null;
     }

@@ -1,7 +1,10 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# Dependencies
 node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # Expo
 .expo/
@@ -9,41 +12,25 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
-.kotlin/
-*.orig.*
+# Native builds
+ios/
+android/
 *.jks
 *.p8
 *.p12
-*.key
+*.keystore
 *.mobileprovision
 
-# Metro
-.metro-health-check*
+# Convex generated
+convex/_generated/
 
-# debug
+# macOS
+.DS_Store
+
+# Debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env.*
-
-# Convex
-convex/_generated/
-
-# typescript
-*.tsbuildinfo
-
-# nativewind
-nativewind-output.js
-
-app-example
-
-# generated native folders
-/ios
-/android
+# Coverage
+coverage/

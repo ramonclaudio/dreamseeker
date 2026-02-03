@@ -221,6 +221,16 @@ export const savePushToken = mutation({
       return;
     }
 
+    // Cap tokens per user to prevent flooding (max 10 devices)
+    const userTokens = await ctx.db
+      .query('pushTokens')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+    if (userTokens.length >= 10) {
+      const oldest = userTokens.sort((a, b) => a.createdAt - b.createdAt)[0];
+      await ctx.db.delete(oldest._id);
+    }
+
     await ctx.db.insert('pushTokens', {
       userId,
       token: args.token,
@@ -385,6 +395,10 @@ export const sendPushNotification = action({
     errors: v.optional(v.array(v.string())),
   }),
   handler: async (ctx, args): Promise<SendResult> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthorized');
+    if (identity.subject !== args.userId) throw new Error('Forbidden: Cannot send notifications to other users');
+
     if (args.title.length > MAX_TITLE_LENGTH) throw new Error(`Title cannot exceed ${MAX_TITLE_LENGTH} characters`);
     if (args.body.length > MAX_BODY_LENGTH) throw new Error(`Body cannot exceed ${MAX_BODY_LENGTH} characters`);
 
@@ -453,7 +467,7 @@ export const retryPushNotification = internalAction({
   },
 });
 
-export const sendBatchNotifications = action({
+export const sendBatchNotifications = internalAction({
   args: {
     notifications: v.array(
       v.object({
@@ -635,7 +649,7 @@ export const sendPushNotificationInternal = internalAction({
 });
 
 // Send data-only notification for background processing (headless)
-export const sendBackgroundNotification = action({
+export const sendBackgroundNotification = internalAction({
   args: {
     userId: v.string(),
     data: v.record(v.string(), v.any()),
@@ -711,5 +725,22 @@ export const sendBackgroundNotification = action({
       failed,
       errors: errors.length > 0 ? errors : undefined,
     };
+  },
+});
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+export const cleanupStaleTokens = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = Date.now() - THIRTY_DAYS_MS;
+    const staleTokens = await ctx.db
+      .query('pushTokens')
+      .filter((q) => q.lt(q.field('lastUsed'), cutoff))
+      .collect();
+    for (const token of staleTokens) {
+      await ctx.db.delete(token._id);
+    }
+    return staleTokens.length;
   },
 });

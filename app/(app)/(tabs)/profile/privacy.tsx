@@ -110,7 +110,7 @@ export default function PrivacyScreen() {
         <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg }}>
             <ThemedText style={{ fontSize: FontSize.base, lineHeight: LineHeight.base }} color={colors.mutedForeground}>
-              You can request a copy of your data or delete your account at any time from Settings → Delete Account.
+              You can request a copy of your data or delete your account at any time from Profile → Delete Account.
               {'\n\n'}
               Your personal information is never sold to third parties.
             </ThemedText>

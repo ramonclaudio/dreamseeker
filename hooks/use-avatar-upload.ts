@@ -17,7 +17,6 @@ type User = {
 export function useAvatarUpload(user: User | undefined | null) {
   const [isUploading, setIsUploading] = useState(false);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
-  const registerUpload = useMutation(api.storage.registerUpload);
   const deleteFile = useMutation(api.storage.deleteFile);
   const fileInputRef = useRef<ReturnType<typeof createImageInput>>(null);
 
@@ -50,7 +49,6 @@ export function useAvatarUpload(user: User | undefined | null) {
         if (!uploadResponse.ok) throw new Error("Failed to upload image");
 
         const { storageId } = await uploadResponse.json();
-        await registerUpload({ storageId });
         const { error } = await authClient.updateUser({ image: storageId });
         if (error) throw new Error(error.message ?? "Failed to update profile image");
 
@@ -68,7 +66,7 @@ export function useAvatarUpload(user: User | undefined | null) {
         setIsUploading(false);
       }
     },
-    [user?.imageStorageId, generateUploadUrl, registerUpload, deleteFile],
+    [user?.imageStorageId, generateUploadUrl, deleteFile],
   );
 
   const removeAvatar = useCallback(async () => {

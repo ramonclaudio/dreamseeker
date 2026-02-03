@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import { usernameClient } from "better-auth/client/plugins";
+import { usernameClient, emailOTPClient } from "better-auth/client/plugins";
 import { convexClient, crossDomainClient } from "@convex-dev/better-auth/client/plugins";
 import { expoClient } from "@better-auth/expo/client";
 import Constants from "expo-constants";
@@ -18,7 +18,7 @@ const platformPlugins =
 
 const client = createAuthClient({
   baseURL: env.convexSiteUrl,
-  plugins: [convexClient(), usernameClient(), ...platformPlugins],
+  plugins: [convexClient(), usernameClient(), emailOTPClient(), ...platformPlugins],
 });
 
 type UsernameSignIn = (data: {
@@ -26,6 +26,7 @@ type UsernameSignIn = (data: {
   password: string;
 }) => Promise<{ data: unknown; error: { message: string } | null }>;
 
+type SignInWithPlugins = typeof client.signIn & { username: UsernameSignIn };
+
 export const authClient = client;
-export const signInWithUsername = (client.signIn as unknown as { username: UsernameSignIn })
-  .username;
+export const signInWithUsername = (client.signIn as SignInWithPlugins).username;

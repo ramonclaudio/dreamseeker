@@ -5,8 +5,7 @@ import * as Device from "expo-device";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
-import { useMutation } from "convex/react";
-import { useConvexAuth } from "convex/react";
+import { useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 const DEVICE_ID_KEY = "push_device_id";
@@ -128,8 +127,10 @@ export function usePushNotifications() {
       const token = await registerForPushNotificationsAsync();
       if (!token) return;
 
+      const platform = process.env.EXPO_OS;
+      if (platform !== "ios" && platform !== "android") return;
+
       if (token !== lastTokenRef.current) {
-        const platform = process.env.EXPO_OS as "ios" | "android";
         const deviceId = await getOrCreateDeviceId();
         await savePushToken({ token, platform, deviceId });
         lastTokenRef.current = token;
