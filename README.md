@@ -217,7 +217,6 @@ APPLE_CLIENT_SECRET=your-jwt-secret
 | `RESEND_FROM_EMAIL` | | ✓ | |
 | `PAYMENT_PROVIDER` | | ✓ | |
 | `REVENUECAT_WEBHOOK_BEARER_TOKEN` | | ✓ | |
-| `CONVEX_DEPLOY_KEY` | | | ✓ |
 
 ---
 
@@ -295,7 +294,6 @@ function MyComponent() {
 Set these in [expo.dev](https://expo.dev) → Your Project → **Environment Variables**:
 
 ```bash
-CONVEX_DEPLOY_KEY=prod:your-slug|xxxxx
 EXPO_PUBLIC_CONVEX_URL=https://your-prod-slug.convex.cloud
 EXPO_PUBLIC_CONVEX_SITE_URL=https://your-prod-slug.convex.site
 EXPO_PUBLIC_SITE_URL=expostarterapp://
@@ -319,7 +317,6 @@ eas build --platform ios --profile production    # App Store
 | "Missing CONVEX_URL" | Check `.env.local` exists and has values |
 | "Unauthorized" errors | Verify Convex env vars in dashboard |
 | Push notifications fail | Use physical device (simulator doesn't support) |
-| EAS build fails | Check `CONVEX_DEPLOY_KEY` is set in EAS |
 | Purchases not working | Use physical device with sandbox account |
 | Entitlements not updating | Check webhook URL and bearer token in RevenueCat |
 | "No API key configured" | Set `EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY` |
