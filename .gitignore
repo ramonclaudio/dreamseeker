@@ -21,9 +21,6 @@ android/
 *.keystore
 *.mobileprovision
 
-# Convex generated
-convex/_generated/
-
 # macOS
 .DS_Store
 
