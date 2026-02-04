@@ -2,6 +2,7 @@ import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { authComponent, createAuth } from './auth';
 import { resend } from './email';
+import { revenuecat } from './revenuecat';
 import { env } from './env';
 
 const http = httpRouter();
@@ -12,6 +13,12 @@ http.route({
   path: '/resend-webhook',
   method: 'POST',
   handler: httpAction((ctx, req) => resend.handleResendEventWebhook(ctx, req)),
+});
+
+http.route({
+  path: '/revenuecat/webhook',
+  method: 'POST',
+  handler: revenuecat.httpHandler(),
 });
 
 const supportEmail = env.supportEmail;
