@@ -19,6 +19,7 @@ import * as Notifications from "expo-notifications";
 import { authClient } from "@/lib/auth-client";
 import { env } from "@/lib/env";
 import { useColorScheme, useColors } from "@/hooks/use-color-scheme";
+import { RevenueCatProvider } from "@/providers/revenuecat-provider";
 import { confettiRef } from "@/lib/confetti";
 import {
   usePushNotifications,
@@ -99,7 +100,9 @@ export const unstable_settings = { initialRouteName: "(auth)" };
 export default function RootLayout() {
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-      <RootNavigator />
+      <RevenueCatProvider>
+        <RootNavigator />
+      </RevenueCatProvider>
     </ConvexBetterAuthProvider>
   );
 }
