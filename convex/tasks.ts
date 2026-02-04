@@ -2,6 +2,8 @@ import { query, mutation, type QueryCtx, type MutationCtx } from './_generated/s
 import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
 import { authComponent } from './auth';
+import { TIERS, PREMIUM_ENTITLEMENT } from './subscriptions';
+import { hasEntitlement } from './revenuecat';
 
 const MAX_TASK_TEXT_LENGTH = 500;
 
@@ -46,6 +48,23 @@ export const create = mutation({
     const trimmedText = args.text.trim();
     if (trimmedText.length === 0) throw new Error('Task text cannot be empty');
     if (trimmedText.length > MAX_TASK_TEXT_LENGTH) throw new Error(`Task text cannot exceed ${MAX_TASK_TEXT_LENGTH} characters`);
+
+    // Check tier limits - O(limit) instead of O(n)
+    const isPremium = await hasEntitlement(ctx, {
+      appUserId: userId,
+      entitlementId: PREMIUM_ENTITLEMENT,
+    });
+
+    if (!isPremium) {
+      const limit = TIERS.free.limit;
+      const tasks = await ctx.db
+        .query('tasks')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .take(limit);
+      if (tasks.length >= limit) {
+        throw new Error('LIMIT_REACHED');
+      }
+    }
 
     return await ctx.db.insert('tasks', { userId, text: trimmedText, isCompleted: false, createdAt: Date.now() });
   },
