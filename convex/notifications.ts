@@ -66,12 +66,14 @@ type RetryableError = {
   retryAfter?: number;
 };
 
-function getAuthHeaders(): Record<string, string> {
+function getAuthHeaders(): Record<string, string> | null {
+  const token = env.expo.accessToken;
+  if (!token) return null;
   return {
     Accept: 'application/json',
     'Accept-encoding': 'gzip, deflate',
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${env.expo.accessToken}`,
+    Authorization: `Bearer ${token}`,
   };
 }
 
@@ -110,6 +112,12 @@ async function sendPushMessagesRaw(
   storeReceipts: (receipts: Array<{ ticketId: string; token: string }>) => Promise<unknown>,
   queueRetry?: (errors: RetryableError[]) => Promise<unknown>
 ): Promise<SendResult> {
+  const headers = getAuthHeaders();
+  if (!headers) {
+    console.warn('[Push] EXPO_ACCESS_TOKEN not configured, skipping');
+    return { success: false, sent: 0, failed: messages.length, errors: ['EXPO_ACCESS_TOKEN not configured'] };
+  }
+
   let sent = 0;
   let failed = 0;
   const errors: string[] = [];
@@ -122,7 +130,7 @@ async function sendPushMessagesRaw(
     try {
       const response = await fetchWithRetry(EXPO_PUSH_URL, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers,
         body: JSON.stringify(batch),
       });
 
@@ -521,6 +529,9 @@ export const sendBatchNotifications = internalAction({
 export const checkPushReceipts = internalAction({
   args: {},
   handler: async (ctx): Promise<{ checked: number; errors: number }> => {
+    const headers = getAuthHeaders();
+    if (!headers) return { checked: 0, errors: 0 };
+
     const pendingReceipts = await ctx.runQuery(internal.notifications.getPendingReceipts, { limit: 1000 });
     if (pendingReceipts.length === 0) return { checked: 0, errors: 0 };
 
@@ -536,7 +547,7 @@ export const checkPushReceipts = internalAction({
       try {
         const response = await fetchWithRetry(EXPO_RECEIPTS_URL, {
           method: 'POST',
-          headers: getAuthHeaders(),
+          headers,
           body: JSON.stringify({ ids: batch }),
         });
 
@@ -661,6 +672,12 @@ export const sendBackgroundNotification = internalAction({
     errors: v.optional(v.array(v.string())),
   }),
   handler: async (ctx, args): Promise<SendResult> => {
+    const headers = getAuthHeaders();
+    if (!headers) {
+      console.warn('[Push] EXPO_ACCESS_TOKEN not configured, skipping');
+      return { success: false, sent: 0, failed: 0, errors: ['EXPO_ACCESS_TOKEN not configured'] };
+    }
+
     const tokens: PushToken[] = await ctx.runQuery(internal.notifications.getUserTokens, { userId: args.userId });
     if (tokens.length === 0) {
       return { success: false, sent: 0, failed: 0, errors: ['No push tokens for user'] };
@@ -682,7 +699,7 @@ export const sendBackgroundNotification = internalAction({
     try {
       const response = await fetchWithRetry(EXPO_PUSH_URL, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers,
         body: JSON.stringify(messages),
       });
 
