@@ -19,7 +19,7 @@ export const env = {
   siteUrl: required('SITE_URL'),
   supportEmail: required('SUPPORT_EMAIL'),
   expo: {
-    accessToken: required('EXPO_ACCESS_TOKEN'),
+    accessToken: optional('EXPO_ACCESS_TOKEN', ''),
   },
   apple: {
     clientId: optional('APPLE_CLIENT_ID', ''),
