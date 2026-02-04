@@ -11,16 +11,13 @@ import { api } from "@/convex/_generated/api";
 const DEVICE_ID_KEY = "push_device_id";
 
 let initialNotificationResponse: Notifications.NotificationResponse | null = null;
-let lastResponsePromiseResolved = false;
 const lastResponsePromise = Notifications.getLastNotificationResponseAsync()
   .then((response) => {
     initialNotificationResponse = response;
-    lastResponsePromiseResolved = true;
     return response;
   })
   .catch((error) => {
     if (__DEV__) console.warn("[Push] Failed to get last notification response:", error);
-    lastResponsePromiseResolved = true;
     return null;
   });
 
