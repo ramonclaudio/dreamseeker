@@ -35,6 +35,7 @@ import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { authClient } from "@/lib/auth-client";
 import { haptics } from "@/lib/haptics";
 import { api } from "@/convex/_generated/api";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const sectionStyle = { marginTop: Spacing["2xl"], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
 
@@ -784,6 +785,7 @@ export default function ProfileScreen() {
   const { mode, setMode } = useThemeMode();
   const user = useQuery(api.auth.getCurrentUser);
   const deleteAccountMutation = useMutation(api.users.deleteAccount);
+  const { isPremium, taskLimit, taskCount, showUpgrade, manageBilling } = useSubscription();
   const {
     isUploading: isUploadingAvatar,
     showOptions: showAvatarOptions,
@@ -1101,6 +1103,76 @@ export default function ProfileScreen() {
                 </Pressable>
               </MaterialCard>
             </View>
+
+            <SettingsSection title="Subscription" colors={colors}>
+              <View style={{ padding: Spacing.lg, gap: Spacing.md }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.md }}>
+                    <IconSymbol
+                      name="star.fill"
+                      size={IconSize["2xl"]}
+                      color={isPremium ? colors.primary : colors.mutedForeground}
+                    />
+                    <View>
+                      <ThemedText style={{ fontSize: FontSize.xl, fontWeight: "600" }}>
+                        {isPremium ? "Premium" : "Free"}
+                      </ThemedText>
+                      <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>
+                        {isPremium
+                          ? "Unlimited tasks"
+                          : `${taskCount}/${taskLimit} tasks used`}
+                      </ThemedText>
+                    </View>
+                  </View>
+                  {isPremium ? (
+                    <Pressable
+                      style={({ pressed }) => ({
+                        paddingVertical: Spacing.sm,
+                        paddingHorizontal: Spacing.lg,
+                        borderRadius: Radius.md,
+                        borderCurve: "continuous",
+                        backgroundColor: colors.secondary,
+                        opacity: pressed ? Opacity.pressed : 1,
+                      })}
+                      onPress={() => {
+                        haptics.light();
+                        manageBilling();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Manage subscription"
+                    >
+                      <ThemedText style={{ fontSize: FontSize.base, fontWeight: "500" }}>
+                        Manage
+                      </ThemedText>
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      style={({ pressed }) => ({
+                        paddingVertical: Spacing.sm,
+                        paddingHorizontal: Spacing.lg,
+                        borderRadius: Radius.md,
+                        borderCurve: "continuous",
+                        backgroundColor: colors.primary,
+                        opacity: pressed ? Opacity.pressed : 1,
+                      })}
+                      onPress={() => {
+                        haptics.medium();
+                        showUpgrade();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Upgrade to Premium"
+                    >
+                      <ThemedText
+                        style={{ fontSize: FontSize.base, fontWeight: "600" }}
+                        color={colors.primaryForeground}
+                      >
+                        Upgrade
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            </SettingsSection>
 
             <SettingsSection title="Appearance" colors={colors}>
               <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
