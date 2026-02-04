@@ -58,12 +58,3 @@ export const getSubscriptionStatus = query({
   },
 });
 
-export const checkPremiumStatus = async (
-  ctx: QueryCtx,
-  userId: string
-): Promise<boolean> => {
-  return hasEntitlement(ctx, {
-    appUserId: userId,
-    entitlementId: PREMIUM_ENTITLEMENT,
-  });
-};
