@@ -12,4 +12,5 @@ hooks/use-subscription.ts merge=ours
 convex/stripe.ts merge=ours
 convex/revenuecat.ts merge=ours
 convex/subscriptions.ts merge=ours
+lib/env.ts merge=ours
 app/(app)/subscribe.tsx merge=ours
