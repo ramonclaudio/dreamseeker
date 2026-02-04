@@ -16,6 +16,7 @@ import { GlassControl } from '@/components/ui/glass-control';
 import { MaterialCard } from '@/components/ui/material-card';
 import { ThemedText } from '@/components/ui/themed-text';
 import { useColors } from '@/hooks/use-color-scheme';
+import { useSubscription } from '@/hooks/use-subscription';
 import { Radius, type ColorPalette } from '@/constants/theme';
 import { Spacing, TouchTarget, FontSize, HitSlop, MaxWidth } from '@/constants/layout';
 import { Opacity, Size, Keyboard } from '@/constants/ui';
@@ -93,6 +94,7 @@ export default function TasksScreen() {
   const colors = useColors();
   const [newTaskText, setNewTaskText] = useState('');
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const { canCreateTask, showUpgrade } = useSubscription();
 
   const tasks = useQuery(api.tasks.list, isAuthenticated ? {} : 'skip');
   const createTask = useMutation(api.tasks.create);
@@ -101,6 +103,13 @@ export default function TasksScreen() {
 
   const handleAddTask = async () => {
     if (!newTaskText.trim()) return;
+
+    // Check limit before calling mutation to avoid error toast
+    if (!canCreateTask) {
+      haptics.warning();
+      showUpgrade();
+      return;
+    }
 
     haptics.medium();
     try {
