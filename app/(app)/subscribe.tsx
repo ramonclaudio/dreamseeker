@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { router, Stack } from 'expo-router';
-import RevenueCatUI from 'react-native-purchases-ui';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
@@ -12,25 +11,18 @@ import { Radius } from '@/constants/theme';
 
 export default function SubscribeScreen() {
   const colors = useColors();
-  const { isPremium, isLoading } = useSubscription();
+  const { isPremium, isLoading, showUpgrade } = useSubscription();
+  const hasPresented = useRef(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || hasPresented.current) return;
+    hasPresented.current = true;
 
-    // Present native paywall if user doesn't have premium entitlement
-    RevenueCatUI.presentPaywallIfNeeded({
-      requiredEntitlementIdentifier: 'premium',
-    })
-      .then(() => {
-        router.back();
-      })
-      .catch((error) => {
-        if (__DEV__) console.error('[Subscribe] Paywall error:', error);
-        router.back();
-      });
-  }, [isLoading]);
+    showUpgrade().finally(() => {
+      router.back();
+    });
+  }, [isLoading, showUpgrade]);
 
-  // Show premium confirmation if already subscribed
   if (isPremium) {
     return (
       <>
@@ -60,7 +52,6 @@ export default function SubscribeScreen() {
     );
   }
 
-  // Loading state while checking subscription or presenting paywall
   return (
     <>
       <Stack.Screen options={{ title: 'Upgrade', headerShown: false }} />
