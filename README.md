@@ -54,7 +54,7 @@ revenuecat → RevenueCat integration (you are here)
 <summary><strong>Step 1: Clone and Install</strong></summary>
 
 ```bash
-git clone https://github.com/ramonclaudio/expo-starter-app.git
+git clone -b revenuecat https://github.com/ramonclaudio/expo-starter-app.git
 cd expo-starter-app
 npm install
 ```
