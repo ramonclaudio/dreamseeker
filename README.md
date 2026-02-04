@@ -50,6 +50,10 @@ revenuecat → RevenueCat integration (you are here)
 
 ## Setup Guide
 
+> [!IMPORTANT]
+> **The first `npx convex dev` will fail** — this is expected. You need to set environment
+> variables in the Convex dashboard, then run it again. Follow the steps in order.
+
 <details>
 <summary><strong>Step 1: Clone and Install</strong></summary>
 
@@ -64,28 +68,106 @@ This creates `.env.local` from `.env.local.dev` automatically.
 </details>
 
 <details>
-<summary><strong>Step 2: Convex Setup</strong></summary>
-
-### 2.1 Create Convex Account
-
-1. Go to [convex.dev](https://convex.dev) and sign up
-2. Create a new project (name it anything)
-
-### 2.2 Initialize Convex in Project
+<summary><strong>Step 2: Create Convex Project</strong></summary>
 
 ```bash
 npx convex dev
 ```
 
-Follow the prompts:
+This will:
+1. Prompt you to log in / create account
+2. Create a new project
+3. **Fail on the first push** — this is expected (env vars not set yet)
 
-- Select your team/project
-- This creates a **development deployment** (e.g., `amiable-seahorse-506`)
-- The CLI outputs your deployment URLs
+Note your deployment slug from the output (e.g., `amiable-seahorse-506`).
 
-### 2.3 Copy Convex URLs to Local Env
+</details>
 
-Open `.env.local.dev` and fill in:
+<details>
+<summary><strong>Step 3: Get API Keys (All Services)</strong></summary>
+
+Before initializing Convex, gather all required API keys:
+
+### 3.1 Better Auth Secret
+
+Generate a secret for authentication:
+
+```bash
+openssl rand -base64 32
+```
+
+### 3.2 Resend (Email)
+
+1. Go to [resend.com](https://resend.com) and sign up
+2. Verify your email domain (or use test domain for dev)
+3. Go to **API Keys** → **Create API Key** → copy the key (`re_xxx`)
+4. Go to **Webhooks** → **Add Webhook**:
+   - URL: `https://your-deployment.convex.site/resend-webhook`
+   - Select all delivery events
+   - Copy the webhook secret
+
+### 3.3 Expo (Push Notifications) — Optional
+
+1. Go to [expo.dev](https://expo.dev) and sign up
+2. Go to **Account Settings** → **Access Tokens** → **Create Token**
+3. Copy the token
+
+### 3.4 RevenueCat (Payments)
+
+1. Go to [revenuecat.com](https://revenuecat.com) and sign up
+2. Create a project and add your app (iOS/Android)
+3. Go to **API Keys** → copy Public SDK Keys for iOS (`appl_xxx`) and Android (`goog_xxx`)
+4. Create webhook:
+   - URL: `https://your-deployment.convex.site/revenuecat/webhook`
+   - Generate bearer token: `openssl rand -base64 32`
+   - Add as Authorization header
+
+</details>
+
+<details>
+<summary><strong>Step 4: Set Convex Environment Variables</strong></summary>
+
+> [!IMPORTANT]
+> These must be set BEFORE running `npx convex dev`.
+
+1. Go to [Convex Dashboard](https://dashboard.convex.dev)
+2. Select your project → **Settings** → **Environment Variables**
+3. Add all required variables:
+
+```bash
+# App
+SITE_URL=expostarterapp://
+SUPPORT_EMAIL=your@email.com
+
+# Auth
+BETTER_AUTH_SECRET=<from Step 3.1>
+
+# Email (Resend)
+RESEND_API_KEY=<from Step 3.2>
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+RESEND_WEBHOOK_SECRET=<from Step 3.2>
+
+# Push Notifications (Optional)
+EXPO_ACCESS_TOKEN=<from Step 3.3>
+
+# RevenueCat
+REVENUECAT_WEBHOOK_BEARER_TOKEN=<from Step 3.4>
+```
+
+</details>
+
+<details>
+<summary><strong>Step 5: Complete Convex Setup</strong></summary>
+
+Now run Convex dev again:
+
+```bash
+npx convex dev
+```
+
+This time it should succeed. The CLI outputs your deployment URLs.
+
+Update `.env.local` with the URLs:
 
 ```bash
 CONVEX_DEPLOYMENT=dev:your-deployment-slug
@@ -93,176 +175,33 @@ EXPO_PUBLIC_CONVEX_URL=https://your-deployment-slug.convex.cloud
 EXPO_PUBLIC_CONVEX_SITE_URL=https://your-deployment-slug.convex.site
 ```
 
-### 2.4 Create Production Deployment
-
-```bash
-npx convex deploy
-```
-
-This creates a separate **production deployment** (e.g., `determined-civet-459`).
-
-Save the prod URLs for later (EAS builds).
-
-### 2.5 Get Deploy Keys
-
-You need deploy keys for EAS cloud builds.
-
-**For each deployment (dev and prod):**
-
-1. Go to [Convex Dashboard](https://dashboard.convex.dev)
-2. Select your deployment
-3. Go to **Settings** → **Deploy Keys**
-4. Click **Generate Deploy Key**
-5. Save the key (format: `prod:slug|xxxxx` or `dev:slug|xxxxx`)
-
 </details>
 
 <details>
-<summary><strong>Step 3: RevenueCat Setup</strong></summary>
+<summary><strong>Step 6: RevenueCat Product Setup</strong></summary>
 
-### 3.1 Create RevenueCat Account
+### Create Products in App Store
 
-1. Go to [revenuecat.com](https://revenuecat.com) and sign up
-2. Create a new project
+In App Store Connect / Google Play Console:
 
-### 3.2 Add Your App
+1. Create in-app purchase products (subscriptions)
+2. Note the Product IDs (e.g., `premium_monthly`, `premium_annual`)
 
-1. Go to **Projects** → Your Project → **Apps**
-2. Click **+ New App**
-3. Select platform (iOS or Android)
-4. For iOS: Enter your Bundle ID and App Store Connect credentials
-5. For Android: Enter your Package Name and upload Google Play credentials
+### Configure RevenueCat
 
-### 3.3 Create Products
-
-In your app store (App Store Connect / Google Play Console):
-
-1. Create an in-app purchase product (subscription)
-2. Note the Product ID (e.g., `premium_monthly`, `premium_annual`)
-
-In RevenueCat:
-
-1. Go to **Products** → **+ New Product**
-2. Add your product IDs from both stores
-
-### 3.4 Create Entitlement
-
-1. Go to **Entitlements** → **+ New Entitlement**
-2. Create entitlement with identifier: `premium`
-3. Attach your products to this entitlement
+1. Go to **Products** → **+ New Product** → add your product IDs
+2. Go to **Entitlements** → **+ New Entitlement** → create `premium`
+3. Attach your products to the `premium` entitlement
 
 > [!IMPORTANT]
 > The entitlement identifier must be `premium` — the app expects this exact string.
-
-### 3.5 Get API Keys
-
-1. Go to **Projects** → Your Project → **API Keys**
-2. Copy **Public SDK Key** for iOS (starts with `appl_`)
-3. Copy **Public SDK Key** for Android (starts with `goog_`)
-
-### 3.6 Create Webhook
-
-1. Go to **Projects** → Your Project → **Integrations** → **Webhooks**
-2. Click **+ New Webhook**
-3. URL: `https://your-deployment.convex.site/revenuecat/webhook`
-4. Create a bearer token (any secure random string)
-5. Add the token as Authorization header
-
-> [!TIP]
-> Generate a secure token with: `openssl rand -base64 32`
-
-</details>
-
-<details>
-<summary><strong>Step 4: Resend Setup</strong></summary>
-
-### 4.1 Create Resend Account
-
-1. Go to [resend.com](https://resend.com) and sign up
-2. Verify your email domain (or use their test domain for development)
-
-### 4.2 Get API Key
-
-1. Go to **API Keys** → **Create API Key**
-2. Copy the key (`re_xxx`)
-
-### 4.3 Create Webhook (Optional)
-
-For email delivery tracking:
-
-1. Go to **Webhooks** → **Add Webhook**
-2. URL: `https://your-deployment.convex.site/resend-webhook`
-3. Select events: all delivery events
-4. Copy the webhook secret
-
-</details>
-
-<details>
-<summary><strong>Step 5: Expo Setup</strong></summary>
-
-### 5.1 Create Expo Account
-
-1. Go to [expo.dev](https://expo.dev) and sign up
-2. This also gives you access to EAS
-
-### 5.2 Get Access Token
-
-For push notifications:
-
-1. Go to **Account Settings** → **Access Tokens**
-2. Click **Create Token**
-3. Name it (e.g., "expo-starter-app")
-4. Copy the token
-
-</details>
-
-<details>
-<summary><strong>Step 6: Set Convex Environment Variables</strong></summary>
-
-> [!IMPORTANT]
-> You must set env vars for **both** deployments (dev and prod).
-
-### 6.1 Development Deployment
-
-1. Go to [Convex Dashboard](https://dashboard.convex.dev)
-2. Select your **dev deployment**
-3. Go to **Settings** → **Environment Variables**
-4. Add these variables:
-
-```bash
-# App
-SITE_URL=expostarterapp://
-SUPPORT_EMAIL=your@email.com
-
-# Push Notifications
-EXPO_ACCESS_TOKEN=<from Step 5.2>
-
-# Better Auth
-BETTER_AUTH_SECRET=<run: openssl rand -base64 32>
-
-# Resend
-RESEND_API_KEY=<from Step 4.2>
-RESEND_FROM_EMAIL=noreply@yourdomain.com
-RESEND_WEBHOOK_SECRET=<from Step 4.3, or skip>
-
-# RevenueCat
-REVENUECAT_WEBHOOK_BEARER_TOKEN=<from Step 3.6>
-```
-
-### 6.2 Production Deployment
-
-1. Select your **prod deployment** in Convex Dashboard
-2. Go to **Settings** → **Environment Variables**
-3. Add the **same variables** as dev, but with production values:
-   - Generate a **different** `BETTER_AUTH_SECRET`
-   - Use production RevenueCat webhook token
 
 </details>
 
 <details>
 <summary><strong>Step 7: Set Local Environment Variables</strong></summary>
 
-Edit `.env.local.dev` with your values:
+Edit `.env.local` with your values:
 
 ```bash
 # Convex
@@ -273,52 +212,15 @@ EXPO_PUBLIC_CONVEX_SITE_URL=https://your-slug.convex.site
 # App
 EXPO_PUBLIC_SITE_URL=expostarterapp://
 
-# RevenueCat (from Step 3.5)
+# RevenueCat (from Step 3.4)
 EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY=appl_xxx
 EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxx
-```
-
-Copy to `.env.local`:
-
-```bash
-cp .env.local.dev .env.local
 ```
 
 </details>
 
 <details>
-<summary><strong>Step 8: Set EAS Environment Variables</strong></summary>
-
-EAS needs env vars for cloud builds. Set them for **both profiles** (development and production).
-
-### 8.1 Production Profile
-
-1. Go to [EAS Dashboard](https://expo.dev) → Your Project → **Environment Variables**
-2. Create variables for **production** environment:
-
-```bash
-CONVEX_DEPLOY_KEY=prod:your-slug|xxxxx
-EXPO_PUBLIC_CONVEX_URL=https://your-prod-slug.convex.cloud
-EXPO_PUBLIC_CONVEX_SITE_URL=https://your-prod-slug.convex.site
-EXPO_PUBLIC_SITE_URL=expostarterapp://
-EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY=appl_xxx
-EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxx
-```
-
-All variables should be **Plain text** visibility.
-
-### 8.2 Development Profile (Optional)
-
-If you want EAS dev builds:
-
-1. Create variables for **development** environment
-2. Use your **dev** Convex deployment URLs and deploy key
-3. Use the same RevenueCat keys (they work for both sandbox and production)
-
-</details>
-
-<details>
-<summary><strong>Step 9: Run the App</strong></summary>
+<summary><strong>Step 8: Run the App</strong></summary>
 
 Open **two terminals**:
 
