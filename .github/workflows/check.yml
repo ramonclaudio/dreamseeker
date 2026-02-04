@@ -14,6 +14,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps
-      - run: npx convex codegen
       - run: npm run lint
       - run: npm run typecheck
