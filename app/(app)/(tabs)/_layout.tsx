@@ -28,24 +28,24 @@ export default function TabLayout() {
       backgroundColor={process.env.EXPO_OS === "web" ? colors.card : undefined}
       indicatorColor={process.env.EXPO_OS === "web" ? colors.muted : undefined}
     >
-      {/* Home Tab */}
+      {/* Dreams Tab (Home) */}
       <NativeTabs.Trigger name="(home)">
-        <Icon sf={{ default: "house", selected: "house.fill" }} md="home" />
-        <Label>Home</Label>
+        <Icon sf={{ default: "sparkles", selected: "sparkles" }} md="auto_fix_high" />
+        <Label>Dreams</Label>
         {badges.home !== null && <Badge>{badges.home}</Badge>}
       </NativeTabs.Trigger>
 
-      {/* Tasks Tab */}
-      <NativeTabs.Trigger name="tasks">
-        <Icon sf={{ default: "checklist", selected: "checklist" }} md="checklist" />
-        <Label>Tasks</Label>
-        {badges.tasks !== null && <Badge>{badges.tasks}</Badge>}
+      {/* Today Tab */}
+      <NativeTabs.Trigger name="today">
+        <Icon sf={{ default: "sun.max", selected: "sun.max.fill" }} md="wb_sunny" />
+        <Label>Today</Label>
+        {badges.today !== null && <Badge>{badges.today}</Badge>}
       </NativeTabs.Trigger>
 
-      {/* Explore Tab */}
+      {/* Discover Tab (formerly Explore) */}
       <NativeTabs.Trigger name="explore">
-        <Icon sf={{ default: "paperplane", selected: "paperplane.fill" }} md="explore" />
-        <Label>Explore</Label>
+        <Icon sf={{ default: "lightbulb", selected: "lightbulb.fill" }} md="lightbulb_outline" />
+        <Label>Discover</Label>
         {badges.explore !== null && <Badge>{badges.explore}</Badge>}
       </NativeTabs.Trigger>
 

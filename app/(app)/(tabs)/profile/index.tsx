@@ -785,7 +785,7 @@ export default function ProfileScreen() {
   const { mode, setMode } = useThemeMode();
   const user = useQuery(api.auth.getCurrentUser);
   const deleteAccountMutation = useMutation(api.users.deleteAccount);
-  const { isPremium, taskLimit, taskCount, showUpgrade, manageBilling } = useSubscription();
+  const { isPremium, dreamLimit, dreamCount, showUpgrade, manageBilling } = useSubscription();
   const {
     isUploading: isUploadingAvatar,
     showOptions: showAvatarOptions,
@@ -1119,8 +1119,8 @@ export default function ProfileScreen() {
                       </ThemedText>
                       <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>
                         {isPremium
-                          ? "Unlimited tasks"
-                          : `${taskCount}/${taskLimit} tasks used`}
+                          ? "Unlimited dreams"
+                          : `${dreamCount}/${dreamLimit} dreams used`}
                       </ThemedText>
                     </View>
                   </View>

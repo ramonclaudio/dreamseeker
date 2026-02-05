@@ -11,11 +11,33 @@ export const deleteAccount = mutation({
 
     const userId = user._id;
 
-    const tasks = await ctx.db
-      .query('tasks')
+    // Delete all dreams and their actions
+    const dreams = await ctx.db
+      .query('dreams')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
-    for (const task of tasks) await ctx.db.delete("tasks", task._id);
+    for (const dream of dreams) {
+      const actions = await ctx.db
+        .query('actions')
+        .withIndex('by_dream', (q) => q.eq('dreamId', dream._id))
+        .collect();
+      for (const action of actions) await ctx.db.delete(action._id);
+      await ctx.db.delete(dream._id);
+    }
+
+    // Delete user progress
+    const progress = await ctx.db
+      .query('userProgress')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    if (progress) await ctx.db.delete(progress._id);
+
+    // Delete challenge completions
+    const completions = await ctx.db
+      .query('challengeCompletions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+    for (const completion of completions) await ctx.db.delete(completion._id);
 
     const pushTokens = await ctx.db
       .query('pushTokens')

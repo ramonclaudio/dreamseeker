@@ -7,6 +7,7 @@ import { IconSize } from "@/constants/layout";
 // SF Symbol names (iOS) -> Material Community Icons (Android/Web)
 const ANDROID_MAPPING = {
   "house.fill": "home",
+  house: "home-outline",
   "paperplane.fill": "send",
   "chevron.left.forwardslash.chevron.right": "code-tags",
   "chevron.right": "chevron-right",
@@ -17,8 +18,10 @@ const ANDROID_MAPPING = {
   gear: "cog",
   "gearshape.fill": "cog",
   "sun.max.fill": "white-balance-sunny",
+  "sun.max": "white-balance-sunny",
   "moon.fill": "moon-waning-crescent",
   "person.fill": "account",
+  person: "account-outline",
   "person.crop.circle": "account-circle",
   "lock.fill": "lock",
   "rectangle.portrait.and.arrow.right": "logout",
@@ -52,7 +55,29 @@ const ANDROID_MAPPING = {
   "mappin.and.ellipse": "map-marker",
   "star.leadinghalf.filled": "star-half-full",
   "leaf.fill": "leaf",
+  leaf: "leaf",
   "cup.and.saucer.fill": "coffee",
+  // Dream category icons
+  "airplane": "airplane",
+  "dollarsign.circle.fill": "cash",
+  "briefcase.fill": "briefcase",
+  "heart.fill": "heart",
+  // Tab icons
+  "lightbulb.fill": "lightbulb",
+  lightbulb: "lightbulb-outline",
+  // Gamification icons
+  "flame.fill": "fire",
+  flame: "fire",
+  "trophy.fill": "trophy",
+  bolt: "lightning-bolt",
+  "bolt.fill": "lightning-bolt",
+  "target": "target",
+  "quote.bubble.fill": "format-quote-close",
+  "quote.bubble": "format-quote-close",
+  plus: "plus",
+  "plus.circle.fill": "plus-circle",
+  "circle.fill": "circle",
+  circle: "circle-outline",
 } as const;
 
 export type IconSymbolName = keyof typeof ANDROID_MAPPING;
