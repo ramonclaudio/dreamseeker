@@ -814,7 +814,7 @@ function CelebrationSlide({ colors }: { colors: ReturnType<typeof useColors> }) 
       />
       <View style={{ gap: Spacing.lg, alignItems: 'center' }}>
         <ThemedText variant="title" style={{ textAlign: 'center' }}>
-          You&apos;re a Seeker now!
+          Welcome to DreamSeeker!
         </ThemedText>
         <MaterialCard style={{ padding: Spacing.lg }}>
           <ThemedText
