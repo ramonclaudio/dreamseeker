@@ -14,6 +14,7 @@ export const DREAM_CATEGORY_LIST = Object.keys(DREAM_CATEGORIES) as DreamCategor
 
 // XP rewards for various actions
 export const XP_REWARDS = {
+  onboardingComplete: 50,
   actionComplete: 10,
   dreamComplete: 100,
   challengeComplete: 25,

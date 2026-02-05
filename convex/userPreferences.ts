@@ -97,10 +97,19 @@ export const completeOnboarding = mutation({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
-    if (!existingProgress) {
+    // Award 50 XP for completing onboarding
+    const ONBOARDING_XP = 50;
+
+    if (existingProgress) {
+      // User already has progress, add onboarding XP
+      await ctx.db.patch(existingProgress._id, {
+        totalXp: existingProgress.totalXp + ONBOARDING_XP,
+      });
+    } else {
+      // Initialize with onboarding XP
       await ctx.db.insert('userProgress', {
         userId,
-        totalXp: 0,
+        totalXp: ONBOARDING_XP,
         level: 1,
         currentStreak: 0,
         longestStreak: 0,
