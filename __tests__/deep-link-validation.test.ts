@@ -9,21 +9,21 @@ describe('Deep Link Validation', () => {
     });
 
     it('accepts app scheme URLs to allowed routes', () => {
-      expect(isValidDeepLink('expostarterapp://tasks')).toBe(true);
-      expect(isValidDeepLink('expostarterapp://profile')).toBe(true);
-      expect(isValidDeepLink('expostarterapp://settings')).toBe(true);
+      expect(isValidDeepLink('dreamseeker://tasks')).toBe(true);
+      expect(isValidDeepLink('dreamseeker://profile')).toBe(true);
+      expect(isValidDeepLink('dreamseeker://settings')).toBe(true);
     });
 
     it('accepts subroutes of allowed paths', () => {
       expect(isValidDeepLink('/settings/notifications')).toBe(true);
       expect(isValidDeepLink('/tasks/123')).toBe(true);
-      expect(isValidDeepLink('expostarterapp://settings/account')).toBe(true);
+      expect(isValidDeepLink('dreamseeker://settings/account')).toBe(true);
     });
 
     it('accepts paths with query parameters', () => {
       expect(isValidDeepLink('/tasks?sort=date')).toBe(true);
       expect(isValidDeepLink('/settings?tab=notifications')).toBe(true);
-      expect(isValidDeepLink('expostarterapp://subscribe?plan=pro')).toBe(true);
+      expect(isValidDeepLink('dreamseeker://subscribe?plan=pro')).toBe(true);
     });
   });
 
@@ -46,7 +46,7 @@ describe('Deep Link Validation', () => {
     it('rejects non-whitelisted routes', () => {
       expect(isValidDeepLink('/admin')).toBe(false);
       expect(isValidDeepLink('/api/users')).toBe(false);
-      expect(isValidDeepLink('expostarterapp://admin')).toBe(false);
+      expect(isValidDeepLink('dreamseeker://admin')).toBe(false);
     });
 
     it('rejects invalid values', () => {
