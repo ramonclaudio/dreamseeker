@@ -4,7 +4,7 @@ import { api } from '@/convex/_generated/api';
 
 export type TabBadges = {
   home: string | null;
-  tasks: string | null;
+  today: string | null;
   explore: string | null;
   profile: string | null;
 };
@@ -20,18 +20,18 @@ export type TabBadges = {
  * - `"9+"` = badge with overflow
  */
 export function useTabBadges(): TabBadges {
-  // Query incomplete tasks for the tasks tab badge
-  const tasks = useQuery(api.tasks.list);
+  // Query pending actions for the Today tab badge
+  const pendingActions = useQuery(api.actions.listPending);
 
-  // Count incomplete tasks
-  const incompleteTasks = tasks?.filter((t) => !t.isCompleted).length ?? 0;
+  // Count pending actions
+  const pendingCount = pendingActions?.length ?? 0;
 
   // Format badge text - show count up to 9, then "9+"
-  const tasksBadge = incompleteTasks === 0 ? null : incompleteTasks > 9 ? '9+' : String(incompleteTasks);
+  const todayBadge = pendingCount === 0 ? null : pendingCount > 9 ? '9+' : String(pendingCount);
 
   return {
     home: null,
-    tasks: tasksBadge,
+    today: todayBadge,
     explore: null,
     profile: null,
   };
