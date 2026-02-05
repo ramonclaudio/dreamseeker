@@ -31,6 +31,7 @@ export const list = query({
     const actions = await ctx.db
       .query('actions')
       .withIndex('by_dream', (q) => q.eq('dreamId', args.dreamId))
+      .filter((q) => q.neq(q.field('status'), 'archived'))
       .collect();
 
     // Sort by order
@@ -48,19 +49,31 @@ export const listPending = query({
     const actions = await ctx.db
       .query('actions')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) => q.eq(q.field('isCompleted'), false))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('isCompleted'), false),
+          q.neq(q.field('status'), 'archived')
+        )
+      )
       .collect();
 
-    // Get dream titles for context
+    // Get dream titles for context, filtering out archived dreams
     const dreamIds = [...new Set(actions.map((a) => a.dreamId))];
     const dreams = await Promise.all(dreamIds.map((id) => ctx.db.get(id)));
-    const dreamMap = new Map(dreams.filter(Boolean).map((d) => [d!._id, d!]));
+    const activeDreamMap = new Map(
+      dreams
+        .filter((d) => d && d.status !== 'archived')
+        .map((d) => [d!._id, d!])
+    );
 
-    return actions.map((action) => ({
-      ...action,
-      dreamTitle: dreamMap.get(action.dreamId)?.title ?? 'Unknown Dream',
-      dreamCategory: dreamMap.get(action.dreamId)?.category,
-    }));
+    // Only return actions for active dreams
+    return actions
+      .filter((action) => activeDreamMap.has(action.dreamId))
+      .map((action) => ({
+        ...action,
+        dreamTitle: activeDreamMap.get(action.dreamId)?.title ?? 'Unknown Dream',
+        dreamCategory: activeDreamMap.get(action.dreamId)?.category,
+      }));
   },
 });
 
@@ -98,6 +111,7 @@ export const create = mutation({
       text: trimmedText,
       isCompleted: false,
       order: maxOrder + 1,
+      status: 'active',
       createdAt: Date.now(),
     });
   },

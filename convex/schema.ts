@@ -36,6 +36,7 @@ export default defineSchema({
     isCompleted: v.boolean(),
     completedAt: v.optional(v.number()),
     order: v.number(),
+    status: v.optional(v.union(v.literal('active'), v.literal('archived'))), // defaults to active
     createdAt: v.number(),
   })
     .index('by_dream', ['dreamId'])

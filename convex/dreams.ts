@@ -335,6 +335,11 @@ export const archive = mutation({
       });
     }
 
+    // Archive all actions for this dream
+    for (const action of actions) {
+      await ctx.db.patch(action._id, { status: 'archived' });
+    }
+
     await ctx.db.patch(args.id, { status: 'archived' });
 
     return { xpDeducted: xpToDeduct, actionsArchived: actions.length };
@@ -403,6 +408,11 @@ export const restore = mutation({
         actionsCompleted: progress.actionsCompleted + completedActionsCount,
         dreamsCompleted: progress.dreamsCompleted + dreamsToRestore,
       });
+    }
+
+    // Restore all actions for this dream
+    for (const action of actions) {
+      await ctx.db.patch(action._id, { status: 'active' });
     }
 
     await ctx.db.patch(args.id, { status: restoreToStatus });
