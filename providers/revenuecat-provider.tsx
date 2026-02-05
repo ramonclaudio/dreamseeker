@@ -32,15 +32,27 @@ export function RevenueCatProvider({ children }: RevenueCatProviderProps) {
 
   // Sync user login/logout with RevenueCat
   useEffect(() => {
-    if (isAuthenticated && user?._id) {
-      Purchases.logIn(user._id).catch((error) => {
-        if (__DEV__) console.error('[RevenueCat] Login failed:', error);
-      });
-    } else if (!isAuthenticated) {
-      Purchases.logOut().catch(() => {
-        // Ignore logout errors — user may not have been logged in
-      });
-    }
+    const syncUser = async () => {
+      if (isAuthenticated && user?._id) {
+        try {
+          await Purchases.logIn(user._id);
+        } catch (error) {
+          if (__DEV__) console.error('[RevenueCat] Login failed:', error);
+        }
+      } else if (!isAuthenticated) {
+        // Only log out if user is not anonymous (was previously logged in)
+        const isAnonymous = await Purchases.isAnonymous();
+        if (!isAnonymous) {
+          try {
+            await Purchases.logOut();
+          } catch {
+            // Ignore logout errors
+          }
+        }
+      }
+    };
+
+    syncUser();
   }, [isAuthenticated, user?._id]);
 
   return <>{children}</>;
