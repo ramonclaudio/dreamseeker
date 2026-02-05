@@ -60,7 +60,7 @@ export default function HelpScreen() {
   const colors = useColors();
 
   const handleOpenGitHub = () => {
-    Linking.openURL('https://github.com/ramonclaudio/expo-starter-app/issues');
+    Linking.openURL('https://github.com/ramonclaudio/dreamseeker/issues');
   };
 
   const handleOpenEmail = async () => {

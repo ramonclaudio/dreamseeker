@@ -90,7 +90,7 @@ export default function AboutScreen() {
     : process.env.EXPO_OS;
 
   const handleOpenGitHub = () => {
-    Linking.openURL('https://github.com/ramonclaudio/expo-starter-app');
+    Linking.openURL('https://github.com/ramonclaudio/dreamseeker');
   };
 
   const handleOpenPrivacyPolicy = () => {
