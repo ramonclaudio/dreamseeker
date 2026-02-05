@@ -1,15 +1,82 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+const dreamCategory = v.union(
+  v.literal('travel'),
+  v.literal('money'),
+  v.literal('career'),
+  v.literal('lifestyle'),
+  v.literal('growth'),
+  v.literal('relationships')
+);
+
+const dreamStatus = v.union(v.literal('active'), v.literal('completed'), v.literal('archived'));
+
 export default defineSchema({
-  tasks: defineTable({
+  // Dreams - main goal items
+  dreams: defineTable({
     userId: v.string(),
-    text: v.string(),
-    isCompleted: v.boolean(),
+    title: v.string(),
+    category: dreamCategory,
+    whyItMatters: v.optional(v.string()),
+    targetDate: v.optional(v.number()),
+    status: dreamStatus,
     createdAt: v.number(),
+    completedAt: v.optional(v.number()),
   })
     .index('by_user', ['userId'])
-    .index('by_user_completed', ['userId', 'isCompleted']),
+    .index('by_user_status', ['userId', 'status'])
+    .index('by_user_category', ['userId', 'category']),
+
+  // Actions - micro-steps towards dreams
+  actions: defineTable({
+    userId: v.string(),
+    dreamId: v.id('dreams'),
+    text: v.string(),
+    isCompleted: v.boolean(),
+    completedAt: v.optional(v.number()),
+    order: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_dream', ['dreamId'])
+    .index('by_user', ['userId']),
+
+  // User progress - gamification stats
+  userProgress: defineTable({
+    userId: v.string(),
+    totalXp: v.number(),
+    level: v.number(),
+    currentStreak: v.number(),
+    longestStreak: v.number(),
+    lastActiveDate: v.string(), // YYYY-MM-DD
+    dreamsCompleted: v.number(),
+    actionsCompleted: v.number(),
+  }).index('by_user', ['userId']),
+
+  // Daily challenges - system-defined challenges
+  dailyChallenges: defineTable({
+    title: v.string(),
+    description: v.string(),
+    category: v.string(),
+    xpReward: v.number(),
+    isActive: v.boolean(),
+  }).index('by_category', ['category']),
+
+  // Challenge completions - tracks user's completed challenges
+  challengeCompletions: defineTable({
+    userId: v.string(),
+    challengeId: v.id('dailyChallenges'),
+    completedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_date', ['userId', 'completedAt']),
+
+  // Mindset moments - inspirational quotes
+  mindsetMoments: defineTable({
+    quote: v.string(),
+    author: v.string(),
+    category: v.optional(v.string()),
+  }).index('by_category', ['category']),
 
   pushTokens: defineTable({
     userId: v.string(),
