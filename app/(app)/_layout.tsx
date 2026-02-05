@@ -1,6 +1,8 @@
-import { Stack } from 'expo-router';
-import { View } from 'react-native';
+import { Stack, Redirect } from 'expo-router';
+import { View, ActivityIndicator } from 'react-native';
+import { useQuery } from 'convex/react';
 
+import { api } from '@/convex/_generated/api';
 import { useColors } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
@@ -10,6 +12,28 @@ export const unstable_settings = {
 
 export default function AppLayout() {
   const colors = useColors();
+  const onboardingStatus = useQuery(api.userPreferences.getOnboardingStatus);
+
+  // Show loading while checking onboarding status
+  if (onboardingStatus === undefined) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // Redirect to onboarding if not completed
+  if (!onboardingStatus.completed) {
+    return <Redirect href="/(app)/onboarding" />;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -23,6 +47,7 @@ export default function AppLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen
           name="dream/[id]"
           options={{
