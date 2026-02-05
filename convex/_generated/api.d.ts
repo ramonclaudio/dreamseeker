@@ -24,6 +24,7 @@ import type * as revenuecat from "../revenuecat.js";
 import type * as seed from "../seed.js";
 import type * as storage from "../storage.js";
 import type * as subscriptions from "../subscriptions.js";
+import type * as userPreferences from "../userPreferences.js";
 import type * as users from "../users.js";
 
 import type {
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   storage: typeof storage;
   subscriptions: typeof subscriptions;
+  userPreferences: typeof userPreferences;
   users: typeof users;
 }>;
 

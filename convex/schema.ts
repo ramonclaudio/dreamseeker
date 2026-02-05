@@ -101,4 +101,13 @@ export default defineSchema({
     .index('by_ticket', ['ticketId'])
     .index('by_status', ['status'])
     .index('by_token', ['token']),
+
+  userPreferences: defineTable({
+    userId: v.string(),
+    onboardingCompleted: v.boolean(),
+    selectedCategories: v.array(dreamCategory),
+    pace: v.union(v.literal('gentle'), v.literal('steady'), v.literal('ambitious')),
+    notificationTime: v.optional(v.string()), // "HH:mm" format
+    createdAt: v.number(),
+  }).index('by_user', ['userId']),
 });
