@@ -63,41 +63,51 @@ This creates `.env.local` from `.env.example` automatically.
 npx convex dev
 ```
 
-Follow the prompts to create a project. Note your deployment slug (e.g., `amiable-seahorse-506`).
+Follow the prompts to create a project. **The first push will fail** — this is expected since environment variables aren't set yet.
 
-### 3. Fill in `.env.local`
-
-Edit `.env.local` with your deployment URLs and API keys:
+Convex auto-populates `.env.local` with your deployment URLs:
 
 ```bash
-# Convex (from step 2 output)
-CONVEX_DEPLOYMENT=dev:your-deployment-slug
-EXPO_PUBLIC_CONVEX_URL=https://your-deployment-slug.convex.cloud
-EXPO_PUBLIC_CONVEX_SITE_URL=https://your-deployment-slug.convex.site
+CONVEX_DEPLOYMENT=dev:your-slug-123
+EXPO_PUBLIC_CONVEX_URL=https://your-slug-123.convex.cloud
+EXPO_PUBLIC_CONVEX_SITE_URL=https://your-slug-123.convex.site
+```
 
-# App
-EXPO_PUBLIC_SITE_URL=expostarterapp://
+### 3. Set Environment Variables
 
-# RevenueCat (from dashboard.revenuecat.com → API Keys)
+Set the required server secrets:
+
+```bash
+npx convex env set SITE_URL=expostarterapp://
+npx convex env set SUPPORT_EMAIL=your@email.com
+npx convex env set BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+npx convex env set RESEND_API_KEY=re_xxxxxxxxxxxx
+npx convex env set RESEND_FROM_EMAIL=noreply@yourdomain.com
+npx convex env set RESEND_WEBHOOK_SECRET=whsec_xxxxxxxxxxxx
+npx convex env set REVENUECAT_WEBHOOK_BEARER_TOKEN=$(openssl rand -base64 32)
+```
+
+Update the RevenueCat client keys in `.env.local`:
+
+```bash
+# Get these from dashboard.revenuecat.com → API Keys
 EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY=appl_xxxxxxxxxxxx
 EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxxxxxxxxxxx
 ```
 
-### 4. Set Convex Dashboard Secrets
+Then re-run `npx convex dev` — it will push successfully.
 
-Go to [dashboard.convex.dev](https://dashboard.convex.dev) → Your Project → **Settings** → **Environment Variables**
+### 4. Set Optional Secrets (skip for now)
 
-Add these server secrets:
+The required secrets were set in step 3. For full functionality, add these later:
 
 ```bash
-BETTER_AUTH_SECRET=<run: openssl rand -base64 32>
-SITE_URL=expostarterapp://
-SUPPORT_EMAIL=your@email.com
-EXPO_ACCESS_TOKEN=<from expo.dev → Access Tokens>
-RESEND_API_KEY=re_xxxxxxxxxxxx
-RESEND_FROM_EMAIL=noreply@yourdomain.com
-PAYMENT_PROVIDER=revenuecat
-REVENUECAT_WEBHOOK_BEARER_TOKEN=<your webhook bearer token>
+# Push notifications (requires physical device)
+npx convex env set EXPO_ACCESS_TOKEN=<from expo.dev → Access Tokens>
+
+# Apple Sign-In (optional)
+npx convex env set APPLE_CLIENT_ID=your-services-id
+npx convex env set APPLE_CLIENT_SECRET=your-jwt-secret
 ```
 
 ### 5. Run
@@ -215,6 +225,7 @@ APPLE_CLIENT_SECRET=your-jwt-secret
 | `EXPO_ACCESS_TOKEN` | | ✓ | |
 | `RESEND_API_KEY` | | ✓ | |
 | `RESEND_FROM_EMAIL` | | ✓ | |
+| `RESEND_WEBHOOK_SECRET` | | ✓ | |
 | `PAYMENT_PROVIDER` | | ✓ | |
 | `REVENUECAT_WEBHOOK_BEARER_TOKEN` | | ✓ | |
 
@@ -314,8 +325,9 @@ eas build --platform ios --profile production    # App Store
 
 | Problem | Solution |
 | :--- | :--- |
+| First `convex dev` fails | Expected — set env vars per step 3, then re-run |
 | "Missing CONVEX_URL" | Check `.env.local` exists and has values |
-| "Unauthorized" errors | Verify Convex env vars in dashboard |
+| "Unauthorized" errors | Verify Convex env vars with `npx convex env list` |
 | Push notifications fail | Use physical device (simulator doesn't support) |
 | Purchases not working | Use physical device with sandbox account |
 | Entitlements not updating | Check webhook URL and bearer token in RevenueCat |
