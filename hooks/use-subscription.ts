@@ -8,10 +8,10 @@ import type { TierKey } from '@/convex/subscriptions';
 export interface UseSubscriptionResult {
   tier: TierKey;
   isPremium: boolean;
-  taskLimit: number | null;
-  taskCount: number;
-  canCreateTask: boolean;
-  tasksRemaining: number | null;
+  dreamLimit: number | null;
+  dreamCount: number;
+  canCreateDream: boolean;
+  dreamsRemaining: number | null;
   isLoading: boolean;
   showUpgrade: () => Promise<boolean>;
   restore: () => Promise<boolean>;
@@ -69,10 +69,10 @@ export function useSubscription(): UseSubscriptionResult {
   return {
     tier: status?.tier ?? 'free',
     isPremium: status?.isPremium ?? false,
-    taskLimit: status?.taskLimit ?? 10,
-    taskCount: status?.taskCount ?? 0,
-    canCreateTask: status?.canCreateTask ?? false,
-    tasksRemaining: status?.tasksRemaining ?? null,
+    dreamLimit: status?.dreamLimit ?? 3,
+    dreamCount: status?.dreamCount ?? 0,
+    canCreateDream: status?.canCreateDream ?? false,
+    dreamsRemaining: status?.dreamsRemaining ?? null,
     isLoading: status === undefined,
     showUpgrade,
     restore,

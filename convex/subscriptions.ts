@@ -3,8 +3,8 @@ import { authComponent } from './auth';
 import { hasEntitlement } from './revenuecat';
 
 export const TIERS = {
-  free: { name: 'Free', limit: 10 },
-  premium: { name: 'Premium', limit: null },
+  free: { name: 'Free', limit: 3 }, // 3 free dreams
+  premium: { name: 'Premium', limit: null }, // Unlimited dreams
 } as const;
 
 export type TierKey = keyof typeof TIERS;
@@ -22,10 +22,10 @@ export const getSubscriptionStatus = query({
       return {
         tier: 'free' as TierKey,
         isPremium: false,
-        taskLimit: TIERS.free.limit,
-        taskCount: 0,
-        canCreateTask: false,
-        tasksRemaining: 0,
+        dreamLimit: TIERS.free.limit,
+        dreamCount: 0,
+        canCreateDream: false,
+        dreamsRemaining: 0,
       };
     }
 
@@ -35,25 +35,25 @@ export const getSubscriptionStatus = query({
     });
 
     const tier: TierKey = isPremium ? 'premium' : 'free';
-    const taskLimit = TIERS[tier].limit;
+    const dreamLimit = TIERS[tier].limit;
 
     // O(limit+1) instead of O(n) - only fetch what we need for display
-    const tasks = await ctx.db
-      .query('tasks')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .take(taskLimit !== null ? taskLimit + 1 : 1);
-    const taskCount = tasks.length;
+    const dreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+      .take(dreamLimit !== null ? dreamLimit + 1 : 1);
+    const dreamCount = dreams.length;
 
-    const canCreateTask = taskLimit === null || taskCount < taskLimit;
-    const tasksRemaining = taskLimit === null ? null : Math.max(0, taskLimit - taskCount);
+    const canCreateDream = dreamLimit === null || dreamCount < dreamLimit;
+    const dreamsRemaining = dreamLimit === null ? null : Math.max(0, dreamLimit - dreamCount);
 
     return {
       tier,
       isPremium,
-      taskLimit,
-      taskCount,
-      canCreateTask,
-      tasksRemaining,
+      dreamLimit,
+      dreamCount,
+      canCreateDream,
+      dreamsRemaining,
     };
   },
 });
