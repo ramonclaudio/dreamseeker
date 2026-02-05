@@ -134,6 +134,80 @@ export const initialize = mutation({
   },
 });
 
+// Recalculate progress from actual data (fixes any drift)
+export const recalculate = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireAuth(ctx);
+
+    // Count completed dreams (not archived)
+    const completedDreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'completed'))
+      .collect();
+
+    // Count completed actions from active/completed dreams only
+    const activeDreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .filter((q) => q.neq(q.field('status'), 'archived'))
+      .collect();
+
+    const activeDreamIds = new Set(activeDreams.map((d) => d._id));
+
+    const allActions = await ctx.db
+      .query('actions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    // Only count completed actions that are active and belong to non-archived dreams
+    const completedActions = allActions.filter(
+      (a) =>
+        a.isCompleted &&
+        a.status !== 'archived' &&
+        activeDreamIds.has(a.dreamId)
+    );
+
+    // Calculate XP
+    const actionsXp = completedActions.length * 10;
+    const dreamsXp = completedDreams.length * 100;
+    const totalXp = actionsXp + dreamsXp;
+
+    // Get or create progress
+    const progress = await ctx.db
+      .query('userProgress')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+
+    const today = getTodayString();
+
+    if (progress) {
+      await ctx.db.patch(progress._id, {
+        totalXp,
+        actionsCompleted: completedActions.length,
+        dreamsCompleted: completedDreams.length,
+      });
+    } else {
+      await ctx.db.insert('userProgress', {
+        userId,
+        totalXp,
+        level: 1,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActiveDate: today,
+        dreamsCompleted: completedDreams.length,
+        actionsCompleted: completedActions.length,
+      });
+    }
+
+    return {
+      totalXp,
+      actionsCompleted: completedActions.length,
+      dreamsCompleted: completedDreams.length,
+    };
+  },
+});
+
 // Internal: Award XP and update streak (called from other mutations)
 export const awardXp = mutation({
   args: {},
