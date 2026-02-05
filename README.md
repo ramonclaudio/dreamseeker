@@ -78,7 +78,7 @@ EXPO_PUBLIC_CONVEX_SITE_URL=https://your-slug-123.convex.site
 Set the required server secrets:
 
 ```bash
-npx convex env set SITE_URL=expostarterapp://
+npx convex env set SITE_URL=dreamseeker://
 npx convex env set SUPPORT_EMAIL=your@email.com
 npx convex env set BETTER_AUTH_SECRET=$(openssl rand -base64 32)
 npx convex env set RESEND_API_KEY=re_xxxxxxxxxxxx
@@ -306,7 +306,7 @@ Set these in [expo.dev](https://expo.dev) → Your Project → **Environment Var
 ```bash
 EXPO_PUBLIC_CONVEX_URL=https://your-prod-slug.convex.cloud
 EXPO_PUBLIC_CONVEX_SITE_URL=https://your-prod-slug.convex.site
-EXPO_PUBLIC_SITE_URL=expostarterapp://
+EXPO_PUBLIC_SITE_URL=dreamseeker://
 EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY=appl_xxxxxxxxxxxx
 EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxxxxxxxxxxx
 ```

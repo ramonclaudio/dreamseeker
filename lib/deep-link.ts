@@ -1,4 +1,4 @@
-const APP_SCHEME = 'expostarterapp';
+const APP_SCHEME = 'dreamseeker';
 
 export const ALLOWED_DEEP_LINK_PATHS = [
   '/tasks',

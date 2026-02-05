@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "expostarterapp",
+    "scheme": "dreamseeker",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
@@ -48,7 +48,7 @@
       }
     },
     "android": {
-      "package": "com.ramonclaudio.expostarterapp",
+      "package": "com.ramonclaudio.dreamseeker",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
