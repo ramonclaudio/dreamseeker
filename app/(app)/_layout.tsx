@@ -1,4 +1,4 @@
-import { Stack, Redirect } from 'expo-router';
+import { Stack, Redirect, useSegments } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import { useQuery } from 'convex/react';
 
@@ -12,7 +12,11 @@ export const unstable_settings = {
 
 export default function AppLayout() {
   const colors = useColors();
+  const segments = useSegments();
   const onboardingStatus = useQuery(api.userPreferences.getOnboardingStatus);
+
+  // Check if we're already on the onboarding route
+  const isOnboardingRoute = segments.some((s) => s === 'onboarding');
 
   // Show loading while checking onboarding status
   if (onboardingStatus === undefined) {
@@ -30,8 +34,8 @@ export default function AppLayout() {
     );
   }
 
-  // Redirect to onboarding if not completed
-  if (!onboardingStatus.completed) {
+  // Redirect to onboarding if not completed (and not already there)
+  if (!onboardingStatus.completed && !isOnboardingRoute) {
     return <Redirect href="/(app)/onboarding" />;
   }
 
