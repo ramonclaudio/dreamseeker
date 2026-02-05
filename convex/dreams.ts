@@ -296,18 +296,52 @@ export const complete = mutation({
   },
 });
 
-// Archive a dream (soft delete)
+// Archive a dream (soft delete) - reverses XP and stats
 export const archive = mutation({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
-    await getOwnedDream(ctx, args.id, userId);
+    const dream = await getOwnedDream(ctx, args.id, userId);
+
+    // Get all completed actions for this dream
+    const actions = await ctx.db
+      .query('actions')
+      .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
+      .collect();
+
+    const completedActionsCount = actions.filter((a) => a.isCompleted).length;
+
+    // Calculate XP to deduct
+    let xpToDeduct = completedActionsCount * 10; // 10 XP per completed action
+    let dreamsToDeduct = 0;
+
+    // If dream was completed, also deduct dream completion bonus
+    if (dream.status === 'completed') {
+      xpToDeduct += 100;
+      dreamsToDeduct = 1;
+    }
+
+    // Update user progress
+    const progress = await ctx.db
+      .query('userProgress')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+
+    if (progress && xpToDeduct > 0) {
+      await ctx.db.patch(progress._id, {
+        totalXp: Math.max(0, progress.totalXp - xpToDeduct),
+        actionsCompleted: Math.max(0, progress.actionsCompleted - completedActionsCount),
+        dreamsCompleted: Math.max(0, progress.dreamsCompleted - dreamsToDeduct),
+      });
+    }
 
     await ctx.db.patch(args.id, { status: 'archived' });
+
+    return { xpDeducted: xpToDeduct, actionsArchived: actions.length };
   },
 });
 
-// Restore an archived dream
+// Restore an archived dream - re-adds XP and stats
 export const restore = mutation({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
@@ -318,24 +352,62 @@ export const restore = mutation({
       throw new Error('Dream is not archived');
     }
 
-    // Check tier limits before restoring
-    const isPremium = await hasEntitlement(ctx, {
-      appUserId: userId,
-      entitlementId: PREMIUM_ENTITLEMENT,
-    });
+    // Check tier limits before restoring (only if restoring to active)
+    const restoreToStatus = dream.completedAt ? 'completed' : 'active';
 
-    if (!isPremium) {
-      const limit = TIERS.free.limit;
-      const activeDreams = await ctx.db
-        .query('dreams')
-        .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
-        .take(limit);
-      if (activeDreams.length >= limit) {
-        throw new Error('LIMIT_REACHED');
+    if (restoreToStatus === 'active') {
+      const isPremium = await hasEntitlement(ctx, {
+        appUserId: userId,
+        entitlementId: PREMIUM_ENTITLEMENT,
+      });
+
+      if (!isPremium) {
+        const limit = TIERS.free.limit;
+        const activeDreams = await ctx.db
+          .query('dreams')
+          .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+          .take(limit);
+        if (activeDreams.length >= limit) {
+          throw new Error('LIMIT_REACHED');
+        }
       }
     }
 
-    await ctx.db.patch(args.id, { status: 'active' });
+    // Get all completed actions for this dream to restore XP
+    const actions = await ctx.db
+      .query('actions')
+      .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
+      .collect();
+
+    const completedActionsCount = actions.filter((a) => a.isCompleted).length;
+
+    // Calculate XP to restore
+    let xpToRestore = completedActionsCount * 10;
+    let dreamsToRestore = 0;
+
+    // If dream was completed before archiving, restore dream completion bonus
+    if (dream.completedAt) {
+      xpToRestore += 100;
+      dreamsToRestore = 1;
+    }
+
+    // Update user progress
+    const progress = await ctx.db
+      .query('userProgress')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+
+    if (progress && xpToRestore > 0) {
+      await ctx.db.patch(progress._id, {
+        totalXp: progress.totalXp + xpToRestore,
+        actionsCompleted: progress.actionsCompleted + completedActionsCount,
+        dreamsCompleted: progress.dreamsCompleted + dreamsToRestore,
+      });
+    }
+
+    await ctx.db.patch(args.id, { status: restoreToStatus });
+
+    return { xpRestored: xpToRestore };
   },
 });
 
