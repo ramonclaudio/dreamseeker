@@ -226,7 +226,6 @@ APPLE_CLIENT_SECRET=your-jwt-secret
 | `RESEND_API_KEY` | | ✓ | |
 | `RESEND_FROM_EMAIL` | | ✓ | |
 | `RESEND_WEBHOOK_SECRET` | | ✓ | |
-| `PAYMENT_PROVIDER` | | ✓ | |
 | `REVENUECAT_WEBHOOK_BEARER_TOKEN` | | ✓ | |
 
 ---
