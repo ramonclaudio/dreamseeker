@@ -3,7 +3,7 @@ import { View, type ViewProps } from "react-native";
 import { Spacing } from "@/constants/layout";
 import { Radius } from "@/constants/theme";
 import { useColors } from "@/hooks/use-color-scheme";
-import { useReduceTransparency } from "@/hooks/use-accessibility-settings";
+import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
 
 let _glassModule: typeof import("expo-glass-effect") | null = null;
 function getGlassModule() {
@@ -65,7 +65,7 @@ export function GlassControl({
   ...props
 }: GlassControlProps) {
   const colors = useColors();
-  const reduceTransparency = useReduceTransparency();
+  const { reduceTransparency } = useAccessibilitySettings();
 
   // Fallback style uses solid tint color or card background
   const fallbackBg = tint ?? colors.card;
@@ -118,7 +118,7 @@ export function GlassControlContainer({
   ...props
 }: GlassContainerProps) {
   const colors = useColors();
-  const reduceTransparency = useReduceTransparency();
+  const { reduceTransparency } = useAccessibilitySettings();
   const cardStyle = [
     baseCardStyle,
     { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },

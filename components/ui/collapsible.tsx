@@ -7,12 +7,12 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { IconSize, Spacing, TouchTarget } from '@/constants/layout';
 import { Duration, Opacity } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
-import { useReduceMotion } from '@/hooks/use-accessibility-settings';
+import { useAccessibilitySettings } from '@/hooks/use-accessibility-settings';
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const colors = useColors();
-  const reduceMotion = useReduceMotion();
+  const { reduceMotion } = useAccessibilitySettings();
 
   const chevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: withTiming(isOpen ? '90deg' : '0deg', { duration: reduceMotion ? 0 : Duration.normal }) }],

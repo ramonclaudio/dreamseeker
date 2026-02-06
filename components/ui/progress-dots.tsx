@@ -49,6 +49,9 @@ export function ProgressDots({ total, current }: ProgressDotsProps) {
         alignItems: 'center',
         gap: Spacing.xs,
       }}
+      accessibilityRole="adjustable"
+      accessibilityLabel={`Onboarding progress, step ${current + 1} of ${total}`}
+      accessibilityValue={{ now: current + 1, min: 1, max: total }}
     >
       {Array.from({ length: total }, (_, i) => (
         <Dot key={i} isActive={i === current} colors={colors} />

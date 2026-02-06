@@ -11,19 +11,19 @@ import { useColors } from '@/hooks/use-color-scheme';
 interface NavigationButtonsProps {
   onBack?: () => void;
   onContinue: () => void;
-  showBack?: boolean;
   continueLabel?: string;
   continueDisabled?: boolean;
   isLoading?: boolean;
+  bottomInset?: number;
 }
 
 export function NavigationButtons({
   onBack,
   onContinue,
-  showBack = true,
   continueLabel = 'Continue',
   continueDisabled = false,
   isLoading = false,
+  bottomInset = 0,
 }: NavigationButtonsProps) {
   const colors = useColors();
 
@@ -33,10 +33,10 @@ export function NavigationButtons({
         flexDirection: 'row',
         gap: Spacing.md,
         paddingHorizontal: Spacing.xl,
-        paddingBottom: Spacing['3xl'],
+        paddingBottom: Math.max(bottomInset, Spacing.md) + Spacing.md,
       }}
     >
-      {showBack && onBack && (
+      {onBack && (
         <Pressable
           onPress={onBack}
           disabled={isLoading}
