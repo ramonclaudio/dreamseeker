@@ -1,73 +1,38 @@
-import { query, mutation, type QueryCtx, type MutationCtx } from './_generated/server';
-import { authComponent } from './auth';
+import { query, mutation } from './_generated/server';
+import {
+  getAuthUserId,
+  requireAuth,
+  getTodayString,
+  getYesterdayString,
+  createDefaultProgress,
+} from './helpers';
+import { LEVELS, XP_REWARDS, getLevelFromXp } from './constants';
 
-const getAuthUserId = async (ctx: QueryCtx | MutationCtx) =>
-  (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
-
-const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) throw new Error('Unauthorized');
-  return userId;
-};
-
-// Get today's date string in YYYY-MM-DD format
-const getTodayString = () => new Date().toISOString().split('T')[0];
-
-// Level progression thresholds
-const LEVELS = [
-  { level: 1, xp: 0, title: 'Dreamer' },
-  { level: 2, xp: 100, title: 'Seeker' },
-  { level: 3, xp: 300, title: 'Achiever' },
-  { level: 4, xp: 600, title: 'Go-Getter' },
-  { level: 5, xp: 1000, title: 'Trailblazer' },
-];
-
-function getLevelFromXp(xp: number) {
-  for (let i = LEVELS.length - 1; i >= 0; i--) {
-    if (xp >= LEVELS[i].xp) {
-      return LEVELS[i];
-    }
-  }
-  return LEVELS[0];
-}
-
-// Get user's progress stats
 export const getProgress = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      return {
-        totalXp: 0,
-        level: 1,
-        levelTitle: 'Dreamer',
-        currentStreak: 0,
-        longestStreak: 0,
-        dreamsCompleted: 0,
-        actionsCompleted: 0,
-        xpToNextLevel: 100,
-        xpProgress: 0,
-      };
-    }
+
+    const defaultProgress = {
+      totalXp: 0,
+      level: 1,
+      levelTitle: 'Dreamer' as string,
+      currentStreak: 0,
+      longestStreak: 0,
+      dreamsCompleted: 0,
+      actionsCompleted: 0,
+      xpToNextLevel: 100,
+      xpProgress: 0,
+    };
+
+    if (!userId) return defaultProgress;
 
     const progress = await ctx.db
       .query('userProgress')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
-    if (!progress) {
-      return {
-        totalXp: 0,
-        level: 1,
-        levelTitle: 'Dreamer',
-        currentStreak: 0,
-        longestStreak: 0,
-        dreamsCompleted: 0,
-        actionsCompleted: 0,
-        xpToNextLevel: 100,
-        xpProgress: 0,
-      };
-    }
+    if (!progress) return defaultProgress;
 
     const currentLevel = getLevelFromXp(progress.totalXp);
     const nextLevel = LEVELS[LEVELS.findIndex((l) => l.level === currentLevel.level) + 1];
@@ -84,12 +49,10 @@ export const getProgress = query({
 
     // Check if streak is still valid (user was active yesterday or today)
     const today = getTodayString();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayString = yesterday.toISOString().split('T')[0];
+    const yesterday = getYesterdayString();
 
     let currentStreak = progress.currentStreak;
-    if (progress.lastActiveDate !== today && progress.lastActiveDate !== yesterdayString) {
+    if (progress.lastActiveDate !== today && progress.lastActiveDate !== yesterday) {
       currentStreak = 0; // Streak broken
     }
 
@@ -107,13 +70,11 @@ export const getProgress = query({
   },
 });
 
-// Initialize user progress (called on first action/dream)
 export const initialize = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireAuth(ctx);
 
-    // Check if progress already exists
     const existing = await ctx.db
       .query('userProgress')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -121,20 +82,17 @@ export const initialize = mutation({
 
     if (existing) return existing._id;
 
-    return await ctx.db.insert('userProgress', {
-      userId,
-      totalXp: 0,
-      level: 1,
-      currentStreak: 0,
-      longestStreak: 0,
-      lastActiveDate: getTodayString(),
-      dreamsCompleted: 0,
-      actionsCompleted: 0,
-    });
+    return await ctx.db.insert('userProgress', createDefaultProgress(userId));
   },
 });
 
 // Recalculate progress from actual data (fixes any drift)
+// XP sources that must be accounted for:
+// - Actions: 10 XP per completed action (XP_REWARDS.actionComplete)
+// - Dreams: 100 XP per completed dream (XP_REWARDS.dreamComplete)
+// - Challenges: variable XP per challenge (challenge.xpReward)
+// - Onboarding: 50 XP (XP_REWARDS.onboardingComplete)
+// When adding new XP sources, update this function.
 export const recalculate = mutation({
   args: {},
   handler: async (ctx) => {
@@ -160,7 +118,6 @@ export const recalculate = mutation({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
 
-    // Only count completed actions that are active and belong to non-archived dreams
     const completedActions = allActions.filter(
       (a) =>
         a.isCompleted &&
@@ -168,10 +125,29 @@ export const recalculate = mutation({
         activeDreamIds.has(a.dreamId)
     );
 
-    // Calculate XP
-    const actionsXp = completedActions.length * 10;
-    const dreamsXp = completedDreams.length * 100;
-    const totalXp = actionsXp + dreamsXp;
+    // Calculate XP: actions + dreams + challenges + onboarding bonus
+    const actionsXp = completedActions.length * XP_REWARDS.actionComplete;
+    const dreamsXp = completedDreams.length * XP_REWARDS.dreamComplete;
+
+    // Sum XP from challenge completions (each challenge stores its own xpReward)
+    const challengeCompletions = await ctx.db
+      .query('challengeCompletions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    const challenges = await Promise.all(
+      challengeCompletions.map((c) => ctx.db.get(c.challengeId))
+    );
+    const challengesXp = challenges.reduce((sum, c) => sum + (c?.xpReward ?? 0), 0);
+
+    // Check if user completed onboarding (they get a one-time XP bonus)
+    const prefs = await ctx.db
+      .query('userPreferences')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    const onboardingXp = prefs?.onboardingCompleted ? XP_REWARDS.onboardingComplete : 0;
+
+    const totalXp = actionsXp + dreamsXp + challengesXp + onboardingXp;
 
     // Get or create progress
     const progress = await ctx.db
@@ -179,25 +155,23 @@ export const recalculate = mutation({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
-    const today = getTodayString();
-
     if (progress) {
       await ctx.db.patch(progress._id, {
         totalXp,
+        level: getLevelFromXp(totalXp).level,
         actionsCompleted: completedActions.length,
         dreamsCompleted: completedDreams.length,
       });
     } else {
-      await ctx.db.insert('userProgress', {
-        userId,
-        totalXp,
-        level: 1,
-        currentStreak: 0,
-        longestStreak: 0,
-        lastActiveDate: today,
-        dreamsCompleted: completedDreams.length,
-        actionsCompleted: completedActions.length,
-      });
+      await ctx.db.insert(
+        'userProgress',
+        createDefaultProgress(userId, {
+          totalXp,
+          level: getLevelFromXp(totalXp).level,
+          dreamsCompleted: completedDreams.length,
+          actionsCompleted: completedActions.length,
+        })
+      );
     }
 
     return {
@@ -208,49 +182,3 @@ export const recalculate = mutation({
   },
 });
 
-// Internal: Award XP and update streak (called from other mutations)
-export const awardXp = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await requireAuth(ctx);
-    const today = getTodayString();
-
-    const progress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
-
-    if (!progress) {
-      // Initialize progress
-      await ctx.db.insert('userProgress', {
-        userId,
-        totalXp: 0,
-        level: 1,
-        currentStreak: 1,
-        longestStreak: 1,
-        lastActiveDate: today,
-        dreamsCompleted: 0,
-        actionsCompleted: 0,
-      });
-      return;
-    }
-
-    // Update streak
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayString = yesterday.toISOString().split('T')[0];
-
-    let newStreak = progress.currentStreak;
-    if (progress.lastActiveDate === yesterdayString) {
-      newStreak = progress.currentStreak + 1;
-    } else if (progress.lastActiveDate !== today) {
-      newStreak = 1; // Reset streak
-    }
-
-    await ctx.db.patch(progress._id, {
-      currentStreak: newStreak,
-      longestStreak: Math.max(progress.longestStreak, newStreak),
-      lastActiveDate: today,
-    });
-  },
-});
