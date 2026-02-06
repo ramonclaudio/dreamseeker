@@ -88,31 +88,3 @@ export function useAccessibilitySettings(): AccessibilitySettings {
 
   return settings;
 }
-
-// Convenience hooks for individual settings
-export function useReduceMotion(): boolean {
-  const { reduceMotion } = useAccessibilitySettings();
-  return reduceMotion;
-}
-
-export function useBoldText(): boolean {
-  const { boldText } = useAccessibilitySettings();
-  return boldText;
-}
-
-export function useReduceTransparency(): boolean {
-  const { reduceTransparency } = useAccessibilitySettings();
-  return reduceTransparency;
-}
-
-export function useScreenReader(): boolean {
-  const { screenReader } = useAccessibilitySettings();
-  return screenReader;
-}
-
-// High contrast is approximated by boldText + reduceTransparency on iOS
-// This matches Apple's "Increase Contrast" behavior
-export function useHighContrast(): boolean {
-  const { boldText, reduceTransparency } = useAccessibilitySettings();
-  return boldText || reduceTransparency;
-}
