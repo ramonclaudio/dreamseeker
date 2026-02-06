@@ -10,7 +10,7 @@ export const resend: Resend = new Resend(components.resend, {
   onEmailEvent: internal.email.handleEmailEvent,
 });
 
-const APP_NAME = 'Expo Starter App';
+const APP_NAME = 'DreamSeeker';
 
 const sendEmail = async (ctx: ActionCtx, options: {
   to: string;
@@ -30,7 +30,7 @@ const sendEmail = async (ctx: ActionCtx, options: {
   try {
     return await resend.sendEmail(ctx, { from: `${APP_NAME} <${env.resend.fromEmail}>`, to, subject, html, headers: emailHeaders });
   } catch (error) {
-    console.error('[Email] Failed:', { to, subject, error: error instanceof Error ? error.message : 'Unknown' });
+    console.error('[Email] Failed:', { subject, error: error instanceof Error ? error.message : 'Unknown' });
     throw new Error('Failed to send email. Please try again later.');
   }
 };
@@ -56,8 +56,8 @@ export const handleEmailEvent = internalMutation({
   args: vOnEmailEventArgs,
   handler: async (_ctx, { id, event }) => {
     console.log(`[Email] Event ${event.type} for email ${id}`);
-    if (event.type === 'email.bounced') console.warn('[Email] Bounce:', { emailId: id, type: event.data.bounce?.type, recipient: event.data.to?.[0] });
-    if (event.type === 'email.complained') console.error('[Email] Spam complaint:', { emailId: id, recipient: event.data.to?.[0] });
-    if (event.type === 'email.failed') console.error('[Email] Failed:', { emailId: id, recipient: event.data.to?.[0] });
+    if (event.type === 'email.bounced') console.warn('[Email] Bounce:', { emailId: id, type: event.data.bounce?.type, recipient: '[redacted]' });
+    if (event.type === 'email.complained') console.error('[Email] Spam complaint:', { emailId: id, recipient: '[redacted]' });
+    if (event.type === 'email.failed') console.error('[Email] Failed:', { emailId: id, recipient: '[redacted]' });
   },
 });

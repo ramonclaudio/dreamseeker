@@ -1,18 +1,7 @@
-import { query, mutation, type QueryCtx, type MutationCtx } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { authComponent } from './auth';
-
-const getAuthUserId = async (ctx: QueryCtx | MutationCtx) =>
-  (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
-
-const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) throw new Error('Unauthorized');
-  return userId;
-};
-
-// Get today's date string in YYYY-MM-DD format
-const getTodayString = () => new Date().toISOString().split('T')[0];
+import { getAuthUserId, requireAuth, getTodayString, getYesterdayString, calculateStreak } from './helpers';
+import { getLevelFromXp, XP_REWARDS } from './constants';
 
 // Get start of today in milliseconds
 const getStartOfToday = () => {
@@ -26,6 +15,7 @@ export const getDaily = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
 
     // Get all active challenges
     const challenges = await ctx.db
@@ -48,8 +38,7 @@ export const getDaily = query({
       const startOfToday = getStartOfToday();
       const completions = await ctx.db
         .query('challengeCompletions')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .filter((q) => q.gte(q.field('completedAt'), startOfToday))
+        .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', startOfToday))
         .collect();
 
       isCompleted = completions.some((c) => c.challengeId === todaysChallenge._id);
@@ -71,18 +60,14 @@ export const complete = mutation({
     // Verify challenge exists
     const challenge = await ctx.db.get(args.challengeId);
     if (!challenge) throw new Error('Challenge not found');
+    if (!challenge.isActive) throw new Error('Challenge is not active');
 
     // Check if already completed today
     const startOfToday = getStartOfToday();
     const existingCompletion = await ctx.db
       .query('challengeCompletions')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('challengeId'), args.challengeId),
-          q.gte(q.field('completedAt'), startOfToday)
-        )
-      )
+      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', startOfToday))
+      .filter((q) => q.eq(q.field('challengeId'), args.challengeId))
       .first();
 
     if (existingCompletion) {
@@ -107,19 +92,12 @@ export const complete = mutation({
     if (progress) {
       // Check if this updates the streak
       const lastActive = progress.lastActiveDate;
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayString = yesterday.toISOString().split('T')[0];
-
-      let newStreak = progress.currentStreak;
-      if (lastActive === yesterdayString) {
-        newStreak = progress.currentStreak + 1;
-      } else if (lastActive !== today) {
-        newStreak = 1; // Reset streak
-      }
+      const newStreak = calculateStreak(progress.currentStreak, lastActive, today, getYesterdayString());
+      const newXp = progress.totalXp + challenge.xpReward;
 
       await ctx.db.patch(progress._id, {
-        totalXp: progress.totalXp + challenge.xpReward,
+        totalXp: newXp,
+        level: getLevelFromXp(newXp).level,
         currentStreak: newStreak,
         longestStreak: Math.max(progress.longestStreak, newStreak),
         lastActiveDate: today,
@@ -128,7 +106,7 @@ export const complete = mutation({
       await ctx.db.insert('userProgress', {
         userId,
         totalXp: challenge.xpReward,
-        level: 1,
+        level: getLevelFromXp(challenge.xpReward).level,
         currentStreak: 1,
         longestStreak: 1,
         lastActiveDate: today,
@@ -148,7 +126,7 @@ export const getHistory = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    const limit = args.limit ?? 10;
+    const limit = Math.min(Math.max(1, Math.floor(args.limit ?? 10)), 100);
     const completions = await ctx.db
       .query('challengeCompletions')
       .withIndex('by_user', (q) => q.eq('userId', userId))

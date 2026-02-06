@@ -1,6 +1,6 @@
-import { query, type QueryCtx } from './_generated/server';
-import { authComponent } from './auth';
+import { query } from './_generated/server';
 import { hasEntitlement } from './revenuecat';
+import { getAuthUserId } from './helpers';
 
 export const TIERS = {
   free: { name: 'Free', limit: 3 }, // 3 free dreams
@@ -10,9 +10,6 @@ export const TIERS = {
 export type TierKey = keyof typeof TIERS;
 
 export const PREMIUM_ENTITLEMENT = 'premium';
-
-const getAuthUserId = async (ctx: QueryCtx) =>
-  (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
 
 export const getSubscriptionStatus = query({
   args: {},
@@ -37,11 +34,11 @@ export const getSubscriptionStatus = query({
     const tier: TierKey = isPremium ? 'premium' : 'free';
     const dreamLimit = TIERS[tier].limit;
 
-    // O(limit+1) instead of O(n) - only fetch what we need for display
+    // For free: O(limit+1). For premium: fetch up to 100 for display count.
     const dreams = await ctx.db
       .query('dreams')
       .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
-      .take(dreamLimit !== null ? dreamLimit + 1 : 1);
+      .take(dreamLimit !== null ? dreamLimit + 1 : 100);
     const dreamCount = dreams.length;
 
     const canCreateDream = dreamLimit === null || dreamCount < dreamLimit;

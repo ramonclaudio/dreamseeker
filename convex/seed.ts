@@ -1,7 +1,7 @@
-import { mutation } from './_generated/server';
+import { internalMutation } from './_generated/server';
 
 // Seed all data (mindset moments + daily challenges)
-export const seedAll = mutation({
+export const seedAll = internalMutation({
   args: {},
   handler: async (ctx) => {
     const results = {

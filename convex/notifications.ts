@@ -1,9 +1,8 @@
 import { mutation, action, internalMutation, internalAction, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
-import { authComponent } from './auth';
-import type { MutationCtx } from './_generated/server';
 import { env } from './env';
+import { getAuthUserId, requireAuth } from './helpers';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
@@ -13,8 +12,6 @@ const INITIAL_RETRY_DELAY = 1000;
 const DEFAULT_TTL = 2419200; // 28 days in seconds
 const MAX_TITLE_LENGTH = 100;
 const MAX_BODY_LENGTH = 500;
-
-const getAuthUserId = async (ctx: MutationCtx) => (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
 
 type PushTicket = {
   status: 'ok' | 'error';
@@ -84,7 +81,7 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = MAX_R
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
-      if (response.ok || response.status < 500) {
+      if (response.ok || (response.status < 500 && response.status !== 429)) {
         return response;
       }
       if (response.status === 429 || response.status >= 500) {
@@ -198,8 +195,10 @@ export const savePushToken = mutation({
     deviceId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error('Unauthorized');
+    const userId = await requireAuth(ctx);
+
+    if (args.token.length > 200) throw new Error('Invalid token');
+    if (!args.token.startsWith('ExponentPushToken[')) throw new Error('Invalid token format');
 
     const now = Date.now();
 
@@ -253,8 +252,7 @@ export const savePushToken = mutation({
 export const removePushToken = mutation({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return;
+    const userId = await requireAuth(ctx);
 
     if (args.token) {
       const tokenValue = args.token;
@@ -672,76 +670,24 @@ export const sendBackgroundNotification = internalAction({
     errors: v.optional(v.array(v.string())),
   }),
   handler: async (ctx, args): Promise<SendResult> => {
-    const headers = getAuthHeaders();
-    if (!headers) {
-      console.warn('[Push] EXPO_ACCESS_TOKEN not configured, skipping');
-      return { success: false, sent: 0, failed: 0, errors: ['EXPO_ACCESS_TOKEN not configured'] };
-    }
-
     const tokens: PushToken[] = await ctx.runQuery(internal.notifications.getUserTokens, { userId: args.userId });
     if (tokens.length === 0) {
       return { success: false, sent: 0, failed: 0, errors: ['No push tokens for user'] };
     }
 
-    const messages = tokens.map((t) => ({
+    const messages: PushMessage[] = tokens.map((t) => ({
       to: t.token,
       data: args.data,
       _contentAvailable: true,
-      priority: 'normal' as const,
+      priority: 'normal',
       channelId: 'default',
     }));
 
-    let sent = 0;
-    let failed = 0;
-    const errors: string[] = [];
-    const receiptsToStore: Array<{ ticketId: string; token: string }> = [];
-
-    try {
-      const response = await fetchWithRetry(EXPO_PUSH_URL, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(messages),
-      });
-
-      const result = (await response.json()) as { data?: PushTicket[]; errors?: Array<{ message: string }> };
-
-      if (result.errors) {
-        errors.push(...result.errors.map((e) => e.message));
-        failed += messages.length;
-      } else if (result.data) {
-        for (let j = 0; j < result.data.length; j++) {
-          const ticket = result.data[j];
-          const message = messages[j];
-
-          if (ticket.status === 'ok' && ticket.id) {
-            sent++;
-            receiptsToStore.push({ ticketId: ticket.id, token: message.to });
-          } else if (ticket.status === 'error') {
-            failed++;
-            const errorMsg = ticket.details?.error ?? ticket.message ?? 'Unknown error';
-            errors.push(`${message.to}: ${errorMsg}`);
-
-            if (ticket.details?.error === 'DeviceNotRegistered') {
-              await ctx.runMutation(internal.notifications.deleteTokenByValue, { token: message.to });
-            }
-          }
-        }
-      }
-
-      if (receiptsToStore.length > 0) {
-        await ctx.runMutation(internal.notifications.storePushReceipts, { receipts: receiptsToStore });
-      }
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
-      failed += messages.length;
-    }
-
-    return {
-      success: failed === 0,
-      sent,
-      failed,
-      errors: errors.length > 0 ? errors : undefined,
-    };
+    return sendPushMessagesRaw(
+      messages,
+      (token) => ctx.runMutation(internal.notifications.deleteTokenByValue, { token }),
+      (receipts) => ctx.runMutation(internal.notifications.storePushReceipts, { receipts })
+    );
   },
 });
 

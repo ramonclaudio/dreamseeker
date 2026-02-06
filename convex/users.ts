@@ -1,4 +1,5 @@
 import { mutation } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 import { authComponent } from './auth';
 import { components } from './_generated/api';
 import type { Id } from './_generated/dataModel';
@@ -39,6 +40,13 @@ export const deleteAccount = mutation({
       .collect();
     for (const completion of completions) await ctx.db.delete(completion._id);
 
+    // Delete user preferences
+    const prefs = await ctx.db
+      .query('userPreferences')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    if (prefs) await ctx.db.delete(prefs._id);
+
     const pushTokens = await ctx.db
       .query('pushTokens')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -75,13 +83,15 @@ export const deleteAccount = mutation({
   },
 });
 
-const deleteAllByField = async (ctx: any, model: string, field: string, value: string) => {
+const deleteAllByField = async (ctx: MutationCtx, model: string, field: string, value: string) => {
   let cursor: string | null = null;
   let isDone = false;
+  // Better Auth adapter expects literal union types for model/field, but we call dynamically
+  const input = { model, where: [{ field, value }] } as { model: 'user'; where: [{ field: '_id'; value: string }] };
   while (!isDone) {
     const result: { isDone: boolean; continueCursor: string } = await ctx.runMutation(
       components.betterAuth.adapter.deleteMany,
-      { input: { model, where: [{ field, value }] }, paginationOpts: { numItems: 100, cursor } }
+      { input, paginationOpts: { numItems: 100, cursor } }
     );
     isDone = result.isDone;
     cursor = result.continueCursor;

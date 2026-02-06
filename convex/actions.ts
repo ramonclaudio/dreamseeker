@@ -1,21 +1,7 @@
-import { query, mutation, type QueryCtx, type MutationCtx } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import type { Id } from './_generated/dataModel';
-import { authComponent } from './auth';
-
-const MAX_ACTION_TEXT_LENGTH = 300;
-
-const getAuthUserId = async (ctx: QueryCtx | MutationCtx) =>
-  (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
-
-const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) throw new Error('Unauthorized');
-  return userId;
-};
-
-// Get today's date string in YYYY-MM-DD format
-const getTodayString = () => new Date().toISOString().split('T')[0];
+import { getAuthUserId, requireAuth, getTodayString, getYesterdayString, calculateStreak } from './helpers';
+import { MAX_ACTION_TEXT_LENGTH, XP_REWARDS, getLevelFromXp } from './constants';
 
 // List actions for a dream
 export const list = query({
@@ -34,7 +20,6 @@ export const list = query({
       .filter((q) => q.neq(q.field('status'), 'archived'))
       .collect();
 
-    // Sort by order
     return actions.sort((a, b) => a.order - b.order);
   },
 });
@@ -62,8 +47,8 @@ export const listPending = query({
     const dreams = await Promise.all(dreamIds.map((id) => ctx.db.get(id)));
     const activeDreamMap = new Map(
       dreams
-        .filter((d) => d && d.status !== 'archived')
-        .map((d) => [d!._id, d!])
+        .filter((d): d is NonNullable<typeof d> => d !== null && d.status !== 'archived')
+        .map((d) => [d._id, d])
     );
 
     // Only return actions for active dreams
@@ -126,6 +111,11 @@ export const toggle = mutation({
     const action = await ctx.db.get(args.id);
     if (!action) throw new Error('Action not found');
     if (action.userId !== userId) throw new Error('Forbidden');
+    if (action.status === 'archived') throw new Error('Cannot toggle an archived action');
+
+    // Verify parent dream is not archived
+    const dream = await ctx.db.get(action.dreamId);
+    if (dream?.status === 'archived') throw new Error('Cannot toggle actions in an archived dream');
 
     const newIsCompleted = !action.isCompleted;
 
@@ -141,25 +131,22 @@ export const toggle = mutation({
       .first();
 
     const today = getTodayString();
+    const yesterday = getYesterdayString();
+    const xpReward = XP_REWARDS.actionComplete;
 
     if (newIsCompleted) {
-      // Award XP for completing an action (10 XP)
       if (progress) {
-        // Check if this updates the streak
-        const lastActive = progress.lastActiveDate;
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayString = yesterday.toISOString().split('T')[0];
-
-        let newStreak = progress.currentStreak;
-        if (lastActive === yesterdayString) {
-          newStreak = progress.currentStreak + 1;
-        } else if (lastActive !== today) {
-          newStreak = 1; // Reset streak
-        }
+        const newStreak = calculateStreak(
+          progress.currentStreak,
+          progress.lastActiveDate,
+          today,
+          yesterday
+        );
+        const newXp = progress.totalXp + xpReward;
 
         await ctx.db.patch(progress._id, {
-          totalXp: progress.totalXp + 10,
+          totalXp: newXp,
+          level: getLevelFromXp(newXp).level,
           actionsCompleted: progress.actionsCompleted + 1,
           currentStreak: newStreak,
           longestStreak: Math.max(progress.longestStreak, newStreak),
@@ -168,8 +155,8 @@ export const toggle = mutation({
       } else {
         await ctx.db.insert('userProgress', {
           userId,
-          totalXp: 10,
-          level: 1,
+          totalXp: xpReward,
+          level: getLevelFromXp(xpReward).level,
           currentStreak: 1,
           longestStreak: 1,
           lastActiveDate: today,
@@ -178,17 +165,19 @@ export const toggle = mutation({
         });
       }
 
-      return { xpAwarded: 10, completed: true };
+      return { xpAwarded: xpReward, completed: true };
     } else {
-      // Deduct XP if uncompleting (minimum 0)
+      // Deduct XP if uncompleting (minimum 0, don't update streak)
       if (progress && progress.totalXp > 0) {
+        const newXp = Math.max(0, progress.totalXp - xpReward);
         await ctx.db.patch(progress._id, {
-          totalXp: Math.max(0, progress.totalXp - 10),
+          totalXp: newXp,
+          level: getLevelFromXp(newXp).level,
           actionsCompleted: Math.max(0, progress.actionsCompleted - 1),
         });
       }
 
-      return { xpAwarded: -10, completed: false };
+      return { xpAwarded: -xpReward, completed: false };
     }
   },
 });
@@ -224,18 +213,20 @@ export const reorder = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
 
-    // Verify dream ownership
     const dream = await ctx.db.get(args.dreamId);
     if (!dream) throw new Error('Dream not found');
     if (dream.userId !== userId) throw new Error('Forbidden');
 
-    // Update order for each action
-    for (let i = 0; i < args.actionIds.length; i++) {
-      const action = await ctx.db.get(args.actionIds[i]);
-      if (action && action.dreamId === args.dreamId) {
-        await ctx.db.patch(args.actionIds[i], { order: i });
-      }
-    }
+    if (args.actionIds.length > 100) throw new Error('Too many actions');
+
+    await Promise.all(
+      args.actionIds.map(async (actionId, i) => {
+        const action = await ctx.db.get(actionId);
+        if (action && action.userId === userId && action.dreamId === args.dreamId) {
+          await ctx.db.patch(actionId, { order: i });
+        }
+      })
+    );
   },
 });
 
@@ -248,6 +239,23 @@ export const remove = mutation({
     const action = await ctx.db.get(args.id);
     if (!action) return; // Idempotent: already deleted
     if (action.userId !== userId) throw new Error('Forbidden');
+
+    // Deduct XP if the action was completed
+    if (action.isCompleted) {
+      const progress = await ctx.db
+        .query('userProgress')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .first();
+
+      if (progress) {
+        const newXp = Math.max(0, progress.totalXp - XP_REWARDS.actionComplete);
+        await ctx.db.patch(progress._id, {
+          totalXp: newXp,
+          level: getLevelFromXp(newXp).level,
+          actionsCompleted: Math.max(0, progress.actionsCompleted - 1),
+        });
+      }
+    }
 
     await ctx.db.delete(args.id);
   },
