@@ -1,7 +1,6 @@
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
-import { BlurView } from "expo-blur";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { type ColorPalette } from "@/constants/theme";
@@ -44,19 +43,10 @@ export default function ModalScreen() {
   const colors = useColors();
   const isPresented = router.canGoBack();
 
-  if (process.env.EXPO_OS === "android") {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.card }}>
-        <ModalContent isPresented={isPresented} colors={colors} />
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
   return (
-    <BlurView intensity={80} tint="systemMaterial" style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.card }}>
       <ModalContent isPresented={isPresented} colors={colors} />
       <StatusBar style={process.env.EXPO_OS === "ios" ? "light" : "auto"} />
-    </BlurView>
+    </View>
   );
 }

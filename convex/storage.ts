@@ -8,6 +8,7 @@ const requireAuth = async (ctx: MutationCtx) => {
   return user;
 };
 
+// Note: Consider adding rate limiting to prevent storage abuse
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {

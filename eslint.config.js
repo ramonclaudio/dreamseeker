@@ -7,4 +7,11 @@ module.exports = defineConfig([
   globalIgnores(['dist/*', '.expo/*']),
   expoConfig,
   reactCompiler.configs.recommended,
+  {
+    rules: {
+      // TypeScript handles module resolution - disable ESLint import checks
+      'import/no-unresolved': 'off',
+      'import/namespace': 'off',
+    },
+  },
 ]);

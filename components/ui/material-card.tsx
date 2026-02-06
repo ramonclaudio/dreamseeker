@@ -1,10 +1,7 @@
-import { View, type ViewProps, StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
+import { View, type ViewProps } from "react-native";
 
 import { Radius } from "@/constants/theme";
-import { Material, type MaterialLevel } from "@/constants/ui";
 import { useColors } from "@/hooks/use-color-scheme";
-import { useReduceTransparency } from "@/hooks/use-accessibility-settings";
 
 const baseCardStyle = {
   borderRadius: Radius.lg,
@@ -12,57 +9,28 @@ const baseCardStyle = {
   overflow: "hidden" as const,
 };
 
-type MaterialCardProps = ViewProps & {
-  /** Material blur intensity level. Default: 'regular' */
-  material?: MaterialLevel;
-};
+type MaterialCardProps = ViewProps;
 
 /**
- * MaterialCard - Standard material card for CONTENT layer (HIG compliant).
- *
- * Uses BlurView with standard material intensities (ultraThin, thin, regular, thick, ultraThick).
- * For controls/navigation, use GlassControl instead (Liquid Glass).
- *
- * HIG: "Use standard materials and effects to convey a sense of structure in the content beneath Liquid Glass."
+ * MaterialCard - Solid card for CONTENT layer (HIG compliant).
+ * Uses solid View with card background color. No BlurView (first-render bug).
  */
 export function MaterialCard({
   children,
   style,
-  material = "regular",
   ...props
 }: MaterialCardProps) {
   const colors = useColors();
-  const reduceTransparency = useReduceTransparency();
-
-  const cardStyle = [
-    baseCardStyle,
-    { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-    style,
-  ];
-
-  // Fallback to solid View when:
-  // - Reduce Transparency is enabled (accessibility)
-  // - Android (BlurView has issues)
-  const shouldUseSolidView = reduceTransparency || process.env.EXPO_OS === "android";
-
-  if (shouldUseSolidView) {
-    return (
-      <View style={cardStyle} {...props}>
-        {children}
-      </View>
-    );
-  }
-
-  // iOS: Use BlurView as absolute backdrop, children flow naturally
-  const intensity = Material[material];
 
   return (
-    <View style={[baseCardStyle, { borderWidth: 1, borderColor: colors.border }, style]} {...props}>
-      <BlurView
-        intensity={intensity}
-        tint="systemMaterial"
-        style={[StyleSheet.absoluteFill, { backgroundColor: colors.card + "80" }]}
-      />
+    <View
+      style={[
+        baseCardStyle,
+        { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+        style,
+      ]}
+      {...props}
+    >
       {children}
     </View>
   );

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expo-starter-app",
-    "slug": "expo-starter-app",
+    "name": "DreamSeeker",
+    "slug": "dreamseeker",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ramonclaudio.expo-starter-app",
+      "bundleIdentifier": "com.ramonclaudio.dreamseeker",
       "appleTeamId": "SWH9LXWCC3",
       "buildNumber": "1",
       "icon": {
@@ -24,7 +24,7 @@
         "aps-environment": "production"
       },
       "associatedDomains": [
-        "applinks:expo-starter-app.convex.site"
+        "applinks:usable-sardine-855.convex.site"
       ],
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
@@ -106,8 +106,8 @@
       "eas": {
         "projectId": "25943fb2-b13d-44f0-958a-c941bd37a7a0"
       },
-      "privacyPolicyUrl": "https://expo-starter-app.convex.site/privacy",
-      "termsOfServiceUrl": "https://expo-starter-app.convex.site/terms"
+      "privacyPolicyUrl": "https://usable-sardine-855.convex.site/privacy",
+      "termsOfServiceUrl": "https://usable-sardine-855.convex.site/terms"
     },
     "owner": "ramonclaudio",
     "runtimeVersion": {

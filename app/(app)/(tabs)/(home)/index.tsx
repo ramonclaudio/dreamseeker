@@ -34,15 +34,7 @@ import {
   DREAM_CATEGORY_LIST,
   type DreamCategory,
 } from "@/constants/dreams";
-
-const CATEGORY_ICONS: Record<DreamCategory, any> = {
-  travel: "airplane",
-  money: "creditcard.fill",
-  career: "briefcase.fill",
-  lifestyle: "house.fill",
-  growth: "leaf.fill",
-  relationships: "heart.fill",
-};
+import { CATEGORY_ICONS } from "@/components/onboarding/shared";
 
 const CategoryCard = memo(function CategoryCard({
   category,

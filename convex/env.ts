@@ -30,4 +30,7 @@ export const env = {
     webhookSecret: required('RESEND_WEBHOOK_SECRET'),
     testMode: optional('RESEND_TEST_MODE', 'false') !== 'false',
   },
+  revenuecat: {
+    webhookBearerToken: optional('REVENUECAT_WEBHOOK_BEARER_TOKEN', ''),
+  },
 } as const;

@@ -11,11 +11,13 @@
 import type * as actions from "../actions.js";
 import type * as auth from "../auth.js";
 import type * as challenges from "../challenges.js";
+import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
 import type * as dreams from "../dreams.js";
 import type * as email from "../email.js";
 import type * as email_templates from "../email_templates.js";
 import type * as env from "../env.js";
+import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
 import type * as mindset from "../mindset.js";
 import type * as notifications from "../notifications.js";
@@ -24,6 +26,7 @@ import type * as revenuecat from "../revenuecat.js";
 import type * as seed from "../seed.js";
 import type * as storage from "../storage.js";
 import type * as subscriptions from "../subscriptions.js";
+import type * as userPreferences from "../userPreferences.js";
 import type * as users from "../users.js";
 
 import type {
@@ -36,11 +39,13 @@ declare const fullApi: ApiFromModules<{
   actions: typeof actions;
   auth: typeof auth;
   challenges: typeof challenges;
+  constants: typeof constants;
   crons: typeof crons;
   dreams: typeof dreams;
   email: typeof email;
   email_templates: typeof email_templates;
   env: typeof env;
+  helpers: typeof helpers;
   http: typeof http;
   mindset: typeof mindset;
   notifications: typeof notifications;
@@ -49,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   storage: typeof storage;
   subscriptions: typeof subscriptions;
+  userPreferences: typeof userPreferences;
   users: typeof users;
 }>;
 

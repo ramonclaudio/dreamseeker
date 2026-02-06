@@ -3,12 +3,12 @@ import Animated from 'react-native-reanimated';
 import { ThemedText } from '@/components/ui/themed-text';
 import { FontSize, LineHeight } from '@/constants/layout';
 import { Duration } from '@/constants/ui';
-import { useReduceMotion } from '@/hooks/use-accessibility-settings';
+import { useAccessibilitySettings } from '@/hooks/use-accessibility-settings';
 
 const emojiStyle = { fontSize: FontSize['6xl'], lineHeight: LineHeight['4xl'], marginTop: -6 };
 
 export function HelloWave() {
-  const reduceMotion = useReduceMotion();
+  const { reduceMotion } = useAccessibilitySettings();
 
   if (reduceMotion) {
     return <ThemedText style={emojiStyle}>👋</ThemedText>;

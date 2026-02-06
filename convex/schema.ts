@@ -1,26 +1,16 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
-
-const dreamCategory = v.union(
-  v.literal('travel'),
-  v.literal('money'),
-  v.literal('career'),
-  v.literal('lifestyle'),
-  v.literal('growth'),
-  v.literal('relationships')
-);
-
-const dreamStatus = v.union(v.literal('active'), v.literal('completed'), v.literal('archived'));
+import { dreamCategoryValidator, dreamStatusValidator, paceValidator, confidenceValidator } from './constants';
 
 export default defineSchema({
   // Dreams - main goal items
   dreams: defineTable({
     userId: v.string(),
     title: v.string(),
-    category: dreamCategory,
+    category: dreamCategoryValidator,
     whyItMatters: v.optional(v.string()),
     targetDate: v.optional(v.number()),
-    status: dreamStatus,
+    status: dreamStatusValidator,
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
   })
@@ -36,10 +26,12 @@ export default defineSchema({
     isCompleted: v.boolean(),
     completedAt: v.optional(v.number()),
     order: v.number(),
+    status: v.optional(v.union(v.literal('active'), v.literal('archived'))),
     createdAt: v.number(),
   })
     .index('by_dream', ['dreamId'])
-    .index('by_user', ['userId']),
+    .index('by_user', ['userId'])
+    .index('by_user_completed', ['userId', 'isCompleted']),
 
   // User progress - gamification stats
   userProgress: defineTable({
@@ -69,7 +61,8 @@ export default defineSchema({
     completedAt: v.number(),
   })
     .index('by_user', ['userId'])
-    .index('by_user_date', ['userId', 'completedAt']),
+    .index('by_user_date', ['userId', 'completedAt'])
+    .index('by_user_challenge', ['userId', 'challengeId']),
 
   // Mindset moments - inspirational quotes
   mindsetMoments: defineTable({
@@ -101,4 +94,14 @@ export default defineSchema({
     .index('by_ticket', ['ticketId'])
     .index('by_status', ['status'])
     .index('by_token', ['token']),
+
+  userPreferences: defineTable({
+    userId: v.string(),
+    onboardingCompleted: v.boolean(),
+    selectedCategories: v.array(dreamCategoryValidator),
+    pace: paceValidator,
+    confidence: v.optional(confidenceValidator),
+    notificationTime: v.optional(v.string()), // "HH:mm" format
+    createdAt: v.number(),
+  }).index('by_user', ['userId']),
 });

@@ -8,12 +8,14 @@ import {
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { MaterialCard } from "@/components/ui/material-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/hooks/use-color-scheme";
 import { Radius, type ColorPalette } from "@/constants/theme";
 import { Spacing, TouchTarget, FontSize, MaxWidth, IconSize } from "@/constants/layout";
+import { DREAM_CATEGORIES, type DreamCategory } from "@/constants/dreams";
 import { haptics } from "@/lib/haptics";
 import { shootConfetti } from "@/lib/confetti";
 
@@ -22,15 +24,6 @@ type PendingAction = {
   text: string;
   dreamTitle: string;
   dreamCategory?: string;
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  travel: "#E91E8C",
-  money: "#FFD700",
-  career: "#FF6B6B",
-  lifestyle: "#4ECDC4",
-  growth: "#95E1D3",
-  relationships: "#F38181",
 };
 
 const ActionItem = memo(function ActionItem({
@@ -43,7 +36,7 @@ const ActionItem = memo(function ActionItem({
   colors: ColorPalette;
 }) {
   const categoryColor = action.dreamCategory
-    ? CATEGORY_COLORS[action.dreamCategory] ?? colors.primary
+    ? DREAM_CATEGORIES[action.dreamCategory as DreamCategory]?.color ?? colors.primary
     : colors.primary;
 
   return (
@@ -103,17 +96,25 @@ export default function TodayScreen() {
 
   const handleToggleAction = useCallback(
     async (id: string) => {
-      haptics.success();
-      await toggleAction({ id: id as any });
+      try {
+        await toggleAction({ id: id as Id<"actions"> });
+        haptics.success();
+      } catch {
+        haptics.error();
+      }
     },
     [toggleAction]
   );
 
   const handleCompleteChallenge = useCallback(async () => {
     if (!dailyChallenge || dailyChallenge.isCompleted) return;
-    haptics.success();
-    shootConfetti();
-    await completeChallenge({ challengeId: dailyChallenge._id });
+    try {
+      await completeChallenge({ challengeId: dailyChallenge._id });
+      haptics.success();
+      shootConfetti();
+    } catch {
+      haptics.error();
+    }
   }, [completeChallenge, dailyChallenge]);
 
   if (authLoading || progress === undefined) {

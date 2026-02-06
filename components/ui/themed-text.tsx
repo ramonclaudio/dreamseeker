@@ -3,7 +3,7 @@ import { Text, type TextProps, type TextStyle } from "react-native";
 import { Accessibility } from "@/constants/ui";
 import { Typography } from "@/constants/theme";
 import { useColors } from "@/hooks/use-color-scheme";
-import { useBoldText } from "@/hooks/use-accessibility-settings";
+import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
 
 type FontWeight = TextStyle["fontWeight"];
 
@@ -29,7 +29,7 @@ const BOLD_WEIGHT_MAP: Record<string, FontWeight> = {
 
 export function ThemedText({ style, variant = "default", color, ...props }: ThemedTextProps) {
   const colors = useColors();
-  const boldText = useBoldText();
+  const { boldText } = useAccessibilitySettings();
 
   const variantStyle = Typography[variant] as TextStyle;
   const baseWeight = variantStyle.fontWeight ?? "400";

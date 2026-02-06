@@ -1,6 +1,5 @@
 import type { PropsWithChildren, ReactElement } from "react";
 import { ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
-import { BlurView } from "expo-blur";
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -8,7 +7,7 @@ import Animated, {
   useScrollOffset,
 } from "react-native-reanimated";
 import { useColorScheme, useColors } from "@/hooks/use-color-scheme";
-import { useReduceMotion } from "@/hooks/use-accessibility-settings";
+import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
 import { Spacing, MaxWidth } from "@/constants/layout";
 import { Responsive } from "@/constants/ui";
 
@@ -32,7 +31,7 @@ export default function ParallaxScrollView({
 }: Props) {
   const colorScheme = useColorScheme();
   const colors = useColors();
-  const reduceMotion = useReduceMotion();
+  const { reduceMotion } = useAccessibilitySettings();
   const H = useHeaderHeight();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollOffset(scrollRef);
@@ -106,13 +105,13 @@ export default function ParallaxScrollView({
       >
         {headerImage}
         {process.env.EXPO_OS !== "android" && (
-          <Animated.View style={[StyleSheet.absoluteFillObject, blurStyle]}>
-            <BlurView
-              intensity={60}
-              tint={colorScheme === "dark" ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: colorScheme === "dark" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)" },
+              blurStyle,
+            ]}
+          />
         )}
       </Animated.View>
       <View collapsable={false} style={contentStyle}>
