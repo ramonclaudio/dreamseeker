@@ -30,17 +30,9 @@ import {
   DREAM_CATEGORY_LIST,
   type DreamCategory,
 } from "@/constants/dreams";
+import { CATEGORY_ICONS } from "@/components/onboarding/shared";
 
 type Action = Doc<"actions">;
-
-const CATEGORY_ICONS: Record<DreamCategory, any> = {
-  travel: "airplane",
-  money: "creditcard.fill",
-  career: "briefcase.fill",
-  lifestyle: "house.fill",
-  growth: "leaf.fill",
-  relationships: "heart.fill",
-};
 
 const ActionItem = memo(function ActionItem({
   action,
@@ -545,17 +537,25 @@ export default function DreamDetailScreen() {
   const handleSaveAction = useCallback(
     async (text: string) => {
       if (!editingAction) return;
-      haptics.success();
-      await updateAction({ id: editingAction._id, text });
-      setEditingAction(null);
+      try {
+        await updateAction({ id: editingAction._id, text });
+        haptics.success();
+        setEditingAction(null);
+      } catch {
+        haptics.error();
+      }
     },
     [editingAction, updateAction]
   );
 
   const handleDeleteAction = useCallback(
     async (actionId: Id<"actions">) => {
-      haptics.warning();
-      await removeAction({ id: actionId });
+      try {
+        await removeAction({ id: actionId });
+        haptics.warning();
+      } catch {
+        haptics.error();
+      }
     },
     [removeAction]
   );
@@ -568,8 +568,12 @@ export default function DreamDetailScreen() {
       category?: DreamCategory;
     }) => {
       if (!dream) return;
-      haptics.success();
-      await updateDream({ id: dream._id, ...data });
+      try {
+        await updateDream({ id: dream._id, ...data });
+        haptics.success();
+      } catch {
+        haptics.error();
+      }
     },
     [dream, updateDream]
   );
@@ -588,11 +592,17 @@ export default function DreamDetailScreen() {
             text: "Complete Anyway",
             onPress: async () => {
               setIsCompleting(true);
-              haptics.success();
-              shootConfetti();
-              await completeDream({ id: dream._id });
-              setIsCompleting(false);
-              router.back();
+              try {
+                await completeDream({ id: dream._id });
+                haptics.success();
+                shootConfetti();
+                router.back();
+              } catch (error) {
+                if (__DEV__) console.error("[Dream] Complete failed:", error);
+                haptics.error();
+              } finally {
+                setIsCompleting(false);
+              }
             },
           },
         ]
@@ -601,11 +611,17 @@ export default function DreamDetailScreen() {
     }
 
     setIsCompleting(true);
-    haptics.success();
-    shootConfetti();
-    await completeDream({ id: dream._id });
-    setIsCompleting(false);
-    router.back();
+    try {
+      await completeDream({ id: dream._id });
+      haptics.success();
+      shootConfetti();
+      router.back();
+    } catch (error) {
+      if (__DEV__) console.error("[Dream] Complete failed:", error);
+      haptics.error();
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
   const handleArchiveDream = () => {
@@ -620,9 +636,13 @@ export default function DreamDetailScreen() {
           text: "Archive",
           style: "destructive",
           onPress: async () => {
-            haptics.warning();
-            await archiveDream({ id: dream._id });
-            router.back();
+            try {
+              await archiveDream({ id: dream._id });
+              haptics.warning();
+              router.back();
+            } catch {
+              haptics.error();
+            }
           },
         },
       ]
@@ -641,18 +661,20 @@ export default function DreamDetailScreen() {
           text: "Reopen",
           onPress: async () => {
             setIsCompleting(true);
-            haptics.warning();
             try {
               await reopenDream({ id: dream._id });
+              haptics.warning();
             } catch (e) {
+              haptics.error();
               if (e instanceof Error && e.message === "LIMIT_REACHED") {
                 Alert.alert(
                   "Dream Limit Reached",
                   "You have reached your free dream limit. Upgrade to premium for unlimited dreams."
                 );
               }
+            } finally {
+              setIsCompleting(false);
             }
-            setIsCompleting(false);
           },
         },
       ]
