@@ -1,6 +1,8 @@
-# Expo Starter App
+# DreamSeeker
 
-Production-ready Expo starter with authentication, subscriptions, and email. RevenueCat integration for App Store and Play Store in-app purchases.
+A goal-achievement app for ambitious women. Set dreams, break them into micro-actions, and build momentum with streaks, XP, and daily challenges.
+
+Built for the [RevenueCat Shipyard Hackathon](https://revenuecat.com).
 
 ## Stack
 
@@ -8,26 +10,32 @@ Production-ready Expo starter with authentication, subscriptions, and email. Rev
 | :--- | :--- |
 | Framework | Expo SDK 55 · React 19 · React Compiler |
 | Backend | Convex (real-time) · Better Auth · Resend |
-| Payments | RevenueCat · `convex-revenuecat` component |
-| Styling | StyleSheet · Theme system |
-| Native | iOS 26 Liquid Glass · SF Symbols · Haptics |
+| Payments | RevenueCat · `convex-revenuecat` |
+| Styling | StyleSheet · Theme system (System/Light/Dark) |
+| Native | SF Symbols · Haptics · Push Notifications |
 
-## Branches
+## Features
+
+- **Dreams** — Create goals across 6 categories (travel, money, career, lifestyle, growth, relationships)
+- **Actions** — Break dreams into micro-steps with completion tracking
+- **Gamification** — XP rewards, 5-level progression (Dreamer → Trailblazer), daily streaks
+- **Daily Challenges** — Category-specific challenges with XP rewards
+- **Mindset Moments** — Inspirational quotes by category
+- **Onboarding** — 10-slide guided flow with category selection, pace, and confidence preferences
+- **Subscriptions** — Free (3 dreams) and Premium (unlimited) via RevenueCat
+- **Auth** — Email/password + Apple Sign-In, verification, password reset, rate limiting
+- **Profile** — Avatar upload, theme picker, account deletion with full data cleanup
+- **Push Notifications** — Expo push with token management
+
+## Navigation
 
 ```text
-main       → Clean base, no payments
-stripe     → Stripe integration
-revenuecat → RevenueCat integration (you are here)
+(auth)/ → sign-in, sign-up, forgot-password, reset-password
+(app)/  → onboarding, subscribe, dream/[id]
+        → (tabs)/ → home, today, explore, profile
+                     home/[category] → filtered dreams
+                     profile/notifications, privacy, help, about
 ```
-
-## What's Included
-
-- **Auth** — Email/password with verification, password reset, rate limiting
-- **Subscriptions** — Free (10 tasks) and Premium (unlimited) tiers
-- **Profile** — Avatar upload, account deletion with full data cleanup
-- **Tasks** — Tier-limited task management
-- **Push Notifications** — Expo push with token management
-- **UI** — Theme system (System/Light/Dark), offline banner, cross-platform
 
 ## Prerequisites
 
@@ -50,8 +58,8 @@ revenuecat → RevenueCat integration (you are here)
 ### 1. Clone & Install
 
 ```bash
-git clone -b revenuecat https://github.com/ramonclaudio/expo-starter-app.git
-cd expo-starter-app
+git clone https://github.com/ramonclaudio/dreamseeker.git
+cd dreamseeker
 npm install
 ```
 
@@ -98,8 +106,6 @@ EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxxxxxxxxxxx
 Then re-run `npx convex dev` — it will push successfully.
 
 ### 4. Set Optional Secrets (skip for now)
-
-The required secrets were set in step 3. For full functionality, add these later:
 
 ```bash
 # Push notifications (requires physical device)
@@ -208,25 +214,57 @@ APPLE_CLIENT_SECRET=your-jwt-secret
 
 ---
 
-## Environment Reference
+## Subscriptions
 
-### Where Variables Go
+| Tier | Dream Limit | Entitlement |
+| :--- | :---: | :--- |
+| Free | 3 | — |
+| Premium | Unlimited | `premium` |
 
-| Variable | `.env.local` | Convex Dashboard | EAS Dashboard |
-| :--- | :---: | :---: | :---: |
-| `CONVEX_DEPLOYMENT` | ✓ | | |
-| `EXPO_PUBLIC_CONVEX_URL` | ✓ | | ✓ |
-| `EXPO_PUBLIC_CONVEX_SITE_URL` | ✓ | | ✓ |
-| `EXPO_PUBLIC_SITE_URL` | ✓ | | ✓ |
-| `EXPO_PUBLIC_REVENUECAT_*` | ✓ | | ✓ |
-| `BETTER_AUTH_SECRET` | | ✓ | |
-| `SITE_URL` | | ✓ | |
-| `SUPPORT_EMAIL` | | ✓ | |
-| `EXPO_ACCESS_TOKEN` | | ✓ | |
-| `RESEND_API_KEY` | | ✓ | |
-| `RESEND_FROM_EMAIL` | | ✓ | |
-| `RESEND_WEBHOOK_SECRET` | | ✓ | |
-| `REVENUECAT_WEBHOOK_BEARER_TOKEN` | | ✓ | |
+### Using the Hook
+
+```typescript
+import { useSubscription } from '@/hooks/use-subscription';
+
+function MyComponent() {
+  const {
+    tier,           // 'free' | 'premium'
+    isPremium,      // boolean
+    dreamLimit,     // 3 | null (null = unlimited)
+    canCreateDream, // boolean
+    showUpgrade,    // () => Promise<boolean> — shows paywall
+    restore,        // () => Promise<boolean>
+    manageBilling,  // () => Promise<void> — opens subscription settings
+  } = useSubscription();
+
+  if (!isPremium) {
+    return <Button onPress={showUpgrade}>Upgrade</Button>;
+  }
+}
+```
+
+### Testing Purchases
+
+> [!WARNING]
+> **Physical device required** — Simulator doesn't support StoreKit.
+
+1. Create a **Sandbox Tester** in App Store Connect
+2. Sign into sandbox account on device (Settings → App Store → Sandbox Account)
+3. Purchases are free in sandbox mode
+
+---
+
+## Gamification
+
+| Level | Name | XP Required |
+| :---: | :--- | :---: |
+| 1 | Dreamer | 0 |
+| 2 | Seeker | 100 |
+| 3 | Achiever | 300 |
+| 4 | Go-Getter | 600 |
+| 5 | Trailblazer | 1000 |
+
+**XP Rewards:** Onboarding completion (50), action completed (10), dream completed (100)
 
 ---
 
@@ -249,6 +287,8 @@ npm run env:prod            # Switch to prod backend
 npm run check               # Lint + typecheck
 npm run lint                # ESLint
 npm run typecheck           # tsc --noEmit
+npm run test                # Jest watch mode
+npm run test:ci             # Jest CI mode
 
 # Reset
 npm run clean               # Project reset
@@ -257,45 +297,23 @@ npm run clean:nuclear       # Full reset (all caches)
 
 ---
 
-## Subscriptions
+## Environment Reference
 
-### Tiers
-
-| Tier | Task Limit | Entitlement |
-| :--- | :---: | :--- |
-| Free | 10 | — |
-| Premium | Unlimited | `premium` |
-
-### Using the Hook
-
-```typescript
-import { useSubscription } from '@/hooks/use-subscription';
-
-function MyComponent() {
-  const {
-    tier,           // 'free' | 'premium'
-    isPremium,      // boolean
-    taskLimit,      // 10 | null (null = unlimited)
-    canCreateTask,  // boolean
-    showUpgrade,    // () => Promise<boolean> — shows paywall
-    restore,        // () => Promise<boolean>
-    manageBilling,  // () => Promise<void> — opens subscription settings
-  } = useSubscription();
-
-  if (!isPremium) {
-    return <Button onPress={showUpgrade}>Upgrade</Button>;
-  }
-}
-```
-
-### Testing Purchases
-
-> [!WARNING]
-> **Physical device required** — Simulator doesn't support StoreKit.
-
-1. Create a **Sandbox Tester** in App Store Connect
-2. Sign into sandbox account on device (Settings → App Store → Sandbox Account)
-3. Purchases are free in sandbox mode
+| Variable | `.env.local` | Convex Dashboard | EAS Dashboard |
+| :--- | :---: | :---: | :---: |
+| `CONVEX_DEPLOYMENT` | ✓ | | |
+| `EXPO_PUBLIC_CONVEX_URL` | ✓ | | ✓ |
+| `EXPO_PUBLIC_CONVEX_SITE_URL` | ✓ | | ✓ |
+| `EXPO_PUBLIC_SITE_URL` | ✓ | | ✓ |
+| `EXPO_PUBLIC_REVENUECAT_*` | ✓ | | ✓ |
+| `BETTER_AUTH_SECRET` | | ✓ | |
+| `SITE_URL` | | ✓ | |
+| `SUPPORT_EMAIL` | | ✓ | |
+| `EXPO_ACCESS_TOKEN` | | ✓ | |
+| `RESEND_API_KEY` | | ✓ | |
+| `RESEND_FROM_EMAIL` | | ✓ | |
+| `RESEND_WEBHOOK_SECRET` | | ✓ | |
+| `REVENUECAT_WEBHOOK_BEARER_TOKEN` | | ✓ | |
 
 ---
 
@@ -345,6 +363,18 @@ eas build --platform ios --profile production    # App Store
 - [ ] Create production webhook in RevenueCat pointing to prod Convex URL
 - [ ] Submit in-app purchases for review (App Store / Play Store)
 - [ ] Test full signup and purchase flow in TestFlight / Internal Testing
+
+---
+
+## Upstream
+
+Based on [expo-starter-app](https://github.com/ramonclaudio/expo-starter-app) (revenuecat branch):
+
+```bash
+git remote add upstream https://github.com/ramonclaudio/expo-starter-app.git
+git fetch upstream
+git merge upstream/revenuecat
+```
 
 ---
 
