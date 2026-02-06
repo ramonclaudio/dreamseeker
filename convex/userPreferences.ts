@@ -1,26 +1,17 @@
-import { query, mutation, type QueryCtx, type MutationCtx } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { authComponent } from './auth';
-
-const dreamCategory = v.union(
-  v.literal('travel'),
-  v.literal('money'),
-  v.literal('career'),
-  v.literal('lifestyle'),
-  v.literal('growth'),
-  v.literal('relationships')
-);
-
-const paceType = v.union(v.literal('gentle'), v.literal('steady'), v.literal('ambitious'));
-
-const getAuthUserId = async (ctx: QueryCtx | MutationCtx) =>
-  (await authComponent.safeGetAuthUser(ctx))?._id ?? null;
-
-const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) throw new Error('Unauthorized');
-  return userId;
-};
+import { getAuthUserId, requireAuth, getTodayString, assertDreamLimit } from './helpers';
+import {
+  dreamCategoryValidator,
+  paceValidator,
+  confidenceValidator,
+  XP_REWARDS,
+  getLevelFromXp,
+  MAX_TITLE_LENGTH,
+  MAX_WHY_LENGTH,
+} from './constants';
+import { hasEntitlement } from './revenuecat';
+import { PREMIUM_ENTITLEMENT, TIERS } from './subscriptions';
 
 export const getOnboardingStatus = query({
   args: {},
@@ -39,13 +30,14 @@ export const getOnboardingStatus = query({
 
 export const completeOnboarding = mutation({
   args: {
-    selectedCategories: v.array(dreamCategory),
-    pace: paceType,
+    selectedCategories: v.array(dreamCategoryValidator),
+    pace: paceValidator,
+    confidence: v.optional(confidenceValidator),
     notificationTime: v.optional(v.string()),
     firstDream: v.optional(
       v.object({
         title: v.string(),
-        category: dreamCategory,
+        category: dreamCategoryValidator,
         whyItMatters: v.optional(v.string()),
       })
     ),
@@ -53,27 +45,40 @@ export const completeOnboarding = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
 
+    if (args.selectedCategories.length === 0) throw new Error('At least one category is required');
+    if (args.selectedCategories.length > 6) throw new Error('Too many categories');
+    // Deduplicate
+    const uniqueCategories = [...new Set(args.selectedCategories)];
+
+    // Validate notification time format if provided
+    if (args.notificationTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(args.notificationTime)) {
+      throw new Error('Invalid notification time format');
+    }
+
     // Check if preferences already exist
     const existing = await ctx.db
       .query('userPreferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
+    // Guard against double onboarding XP award
+    if (existing?.onboardingCompleted) return { success: true };
+
     if (existing) {
-      // Update existing preferences
       await ctx.db.patch(existing._id, {
         onboardingCompleted: true,
-        selectedCategories: args.selectedCategories,
+        selectedCategories: uniqueCategories,
         pace: args.pace,
+        confidence: args.confidence,
         notificationTime: args.notificationTime,
       });
     } else {
-      // Create new preferences
       await ctx.db.insert('userPreferences', {
         userId,
         onboardingCompleted: true,
-        selectedCategories: args.selectedCategories,
+        selectedCategories: uniqueCategories,
         pace: args.pace,
+        confidence: args.confidence,
         notificationTime: args.notificationTime,
         createdAt: Date.now(),
       });
@@ -81,9 +86,24 @@ export const completeOnboarding = mutation({
 
     // Create first dream if provided
     if (args.firstDream && args.firstDream.title.trim()) {
+      const trimmedTitle = args.firstDream.title.trim();
+
+      // Validate title length
+      if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+        throw new Error('Title too long');
+      }
+
+      // Validate whyItMatters length
+      if (args.firstDream.whyItMatters && args.firstDream.whyItMatters.trim().length > MAX_WHY_LENGTH) {
+        throw new Error('Description too long');
+      }
+
+      // Check dream tier limit
+      await assertDreamLimit(ctx, userId);
+
       await ctx.db.insert('dreams', {
         userId,
-        title: args.firstDream.title.trim(),
+        title: trimmedTitle,
         category: args.firstDream.category,
         whyItMatters: args.firstDream.whyItMatters?.trim(),
         status: 'active',
@@ -91,29 +111,28 @@ export const completeOnboarding = mutation({
       });
     }
 
-    // Initialize user progress if it doesn't exist
+    // Initialize or update user progress with onboarding XP
     const existingProgress = await ctx.db
       .query('userProgress')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
-    // Award 50 XP for completing onboarding
-    const ONBOARDING_XP = 50;
+    const onboardingXp = XP_REWARDS.onboardingComplete;
 
     if (existingProgress) {
-      // User already has progress, add onboarding XP
+      const newXp = existingProgress.totalXp + onboardingXp;
       await ctx.db.patch(existingProgress._id, {
-        totalXp: existingProgress.totalXp + ONBOARDING_XP,
+        totalXp: newXp,
+        level: getLevelFromXp(newXp).level,
       });
     } else {
-      // Initialize with onboarding XP
       await ctx.db.insert('userProgress', {
         userId,
-        totalXp: ONBOARDING_XP,
-        level: 1,
+        totalXp: onboardingXp,
+        level: getLevelFromXp(onboardingXp).level,
         currentStreak: 0,
         longestStreak: 0,
-        lastActiveDate: new Date().toISOString().split('T')[0],
+        lastActiveDate: getTodayString(),
         dreamsCompleted: 0,
         actionsCompleted: 0,
       });
