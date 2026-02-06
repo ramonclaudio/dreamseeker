@@ -1,10 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { DreamCategory } from '@/constants/dreams';
-
-export type Pace = 'gentle' | 'steady' | 'ambitious';
-export type Confidence = 'confident' | 'somewhat' | 'not-confident';
+import type { Confidence, DreamCategory, Pace } from '@/constants/dreams';
 
 export interface OnboardingState {
   selectedCategories: DreamCategory[];
@@ -38,21 +36,61 @@ export interface UseOnboardingResult {
 }
 
 const TOTAL_SLIDES = 10;
+const STORAGE_KEY = '@onboarding_state';
+const STORAGE_VERSION = 1;
+
+const DEFAULT_STATE: OnboardingState = {
+  selectedCategories: [],
+  dreamTitle: '',
+  dreamCategory: 'growth',
+  whyItMatters: '',
+  confidence: null,
+  pace: null,
+  notificationTime: null,
+};
 
 export function useOnboarding(): UseOnboardingResult {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<OnboardingState>(DEFAULT_STATE);
+  const initialized = useRef(false);
 
-  const [state, setState] = useState<OnboardingState>({
-    selectedCategories: [],
-    dreamTitle: '',
-    dreamCategory: 'growth',
-    whyItMatters: '',
-    confidence: null,
-    pace: null,
-    notificationTime: null,
-  });
+  // Restore saved state on mount
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((saved) => {
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved) as { version?: number; slide: number; state: OnboardingState };
+            if (parsed.version !== STORAGE_VERSION) {
+              // Version mismatch, clear stale data
+              AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+              return;
+            }
+            setCurrentSlide(Math.min(parsed.slide, TOTAL_SLIDES - 1));
+            setState(parsed.state);
+          } catch {
+            // Corrupted data, ignore
+          }
+        }
+      })
+      .catch(() => {
+        // Storage unavailable, continue with defaults
+      })
+      .finally(() => {
+        initialized.current = true;
+      });
+  }, []);
+
+  // Persist state on changes (after initial load)
+  useEffect(() => {
+    if (!initialized.current) return;
+    AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ version: STORAGE_VERSION, slide: currentSlide, state })
+    ).catch(() => {});
+  }, [currentSlide, state]);
 
   const completeOnboarding = useMutation(api.userPreferences.completeOnboarding);
 
@@ -71,31 +109,31 @@ export function useOnboarding(): UseOnboardingResult {
     });
   }, []);
 
-  const setDreamTitle = useCallback((title: string) => {
+  const setDreamTitle = (title: string) => {
     setState((prev) => ({ ...prev, dreamTitle: title }));
-  }, []);
+  };
 
-  const setDreamCategory = useCallback((category: DreamCategory) => {
+  const setDreamCategory = (category: DreamCategory) => {
     setState((prev) => ({ ...prev, dreamCategory: category }));
-  }, []);
+  };
 
-  const setWhyItMatters = useCallback((text: string) => {
+  const setWhyItMatters = (text: string) => {
     setState((prev) => ({ ...prev, whyItMatters: text }));
-  }, []);
+  };
 
-  const setConfidence = useCallback((confidence: Confidence) => {
+  const setConfidence = (confidence: Confidence) => {
     setState((prev) => ({ ...prev, confidence }));
-  }, []);
+  };
 
-  const setPace = useCallback((pace: Pace) => {
+  const setPace = (pace: Pace) => {
     setState((prev) => ({ ...prev, pace }));
-  }, []);
+  };
 
-  const setNotificationTime = useCallback((time: string | null) => {
+  const setNotificationTime = (time: string | null) => {
     setState((prev) => ({ ...prev, notificationTime: time }));
-  }, []);
+  };
 
-  const canGoNext = useCallback(() => {
+  const canGoNext = useMemo(() => {
     switch (currentSlide) {
       case 3: // Categories - need at least one
         return state.selectedCategories.length > 0;
@@ -111,16 +149,14 @@ export function useOnboarding(): UseOnboardingResult {
   }, [currentSlide, state]);
 
   const goNext = useCallback(() => {
-    if (currentSlide < TOTAL_SLIDES - 1 && canGoNext()) {
+    if (currentSlide < TOTAL_SLIDES - 1 && canGoNext) {
       setCurrentSlide((prev) => prev + 1);
     }
   }, [currentSlide, canGoNext]);
 
-  const goBack = useCallback(() => {
-    if (currentSlide > 0) {
-      setCurrentSlide((prev) => prev - 1);
-    }
-  }, [currentSlide]);
+  const goBack = () => {
+    setCurrentSlide((prev) => Math.max(0, prev - 1));
+  };
 
   const finish = useCallback(async (): Promise<boolean> => {
     if (!state.pace || state.selectedCategories.length === 0) {
@@ -135,6 +171,7 @@ export function useOnboarding(): UseOnboardingResult {
       await completeOnboarding({
         selectedCategories: state.selectedCategories,
         pace: state.pace,
+        confidence: state.confidence ?? undefined,
         notificationTime: state.notificationTime ?? undefined,
         firstDream: state.dreamTitle.trim()
           ? {
@@ -145,6 +182,7 @@ export function useOnboarding(): UseOnboardingResult {
           : undefined,
       });
 
+      await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to complete onboarding');
@@ -163,7 +201,7 @@ export function useOnboarding(): UseOnboardingResult {
     setCurrentSlide,
     goNext,
     goBack,
-    canGoNext: canGoNext(),
+    canGoNext,
     canGoBack: currentSlide > 0,
     toggleCategory,
     setDreamTitle,
