@@ -81,15 +81,27 @@ export const getCurrentUser = query({
     const user = await authComponent.safeGetAuthUser(ctx);
     if (!user) return null;
 
+    // Fetch community profile for displayName/bio
+    const profile = await ctx.db
+      .query('userProfiles')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .first();
+
+    const community = {
+      displayName: profile?.displayName ?? null,
+      bio: profile?.bio ?? null,
+      isPublic: profile?.isPublic ?? false,
+    };
+
     const isStorageId = user.image && !user.image.includes('/') && !user.image.startsWith('http');
     if (isStorageId) {
       try {
         const imageUrl = await ctx.storage.getUrl(user.image as Id<'_storage'>);
-        return { ...user, image: imageUrl, imageStorageId: user.image };
+        return { ...user, ...community, image: imageUrl, imageStorageId: user.image };
       } catch {
-        return { ...user, image: null, imageStorageId: null };
+        return { ...user, ...community, image: null, imageStorageId: null };
       }
     }
-    return { ...user, imageStorageId: null };
+    return { ...user, ...community, imageStorageId: null };
   },
 });

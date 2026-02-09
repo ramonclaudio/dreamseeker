@@ -53,7 +53,7 @@ const htmlPage = (title: string, content: string) => `<!DOCTYPE html>
 
 const privacyContent = `
 <h1>Privacy Policy</h1>
-<p class="updated">Last updated: January 2025</p>
+<p class="updated">Last updated: February 2026</p>
 
 <h2>Information We Collect</h2>
 <p>We collect information you provide directly to us, such as when you create an account, update your profile, or contact us for support.</p>
@@ -104,7 +104,7 @@ const privacyContent = `
 
 const termsContent = `
 <h1>Terms of Service</h1>
-<p class="updated">Last updated: January 2025</p>
+<p class="updated">Last updated: February 2026</p>
 
 <h2>Acceptance of Terms</h2>
 <p>By accessing or using DreamSeeker, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>
