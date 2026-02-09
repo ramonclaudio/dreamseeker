@@ -72,7 +72,7 @@ export default function ProgressScreen() {
             Progress
           </ThemedText>
           <ThemedText color={colors.mutedForeground}>
-            Every step counts. Own how far you've come.
+            Every step counts. Own how far you&apos;ve come.
           </ThemedText>
         </View>
         <UserAvatar />

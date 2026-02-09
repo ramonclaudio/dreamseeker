@@ -68,7 +68,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
           marginBottom: Spacing.sm,
         }}
       >
-        But we don't quit — let's try again.
+        But we don&apos;t quit — let&apos;s try again.
       </Text>
       <Pressable
         style={{

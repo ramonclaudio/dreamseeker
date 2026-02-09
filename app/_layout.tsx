@@ -28,7 +28,6 @@ import {
 } from "@/hooks/use-push-notifications";
 import { isValidDeepLink } from "@/lib/deep-link";
 import { OfflineBanner } from "@/components/ui/offline-banner";
-import { ThemedText } from "@/components/ui/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Spacing, TouchTarget } from "@/constants/layout";
 import { Radius } from "@/constants/theme";
@@ -94,7 +93,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
           marginBottom: Spacing.sm,
         }}
       >
-        But we don't quit — let's try again.
+        But we don&apos;t quit — let&apos;s try again.
       </Text>
       <Pressable
         style={{

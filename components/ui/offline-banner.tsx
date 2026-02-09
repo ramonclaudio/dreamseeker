@@ -16,7 +16,7 @@ export function OfflineBanner() {
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: ZIndex.offlineBanner, backgroundColor: colors.destructive, paddingTop: insets.top }}>
       <View style={{ paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg, alignItems: 'center' }}>
-        <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600' }} color={colors.destructiveForeground}>You're offline, girl</ThemedText>
+        <ThemedText style={{ fontSize: FontSize.md, fontWeight: '600' }} color={colors.destructiveForeground}>You&apos;re offline, girl</ThemedText>
       </View>
     </View>
   );

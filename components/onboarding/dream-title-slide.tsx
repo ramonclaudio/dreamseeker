@@ -30,7 +30,7 @@ export function DreamTitleSlide({
       <View style={{ gap: Spacing.sm }}>
         <ThemedText variant="title">What&apos;s your first dream?</ThemedText>
         <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>
-          Pick the dream that's calling you right now. You can add more later.
+          Pick the dream that&apos;s calling you right now. You can add more later.
         </ThemedText>
       </View>
 

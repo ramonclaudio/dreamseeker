@@ -29,7 +29,7 @@ export function NextStep({ colors, dreamTitle }: NextStepProps) {
         style={styles.subtitle}
         color={colors.mutedForeground}
       >
-        Winners keep moving. What's your next play?
+        Winners keep moving. What&apos;s your next play?
       </ThemedText>
 
       <View style={styles.buttons}>

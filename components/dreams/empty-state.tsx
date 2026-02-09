@@ -54,7 +54,7 @@ export function EmptyState({ colors }: { colors: ColorPalette }) {
         }}
         color={colors.mutedForeground}
       >
-        Big dreams need small steps. Let's break it down.
+        Big dreams need small steps. Let&apos;s break it down.
       </ThemedText>
       <GradientButton
         label="Start Your First Dream"
