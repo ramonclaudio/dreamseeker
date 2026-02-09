@@ -45,6 +45,13 @@ export default function DreamsScreen() {
     api.progress.getProgress,
     isAuthenticated ? { timezone } : "skip"
   );
+  const hiddenItems = useQuery(
+    api.hiddenItems.listHiddenItems,
+    isAuthenticated ? {} : "skip"
+  );
+  const hiddenDreamIds = new Set(
+    hiddenItems?.filter((i) => i.itemType === 'dream' && !i.itemId.startsWith('category:')).map((i) => i.itemId) ?? []
+  );
 
   const isLoading = authLoading || dreams === undefined || progress === undefined;
 
@@ -130,6 +137,26 @@ export default function DreamsScreen() {
               gap: Spacing.md,
             }}
           >
+            <Pressable
+              onPress={() => {
+                haptics.light();
+                router.push("/(app)/(tabs)/(dreams)/journal");
+              }}
+              style={({ pressed }) => ({
+                opacity: pressed ? Opacity.pressed : 1,
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: colors.secondary,
+                alignItems: "center",
+                justifyContent: "center",
+              })}
+              accessibilityRole="button"
+              accessibilityLabel="View journal"
+              accessibilityHint="Opens your journal entries"
+            >
+              <IconSymbol name="book.fill" size={IconSize.md} color={colors.mutedForeground} />
+            </Pressable>
             <Pressable
               onPress={handleCreateDream}
               style={({ pressed }) => ({
@@ -222,6 +249,7 @@ export default function DreamsScreen() {
                 category={category}
                 dreams={grouped[category]!}
                 colors={colors}
+                hiddenDreamIds={hiddenDreamIds}
               />
             ))}
 

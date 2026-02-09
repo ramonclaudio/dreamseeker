@@ -2,6 +2,8 @@ import { View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native
 import { router } from 'expo-router';
 import { useState } from 'react';
 
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { SkeletonJournalEntry } from '@/components/ui/skeleton';
 import { MaterialCard } from '@/components/ui/material-card';
@@ -38,6 +40,8 @@ export default function JournalListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { entries, todayCount, isLoading, remove } = useJournal();
   const { isPremium, showUpgrade } = useSubscription();
+  const hiddenItems = useQuery(api.hiddenItems.listHiddenItems);
+  const hiddenIds = new Set(hiddenItems?.filter((i) => !i.itemId.startsWith('category:')).map((i) => i.itemId) ?? []);
 
   const canCreateEntry = isPremium || todayCount < FREE_JOURNAL_DAILY_LIMIT;
   const isAtLimit = !isPremium && todayCount >= FREE_JOURNAL_DAILY_LIMIT;
@@ -232,6 +236,9 @@ export default function JournalListScreen() {
                             {MOOD_LABELS[entry.mood] ?? entry.mood}
                           </ThemedText>
                         </View>
+                      )}
+                      {hiddenIds.has(entry._id) && (
+                        <IconSymbol name="lock.fill" size={IconSize.sm} color={colors.mutedForeground} />
                       )}
                     </View>
                   </View>

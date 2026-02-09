@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { View, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
@@ -23,11 +23,11 @@ type TabConfig = {
 const TAB_CONFIG: Record<string, TabConfig> = {
   today: { label: "Today", icon: "house", selectedIcon: "house.fill" },
   "(dreams)": { label: "Dreams", icon: "star", selectedIcon: "star.fill" },
-  journal: { label: "Journal", icon: "book", selectedIcon: "book.fill" },
+  community: { label: "Community", icon: "person.2", selectedIcon: "person.2.fill" },
   progress: { label: "Progress", icon: "flame", selectedIcon: "flame.fill" },
 };
 
-const TAB_ORDER = ["today", "(dreams)", "journal", "progress"];
+const TAB_ORDER = ["today", "(dreams)", "community", "progress"];
 
 type CreateMenuOption = {
   icon: IconSymbolName;
@@ -148,7 +148,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const badgeMap: Record<string, string | null> = {
     today: badges.today,
     "(dreams)": badges.dreams,
-    journal: badges.journal,
+    community: badges.community,
     progress: badges.progress,
   };
 
@@ -188,7 +188,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               onPress={() => {
                 haptics.light();
                 setShowCreateMenu(false);
-                router.push(option.route as any);
+                router.push(option.route as Href);
               }}
             >
               <IconSymbol name={option.icon} size={20} color={colors.foreground} />
