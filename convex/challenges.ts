@@ -1,19 +1,13 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, getTodayString, getYesterdayString, calculateStreak } from './helpers';
-import { getLevelFromXp, XP_REWARDS } from './constants';
-
-// Get start of today in milliseconds
-const getStartOfToday = () => {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return now.getTime();
-};
+import { getAuthUserId, requireAuth, awardXp } from './helpers';
+import { getTodayString, getStartOfDay, dateToDailyIndex } from './dates';
+import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 
 // Get a consistent daily challenge (based on date)
 export const getDaily = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { timezone: v.string() },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
 
@@ -28,14 +22,13 @@ export const getDaily = query({
     }
 
     // Use the date to pick a consistent challenge for the day
-    const today = getTodayString();
-    const dateHash = today.split('-').reduce((acc, part) => acc + parseInt(part, 10), 0);
-    const todaysChallenge = challenges[dateHash % challenges.length];
+    const today = getTodayString(args.timezone);
+    const todaysChallenge = challenges[dateToDailyIndex(today, challenges.length)];
 
     // Check if user has completed this challenge today
     let isCompleted = false;
     if (userId) {
-      const startOfToday = getStartOfToday();
+      const startOfToday = getStartOfDay(args.timezone);
       const completions = await ctx.db
         .query('challengeCompletions')
         .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', startOfToday))
@@ -53,7 +46,7 @@ export const getDaily = query({
 
 // Complete today's challenge
 export const complete = mutation({
-  args: { challengeId: v.id('dailyChallenges') },
+  args: { challengeId: v.id('dailyChallenges'), timezone: v.string() },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
 
@@ -63,7 +56,7 @@ export const complete = mutation({
     if (!challenge.isActive) throw new Error('Challenge is not active');
 
     // Check if already completed today
-    const startOfToday = getStartOfToday();
+    const startOfToday = getStartOfDay(args.timezone);
     const existingCompletion = await ctx.db
       .query('challengeCompletions')
       .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', startOfToday))
@@ -82,69 +75,43 @@ export const complete = mutation({
     });
 
     // Award XP
-    const progress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
+    const { streakMilestone } = await awardXp(ctx, userId, challenge.xpReward, {
+      timezone: args.timezone,
+    });
 
-    const today = getTodayString();
+    // Badge checks — accumulate XP, apply in a single patch at the end
+    let newBadge = null;
+    let badgeXp = 0;
 
-    if (progress) {
-      // Check if this updates the streak
-      const lastActive = progress.lastActiveDate;
-      const newStreak = calculateStreak(progress.currentStreak, lastActive, today, getYesterdayString());
-      const newXp = progress.totalXp + challenge.xpReward;
+    // Check risk_seeker if comfort zone challenge
+    if (challenge.isComfortZone) {
+      const comfortZoneChallenges = await ctx.db
+        .query('dailyChallenges')
+        .filter((q) => q.eq(q.field('isComfortZone'), true))
+        .collect();
 
-      await ctx.db.patch(progress._id, {
-        totalXp: newXp,
-        level: getLevelFromXp(newXp).level,
-        currentStreak: newStreak,
-        longestStreak: Math.max(progress.longestStreak, newStreak),
-        lastActiveDate: today,
-      });
-    } else {
-      await ctx.db.insert('userProgress', {
-        userId,
-        totalXp: challenge.xpReward,
-        level: getLevelFromXp(challenge.xpReward).level,
-        currentStreak: 1,
-        longestStreak: 1,
-        lastActiveDate: today,
-        dreamsCompleted: 0,
-        actionsCompleted: 0,
-      });
-    }
+      // Use by_user_challenge index to check each comfort zone challenge individually
+      let czCount = 0;
+      for (const cz of comfortZoneChallenges) {
+        const completion = await ctx.db
+          .query('challengeCompletions')
+          .withIndex('by_user_challenge', (q) => q.eq('userId', userId).eq('challengeId', cz._id))
+          .first();
+        if (completion) czCount++;
+        if (czCount >= 5) break;
+      }
 
-    return { xpAwarded: challenge.xpReward };
-  },
-});
-
-// Get challenge completion history
-export const getHistory = query({
-  args: { limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    const limit = Math.min(Math.max(1, Math.floor(args.limit ?? 10)), 100);
-    const completions = await ctx.db
-      .query('challengeCompletions')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .order('desc')
-      .take(limit);
-
-    // Get challenge details
-    const results = [];
-    for (const completion of completions) {
-      const challenge = await ctx.db.get(completion.challengeId);
-      if (challenge) {
-        results.push({
-          ...completion,
-          challenge,
-        });
+      if (czCount >= 5) {
+        const result = await checkAndAwardBadge(ctx, userId, 'risk_seeker');
+        badgeXp += result.xpAwarded;
+        if (result.awarded) newBadge = result.badge;
       }
     }
 
-    return results;
+    // Single patch for all badge XP
+    await applyBadgeXp(ctx, userId, badgeXp);
+
+    return { xpAwarded: challenge.xpReward + badgeXp, newBadge, streakMilestone };
   },
 });
+
