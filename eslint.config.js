@@ -14,4 +14,28 @@ module.exports = defineConfig([
       'import/namespace': 'off',
     },
   },
+  // Block raw query/mutation imports in Convex files — use authQuery/authMutation
+  {
+    files: ['convex/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['*/_generated/server'],
+          importNames: ['query', 'mutation'],
+          message: 'Use authQuery/authMutation from ./functions instead.',
+        }],
+      }],
+    },
+  },
+  // Exceptions: files that legitimately need raw query/mutation
+  {
+    files: [
+      'convex/functions.ts',
+      'convex/auth.ts',
+      'convex/users.ts',
+      'convex/notificationsTokens.ts',
+      'convex/notificationsSend.ts',
+    ],
+    rules: { 'no-restricted-imports': 'off' },
+  },
 ]);
