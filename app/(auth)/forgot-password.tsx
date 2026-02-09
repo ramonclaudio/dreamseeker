@@ -31,7 +31,7 @@ export default function ForgotPasswordScreen() {
     try {
       const response = await authClient.requestPasswordReset({
         email: email.trim(),
-        redirectTo: `${env.siteUrl}/reset-password`,
+        redirectTo: `${env.convexSiteUrl}/reset-password`,
       });
 
       if (response.error) {

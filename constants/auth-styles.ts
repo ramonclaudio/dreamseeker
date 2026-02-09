@@ -33,7 +33,7 @@ export const authStyles = {
   passwordHeader: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   forgotText: { fontSize: FontSize.base, fontWeight: '500' as const },
   input: { height: TouchTarget.min, borderRadius: Radius.md, borderCurve: 'continuous' as const, borderWidth: 1, paddingHorizontal: Spacing.md, fontSize: FontSize.xl },
-  button: { height: TouchTarget.min, borderRadius: Radius.md, borderCurve: 'continuous' as const, alignItems: 'center' as const, justifyContent: 'center' as const, marginTop: Spacing.sm },
+  button: { height: TouchTarget.min, borderRadius: Radius.full, borderCurve: 'continuous' as const, alignItems: 'center' as const, justifyContent: 'center' as const, marginTop: Spacing.sm },
   buttonText: { fontSize: FontSize.base, fontWeight: '500' as const },
   footer: { flexDirection: 'row' as const, justifyContent: 'center' as const, alignItems: 'center' as const, marginTop: Spacing['2xl'], minHeight: TouchTarget.min },
   footerText: { fontSize: FontSize.base, lineHeight: LineHeight.base },
