@@ -1,6 +1,5 @@
 import { View, type ViewProps } from "react-native";
 
-import { Spacing } from "@/constants/layout";
 import { Radius } from "@/constants/theme";
 import { useColors } from "@/hooks/use-color-scheme";
 import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
@@ -18,7 +17,7 @@ function getGlassModule() {
   return _glassModule;
 }
 
-export function canUseGlass(): boolean {
+function canUseGlass(): boolean {
   const glass = getGlassModule();
   if (!glass) return false;
   try {
@@ -99,46 +98,3 @@ export function GlassControl({
   );
 }
 
-type GlassContainerProps = ViewProps & {
-  /** Spacing for glass effect blending (HIG: controls how shapes morph) */
-  spacing?: number;
-};
-
-/**
- * GlassControlContainer - Container for multiple GlassControl elements.
- *
- * HIG: "Use GlassEffectContainer when applying Liquid Glass effects on multiple views
- * to achieve the best rendering performance. A container also allows views with
- * Liquid Glass effects to blend their shapes together."
- */
-export function GlassControlContainer({
-  children,
-  style,
-  spacing = Spacing.sm,
-  ...props
-}: GlassContainerProps) {
-  const colors = useColors();
-  const { reduceTransparency } = useAccessibilitySettings();
-  const cardStyle = [
-    baseCardStyle,
-    { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-    style,
-  ];
-
-  // Fall back to solid View when Reduce Transparency is enabled (HIG accessibility)
-  const glass = getGlassModule();
-  if (glass && canUseGlass() && !reduceTransparency) {
-    const { GlassContainer } = glass;
-    return (
-      <GlassContainer spacing={spacing} style={cardStyle} {...props}>
-        {children}
-      </GlassContainer>
-    );
-  }
-
-  return (
-    <View style={[...cardStyle, { gap: spacing }]} {...props}>
-      {children}
-    </View>
-  );
-}

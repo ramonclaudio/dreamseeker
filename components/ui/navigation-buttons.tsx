@@ -1,12 +1,13 @@
-import { View, Pressable, ActivityIndicator } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 import { GlassControl } from '@/components/ui/glass-control';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ThemedText } from '@/components/ui/themed-text';
 import { Spacing, TouchTarget, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import { Opacity } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
+import { haptics } from '@/lib/haptics';
 
 interface NavigationButtonsProps {
   onBack?: () => void;
@@ -38,7 +39,10 @@ export function NavigationButtons({
     >
       {onBack && (
         <Pressable
-          onPress={onBack}
+          onPress={() => {
+            haptics.light();
+            onBack();
+          }}
           disabled={isLoading}
           style={({ pressed }) => ({
             opacity: pressed ? Opacity.pressed : isLoading ? Opacity.disabled : 1,
@@ -59,36 +63,13 @@ export function NavigationButtons({
         </Pressable>
       )}
 
-      <Pressable
+      <GradientButton
         onPress={onContinue}
-        disabled={continueDisabled || isLoading}
-        style={({ pressed }) => ({
-          flex: 1,
-          opacity: pressed ? Opacity.pressed : continueDisabled ? Opacity.disabled : 1,
-        })}
-      >
-        <GlassControl
-          isInteractive
-          tint={colors.accentBlue}
-          style={{
-            height: TouchTarget.min,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: Radius.lg,
-          }}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={colors.accentBlueForeground} />
-          ) : (
-            <ThemedText
-              style={{ fontWeight: '600' }}
-              color={colors.accentBlueForeground}
-            >
-              {continueLabel}
-            </ThemedText>
-          )}
-        </GlassControl>
-      </Pressable>
+        label={continueLabel}
+        disabled={continueDisabled}
+        isLoading={isLoading}
+        style={{ flex: 1 }}
+      />
     </View>
   );
 }
