@@ -1,4 +1,5 @@
 import { internalMutation } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 
 const MINDSET_MOMENTS = [
         // Gabby Beckford quotes
@@ -524,21 +525,21 @@ const BADGE_DEFINITIONS = [
         },
 ] as const;
 
-async function seedMindsetMoments(ctx: { db: any }) {
+async function seedMindsetMoments(ctx: MutationCtx) {
   for (const quote of MINDSET_MOMENTS) {
     await ctx.db.insert('mindsetMoments', quote);
   }
   return MINDSET_MOMENTS.length;
 }
 
-async function seedDailyChallenges(ctx: { db: any }) {
+async function seedDailyChallenges(ctx: MutationCtx) {
   for (const challenge of DAILY_CHALLENGES) {
     await ctx.db.insert('dailyChallenges', challenge);
   }
   return DAILY_CHALLENGES.length;
 }
 
-async function seedBadgeDefinitions(ctx: { db: any }) {
+async function seedBadgeDefinitions(ctx: MutationCtx) {
   for (const badge of BADGE_DEFINITIONS) {
     await ctx.db.insert('badgeDefinitions', badge);
   }

@@ -1,16 +1,16 @@
-import { mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { requireAuth, getOwnedDream, assertDreamLimit, deductXp, deductDreamXp, restoreDreamXp } from './helpers';
+import { authMutation } from './functions';
+import { getOwnedDream, assertDreamLimit, deductXp, deductDreamXp, restoreDreamXp } from './helpers';
 import { XP_REWARDS } from './constants';
 import { canArchive, canRestore, canReopen, getRestoreStatus } from './dreamGuards';
 
 // Archive a dream (soft delete) - reverses XP and stats
 // Note: Streaks are intentionally not affected by archive/restore.
 // They represent historical engagement regardless of current archive state.
-export const archive = mutation({
+export const archive = authMutation({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
     const dream = await getOwnedDream(ctx, args.id, userId);
 
     const archiveCheck = canArchive(dream);
@@ -36,10 +36,10 @@ export const archive = mutation({
 });
 
 // Restore an archived dream - re-adds XP and stats
-export const restore = mutation({
+export const restore = authMutation({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
     const dream = await getOwnedDream(ctx, args.id, userId);
 
     const restoreCheck = canRestore(dream);
@@ -72,10 +72,10 @@ export const restore = mutation({
 });
 
 // Reopen a completed dream - reverses completion rewards
-export const reopen = mutation({
+export const reopen = authMutation({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
     const dream = await getOwnedDream(ctx, args.id, userId);
 
     const reopenCheck = canReopen(dream);
@@ -96,11 +96,11 @@ export const reopen = mutation({
 });
 
 // Permanently delete a dream
-export const remove = mutation({
+export const remove = authMutation({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-    const dream = await ctx.db.get(args.id);
+    const userId = ctx.user;
+    const dream = await ctx.db.get('dreams', args.id);
     if (!dream) return; // Idempotent: already deleted
     if (dream.userId !== userId) throw new Error('Forbidden');
 

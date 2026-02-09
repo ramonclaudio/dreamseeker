@@ -1,58 +1,54 @@
-import { query, mutation } from './_generated/server';
 import type { QueryCtx } from './_generated/server';
 import type { Id, Doc } from './_generated/dataModel';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, awardXp, deductXp } from './helpers';
+import { authQuery, authMutation } from './functions';
+import { awardXp, deductXp } from './helpers';
 import { getStartOfDay, getLocalHour } from './dates';
 import { requireText } from './validation';
 import { MAX_ACTION_TEXT_LENGTH, XP_REWARDS, isEarlyBird, isNightOwl, PERMISSION_GRANTED_WINDOW_MS, LASER_FOCUSED_THRESHOLD } from './constants';
 import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
+import { createFeedEvent } from './feed';
 
 async function getDreamMap(ctx: QueryCtx, dreamIds: Id<'dreams'>[]) {
-  const dreams = await Promise.all(dreamIds.map((id) => ctx.db.get(id)));
+  const dreams = await Promise.all(dreamIds.map((id) => ctx.db.get('dreams', id)));
   return new Map(
     dreams.filter((d): d is Doc<'dreams'> => d !== null).map((d) => [d._id, d])
   );
 }
 
 // List actions for a dream
-export const list = query({
+export const list = authQuery({
   args: { dreamId: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
 
     // Verify dream ownership
-    const dream = await ctx.db.get(args.dreamId);
-    if (!dream || dream.userId !== userId) return [];
+    const dream = await ctx.db.get('dreams', args.dreamId);
+    if (!dream || dream.userId !== ctx.user) return [];
 
-    const actions = await ctx.db
+    const allActions = await ctx.db
       .query('actions')
       .withIndex('by_dream', (q) => q.eq('dreamId', args.dreamId))
-      .filter((q) => q.neq(q.field('status'), 'archived'))
       .collect();
+    const actions = allActions.filter((a) => a.status !== 'archived');
 
     return actions.sort((a, b) => a.order - b.order);
   },
 });
 
 // List all pending actions for the user (for Today tab)
-export const listPending = query({
+export const listPending = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
 
-    const actions = await ctx.db
+    const allUserActions = await ctx.db
       .query('actions')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('isCompleted'), false),
-          q.neq(q.field('status'), 'archived')
-        )
-      )
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user!))
       .collect();
+    const actions = allUserActions.filter(
+      (a) => !a.isCompleted && a.status !== 'archived'
+    );
 
     // Get dream titles for context, filtering out archived dreams
     const dreamIds = Array.from(new Set(actions.map((a) => a.dreamId)));
@@ -73,25 +69,20 @@ export const listPending = query({
 });
 
 // List actions completed today (for daily review)
-export const listCompletedToday = query({
+export const listCompletedToday = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
 
     const startOfToday = getStartOfDay(args.timezone);
 
-    const actions = await ctx.db
+    const allUserActions = await ctx.db
       .query('actions')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('isCompleted'), true),
-          q.gte(q.field('completedAt'), startOfToday),
-          q.neq(q.field('status'), 'archived')
-        )
-      )
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user!))
       .collect();
+    const actions = allUserActions.filter(
+      (a) => a.isCompleted && a.completedAt && a.completedAt >= startOfToday && a.status !== 'archived'
+    );
 
     // Get dream titles
     const dreamIds = Array.from(new Set(actions.map((a) => a.dreamId)));
@@ -105,16 +96,16 @@ export const listCompletedToday = query({
 });
 
 // Create a new action
-export const create = mutation({
+export const create = authMutation({
   args: {
     dreamId: v.id('dreams'),
     text: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
     // Verify dream ownership
-    const dream = await ctx.db.get(args.dreamId);
+    const dream = await ctx.db.get('dreams', args.dreamId);
     if (!dream) throw new Error('Dream not found');
     if (dream.userId !== userId) throw new Error('Forbidden');
     if (dream.status !== 'active') throw new Error('Cannot add actions to a non-active dream');
@@ -129,7 +120,7 @@ export const create = mutation({
 
     const maxOrder = existingActions.reduce((max, a) => Math.max(max, a.order), -1);
 
-    return await ctx.db.insert('actions', {
+    const actionId = await ctx.db.insert('actions', {
       userId,
       dreamId: args.dreamId,
       text: trimmedText,
@@ -138,26 +129,42 @@ export const create = mutation({
       status: 'active',
       createdAt: Date.now(),
     });
+
+    const profile = await ctx.db
+      .query('userProfiles')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+
+    if (profile?.defaultHideActions) {
+      await ctx.db.insert('hiddenItems', {
+        userId,
+        itemType: 'action',
+        itemId: actionId,
+        createdAt: Date.now(),
+      });
+    }
+
+    return actionId;
   },
 });
 
 // Toggle action completion
-export const toggle = mutation({
+export const toggle = authMutation({
   args: {
     id: v.id('actions'),
     timezoneOffsetMinutes: v.optional(v.number()),
     timezone: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
-    const action = await ctx.db.get(args.id);
+    const action = await ctx.db.get('actions', args.id);
     if (!action) throw new Error('Action not found');
     if (action.userId !== userId) throw new Error('Forbidden');
     if (action.status === 'archived') throw new Error('Cannot toggle an archived action');
 
     // Verify parent dream is not archived
-    const dream = await ctx.db.get(action.dreamId);
+    const dream = await ctx.db.get('dreams', action.dreamId);
     if (dream?.status === 'archived') throw new Error('Cannot toggle actions in an archived dream');
 
     const newIsCompleted = !action.isCompleted;
@@ -202,16 +209,13 @@ export const toggle = mutation({
 
       // Check laser focused (10 actions on one dream in 7 days)
       const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-      const recentDreamActions = await ctx.db
+      const dreamActions = await ctx.db
         .query('actions')
         .withIndex('by_dream', (q) => q.eq('dreamId', action.dreamId))
-        .filter((q) =>
-          q.and(
-            q.eq(q.field('isCompleted'), true),
-            q.gte(q.field('completedAt'), sevenDaysAgo)
-          )
-        )
         .collect();
+      const recentDreamActions = dreamActions.filter(
+        (a) => a.isCompleted && a.completedAt && a.completedAt >= sevenDaysAgo
+      );
       if (recentDreamActions.length >= LASER_FOCUSED_THRESHOLD) {
         const result = await checkAndAwardBadge(ctx, userId, 'laser_focused');
         badgeXp += result.xpAwarded;
@@ -220,6 +224,11 @@ export const toggle = mutation({
 
       // Single patch for all badge XP
       await applyBadgeXp(ctx, userId, badgeXp);
+
+      await createFeedEvent(ctx, userId, 'action_completed', action._id, {
+        text: action.text,
+        dreamTitle: dream?.title ?? 'Unknown Dream',
+      });
 
       return { xpAwarded: xpReward + badgeXp, completed: true, newBadge, streakMilestone };
     } else {
@@ -232,15 +241,15 @@ export const toggle = mutation({
 });
 
 // Update action text
-export const update = mutation({
+export const update = authMutation({
   args: {
     id: v.id('actions'),
     text: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
-    const action = await ctx.db.get(args.id);
+    const action = await ctx.db.get('actions', args.id);
     if (!action) throw new Error('Action not found');
     if (action.userId !== userId) throw new Error('Forbidden');
 
@@ -251,12 +260,12 @@ export const update = mutation({
 });
 
 // Delete an action
-export const remove = mutation({
+export const remove = authMutation({
   args: { id: v.id('actions') },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
-    const action = await ctx.db.get(args.id);
+    const action = await ctx.db.get('actions', args.id);
     if (!action) return; // Idempotent: already deleted
     if (action.userId !== userId) throw new Error('Forbidden');
 

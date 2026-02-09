@@ -1,19 +1,13 @@
-import { query, mutation } from './_generated/server';
 import type { QueryCtx } from './_generated/server';
 import { v } from 'convex/values';
-import {
-  getAuthUserId,
-  requireAuth,
-  createDefaultProgress,
-} from './helpers';
+import { authQuery, authMutation } from './functions';
+import { createDefaultProgress } from './helpers';
 import { getTodayString, getYesterdayString, getStartOfDay, timestampToDateString } from './dates';
 import { getLevelFromXp, getXpToNextLevel } from './constants';
 
-export const getProgress = query({
+export const getProgress = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-
     const defaultProgress = {
       totalXp: 0,
       level: 1,
@@ -27,7 +21,8 @@ export const getProgress = query({
       streakMilestones: [] as number[],
     };
 
-    if (!userId) return defaultProgress;
+    if (!ctx.user) return defaultProgress;
+    const userId = ctx.user;
 
     const progress = await ctx.db
       .query('userProgress')
@@ -74,16 +69,13 @@ async function tallyCompletedActions(
   timezone: string,
   activity: Record<string, number>
 ) {
-  const actions = await ctx.db
+  const allCompleted = await ctx.db
     .query('actions')
     .withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true))
-    .filter((q) =>
-      q.and(
-        q.gte(q.field('completedAt'), cutoff),
-        q.neq(q.field('status'), 'archived')
-      )
-    )
     .collect();
+  const actions = allCompleted.filter(
+    (a) => a.completedAt && a.completedAt >= cutoff && a.status !== 'archived'
+  );
 
   for (const action of actions) {
     if (action.completedAt) {
@@ -150,11 +142,10 @@ function addToActivity(activity: Record<string, number>, date: string) {
   activity[date] = (activity[date] ?? 0) + 1;
 }
 
-export const getWeeklyActivity = query({
+export const getWeeklyActivity = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return {};
+    if (!ctx.user) return {};
 
     const todayStr = getTodayString(args.timezone);
     const sevenDaysAgo = new Date(todayStr);
@@ -164,29 +155,27 @@ export const getWeeklyActivity = query({
 
     const activity: Record<string, number> = {};
 
-    await tallyCompletedActions(ctx, userId, cutoff, args.timezone, activity);
-    await tallyDateIndexedRecords(ctx, 'checkIns', userId, cutoffDate, activity);
-    await tallyDateIndexedRecords(ctx, 'journalEntries', userId, cutoffDate, activity);
-    await tallyFocusSessions(ctx, userId, cutoff, args.timezone, activity);
-    await tallyChallengeCompletions(ctx, userId, cutoff, args.timezone, activity);
+    await tallyCompletedActions(ctx, ctx.user, cutoff, args.timezone, activity);
+    await tallyDateIndexedRecords(ctx, 'checkIns', ctx.user, cutoffDate, activity);
+    await tallyDateIndexedRecords(ctx, 'journalEntries', ctx.user, cutoffDate, activity);
+    await tallyFocusSessions(ctx, ctx.user, cutoff, args.timezone, activity);
+    await tallyChallengeCompletions(ctx, ctx.user, cutoff, args.timezone, activity);
 
     return activity;
   },
 });
 
-export const initialize = mutation({
+export const initialize = authMutation({
   args: { timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-
     const existing = await ctx.db
       .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user))
       .first();
 
     if (existing) return existing._id;
 
-    return await ctx.db.insert('userProgress', createDefaultProgress(userId, {
+    return await ctx.db.insert('userProgress', createDefaultProgress(ctx.user, {
       timezone: args.timezone ?? 'UTC',
     }));
   },
@@ -194,11 +183,11 @@ export const initialize = mutation({
 
 // ── Weekly Summary ─────────────────────────────────────────────────
 
-export const getWeeklySummary = query({
+export const getWeeklySummary = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return { actionsCompleted: 0, journalEntries: 0, currentStreak: 0, xpEarned: 0 };
+    if (!ctx.user) return { actionsCompleted: 0, journalEntries: 0, currentStreak: 0, xpEarned: 0 };
+    const userId = ctx.user;
 
     const todayStr = getTodayString(args.timezone);
     const sevenDaysAgo = new Date(todayStr);
@@ -207,16 +196,13 @@ export const getWeeklySummary = query({
     const cutoff = getStartOfDay(args.timezone) - 6 * 24 * 60 * 60 * 1000;
 
     // Count completed actions this week
-    const actions = await ctx.db
+    const allCompleted = await ctx.db
       .query('actions')
       .withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true))
-      .filter((q) =>
-        q.and(
-          q.gte(q.field('completedAt'), cutoff),
-          q.neq(q.field('status'), 'archived')
-        )
-      )
       .collect();
+    const actions = allCompleted.filter(
+      (a) => a.completedAt && a.completedAt >= cutoff && a.status !== 'archived'
+    );
 
     // Count journal entries this week
     const journals = await ctx.db
@@ -270,11 +256,11 @@ export const getWeeklySummary = query({
 
 // ── Activity Heatmap Data ─────────────────────────────────────────────────
 
-export const getActivityHeatmap = query({
+export const getActivityHeatmap = authQuery({
   args: { timezone: v.string(), days: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return { activityData: {}, currentStreak: 0, longestStreak: 0 };
+    if (!ctx.user) return { activityData: {}, currentStreak: 0, longestStreak: 0 };
+    const userId = ctx.user;
 
     const daysToFetch = args.days ?? 120; // Default to ~4 months
     const todayStr = getTodayString(args.timezone);

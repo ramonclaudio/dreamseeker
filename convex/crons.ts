@@ -26,16 +26,16 @@ export const cleanupRateLimits = internalMutation({
   handler: async (ctx) => {
     const cutoff = Date.now() - ONE_HOUR_MS;
 
-    const oldUploadRecords = await ctx.db
+    const allUploadRecords = await ctx.db
       .query('uploadRateLimit')
-      .filter((q) => q.lt(q.field('createdAt'), cutoff))
       .collect();
+    const oldUploadRecords = allUploadRecords.filter((r) => r.createdAt < cutoff);
     await Promise.all(oldUploadRecords.map((r) => ctx.db.delete(r._id)));
 
-    const oldPushRecords = await ctx.db
+    const allPushRecords = await ctx.db
       .query('pushNotificationRateLimit')
-      .filter((q) => q.lt(q.field('createdAt'), cutoff))
       .collect();
+    const oldPushRecords = allPushRecords.filter((r) => r.createdAt < cutoff);
     await Promise.all(oldPushRecords.map((r) => ctx.db.delete(r._id)));
   },
 });

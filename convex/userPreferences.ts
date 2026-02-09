@@ -1,7 +1,7 @@
-import { query, mutation } from './_generated/server';
+import { authQuery, authMutation } from './functions';
 import type { MutationCtx } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, assertDreamLimit, awardXp } from './helpers';
+import { assertDreamLimit, awardXp } from './helpers';
 import {
   dreamCategoryValidator,
   paceValidator,
@@ -15,15 +15,14 @@ import {
 import type { DreamCategory } from './constants';
 import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 
-export const getOnboardingStatus = query({
+export const getOnboardingStatus = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return { completed: false };
+    if (!ctx.user) return { completed: false };
 
     const prefs = await ctx.db
       .query('userPreferences')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user!))
       .first();
 
     return { completed: prefs?.onboardingCompleted ?? false };
@@ -61,7 +60,7 @@ async function createInitialDream(
   });
 }
 
-export const completeOnboarding = mutation({
+export const completeOnboarding = authMutation({
   args: {
     selectedCategories: v.array(dreamCategoryValidator),
     pace: paceValidator,
@@ -78,8 +77,6 @@ export const completeOnboarding = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-
     if (args.selectedCategories.length === 0) throw new Error('At least one category is required');
     if (args.selectedCategories.length > 6) throw new Error('Too many categories');
     const uniqueCategories = [...new Set(args.selectedCategories)];
@@ -90,7 +87,7 @@ export const completeOnboarding = mutation({
 
     const existing = await ctx.db
       .query('userPreferences')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user))
       .first();
 
     // Guard against double onboarding XP award
@@ -108,7 +105,7 @@ export const completeOnboarding = mutation({
       });
     } else {
       await ctx.db.insert('userPreferences', {
-        userId,
+        userId: ctx.user,
         onboardingCompleted: true,
         selectedCategories: uniqueCategories,
         pace: args.pace,
@@ -121,18 +118,18 @@ export const completeOnboarding = mutation({
     }
 
     if (args.firstDream) {
-      await createInitialDream(ctx, userId, args.firstDream);
+      await createInitialDream(ctx, ctx.user, args.firstDream);
     }
 
-    await awardXp(ctx, userId, XP_REWARDS.onboardingComplete, { skipStreak: true });
+    await awardXp(ctx, ctx.user, XP_REWARDS.onboardingComplete, { skipStreak: true });
 
     // Check delusionally_confident badge
     let badgeXp = 0;
     if (args.confidence === 'not-confident') {
-      const result = await checkAndAwardBadge(ctx, userId, 'delusionally_confident');
+      const result = await checkAndAwardBadge(ctx, ctx.user, 'delusionally_confident');
       badgeXp += result.xpAwarded;
     }
-    await applyBadgeXp(ctx, userId, badgeXp);
+    await applyBadgeXp(ctx, ctx.user, badgeXp);
 
     return { success: true };
   },

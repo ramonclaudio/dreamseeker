@@ -118,10 +118,10 @@ export const cleanupOldReceipts = internalMutation({
   args: {},
   handler: async (ctx) => {
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-    const oldReceipts = await ctx.db
+    const allReceipts = await ctx.db
       .query('pushReceipts')
-      .filter((q) => q.lt(q.field('createdAt'), oneDayAgo))
       .collect();
+    const oldReceipts = allReceipts.filter((r) => r.createdAt < oneDayAgo);
     for (const receipt of oldReceipts) {
       await ctx.db.delete(receipt._id);
     }

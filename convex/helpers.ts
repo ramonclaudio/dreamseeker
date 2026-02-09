@@ -8,6 +8,7 @@ import { hasEntitlement } from './revenuecat';
 import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 import { getTodayString, getYesterdayString } from './dates';
 import { calculateArchiveXpDeduction, calculateRestoreXpGain } from './dreamGuards';
+import { createFeedEvent } from './feed';
 
 // ── Auth Guards ─────────────────────────────────────────────────────────────
 
@@ -21,7 +22,7 @@ export const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
 };
 
 export const getOwnedDream = async (ctx: MutationCtx, id: Id<'dreams'>, userId: string) => {
-  const dream = await ctx.db.get(id);
+  const dream = await ctx.db.get('dreams', id);
   if (!dream) throw new Error('Dream not found');
   if (dream.userId !== userId) throw new Error('Forbidden');
   return dream;
@@ -128,7 +129,22 @@ export async function awardXp(
     patch.dreamsCompleted = progress.dreamsCompleted + opts.incrementDreams;
   }
 
+  const oldLevel = progress.level;
   await ctx.db.patch(progress._id, patch);
+
+  const newLevel = getLevelFromXp(newXp).level;
+  if (newLevel > oldLevel) {
+    await createFeedEvent(ctx, userId, 'level_up', undefined, {
+      level: newLevel,
+      title: getLevelFromXp(newXp).title,
+    });
+  }
+
+  if (streak.streakMilestone) {
+    await createFeedEvent(ctx, userId, 'streak_milestone', undefined, {
+      streak: streak.streakMilestone.streak,
+    });
+  }
 
   // Centralized on_fire badge check
   let badgeXp = 0;

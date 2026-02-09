@@ -1,22 +1,21 @@
-import { query, mutation } from './_generated/server';
+import { authQuery, authMutation } from './functions';
 import type { MutationCtx } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, awardXp, deductXp } from './helpers';
+import { awardXp, deductXp } from './helpers';
 import { getTodayString } from './dates';
 import { moodValidator, XP_REWARDS, MAX_INTENTION_LENGTH, MAX_REFLECTION_LENGTH } from './constants';
 import { checkLength } from './validation';
 import type { Mood } from './constants';
 
-export const getTodayCheckIns = query({
+export const getTodayCheckIns = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
+    if (!ctx.user) return null;
 
     const today = getTodayString(args.timezone);
     const checkIns = await ctx.db
       .query('checkIns')
-      .withIndex('by_user_date', (q) => q.eq('userId', userId).eq('date', today))
+      .withIndex('by_user_date', (q) => q.eq('userId', ctx.user!).eq('date', today))
       .collect();
 
     return {
@@ -29,11 +28,11 @@ export const getTodayCheckIns = query({
 /** Shared logic for morning/evening check-in submissions. */
 async function submitCheckIn(
   ctx: MutationCtx,
+  userId: string,
   type: 'morning' | 'evening',
   timezone: string,
   fields: { mood?: Mood; intention?: string; reflection?: string }
 ) {
-  const userId = await requireAuth(ctx);
   const today = getTodayString(timezone);
 
   // Check for duplicate
@@ -59,7 +58,7 @@ async function submitCheckIn(
   return { xpAwarded: xpReward, streakMilestone };
 }
 
-export const submitMorning = mutation({
+export const submitMorning = authMutation({
   args: {
     mood: moodValidator,
     intention: v.optional(v.string()),
@@ -68,30 +67,28 @@ export const submitMorning = mutation({
   handler: async (ctx, args) => {
     const intention = args.intention?.trim();
     checkLength(intention, MAX_INTENTION_LENGTH, 'Intention');
-    return submitCheckIn(ctx, 'morning', args.timezone, {
+    return submitCheckIn(ctx, ctx.user, 'morning', args.timezone, {
       mood: args.mood,
       intention,
     });
   },
 });
 
-export const remove = mutation({
+export const remove = authMutation({
   args: { id: v.id('checkIns') },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-
-    const checkIn = await ctx.db.get(args.id);
+    const checkIn = await ctx.db.get('checkIns', args.id);
     if (!checkIn) return;
-    if (checkIn.userId !== userId) throw new Error('Forbidden');
+    if (checkIn.userId !== ctx.user) throw new Error('Forbidden');
 
     await ctx.db.delete(args.id);
 
     // Deduct XP
-    await deductXp(ctx, userId, XP_REWARDS.checkIn);
+    await deductXp(ctx, ctx.user, XP_REWARDS.checkIn);
   },
 });
 
-export const submitEvening = mutation({
+export const submitEvening = authMutation({
   args: {
     reflection: v.optional(v.string()),
     timezone: v.string(),
@@ -99,7 +96,7 @@ export const submitEvening = mutation({
   handler: async (ctx, args) => {
     const reflection = args.reflection?.trim();
     checkLength(reflection, MAX_REFLECTION_LENGTH, 'Reflection');
-    return submitCheckIn(ctx, 'evening', args.timezone, {
+    return submitCheckIn(ctx, ctx.user, 'evening', args.timezone, {
       reflection,
     });
   },

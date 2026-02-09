@@ -1,4 +1,5 @@
 import { action, internalAction, internalMutation } from './_generated/server';
+import type { ActionCtx } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { env } from './env';
@@ -52,7 +53,7 @@ type RetryableError = {
 const NO_TOKENS_RESULT: SendResult = { success: false, sent: 0, failed: 0, errors: ['No push tokens for user'] };
 
 /** Build the standard deleteToken/storeReceipts callbacks for sendPushMessagesRaw. */
-function makeSendCallbacks(ctx: { runMutation: (...args: any[]) => Promise<any> }) {
+function makeSendCallbacks(ctx: Pick<ActionCtx, 'runMutation'>) {
   return {
     deleteToken: (token: string) => ctx.runMutation(internal.notificationsTokens.deleteTokenByValue, { token }),
     storeReceipts: (receipts: { ticketId: string; token: string }[]) =>
@@ -61,7 +62,7 @@ function makeSendCallbacks(ctx: { runMutation: (...args: any[]) => Promise<any> 
 }
 
 /** Fetch tokens for a user. Returns null (with NO_TOKENS_RESULT) if empty. */
-async function getTokensOrFail(ctx: { runQuery: (...args: any[]) => Promise<any> }, userId: string): Promise<PushToken[] | null> {
+async function getTokensOrFail(ctx: Pick<ActionCtx, 'runQuery'>, userId: string): Promise<PushToken[] | null> {
   const tokens: PushToken[] = await ctx.runQuery(internal.notificationsTokens.getUserTokens, { userId });
   return tokens.length === 0 ? null : tokens;
 }
@@ -240,11 +241,11 @@ export const checkPushRateLimit = internalMutation({
   returns: v.boolean(),
   handler: async (ctx, args): Promise<boolean> => {
     const cutoff = Date.now() - PUSH_RATE_WINDOW_MS;
-    const recent = await ctx.db
+    const allRecords = await ctx.db
       .query('pushNotificationRateLimit')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .filter((q) => q.gte(q.field('createdAt'), cutoff))
       .collect();
+    const recent = allRecords.filter((r) => r.createdAt >= cutoff);
 
     if (recent.length >= PUSH_RATE_LIMIT) return false;
 
