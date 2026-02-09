@@ -7,6 +7,7 @@ import { Spacing, FontSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import type { SlideColors } from './shared';
 
+
 export function ProblemSlide({ colors }: { colors: SlideColors }) {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing['2xl'] }}>
@@ -21,7 +22,7 @@ export function ProblemSlide({ colors }: { colors: SlideColors }) {
         <ThemedText variant="title" style={{ textAlign: 'center' }}>
           The Gap
         </ThemedText>
-        <MaterialCard style={{ padding: Spacing.lg }}>
+        <MaterialCard variant="tinted" style={{ padding: Spacing.lg }}>
           <ThemedText
             style={{ textAlign: 'center', fontSize: FontSize.lg, fontStyle: 'italic' }}
           >
@@ -34,6 +35,12 @@ export function ProblemSlide({ colors }: { colors: SlideColors }) {
           color={colors.mutedForeground}
         >
           DreamSeeker bridges that gap with small, daily actions that build unstoppable momentum.
+        </ThemedText>
+        <ThemedText
+          style={{ textAlign: 'center', fontSize: FontSize.base, fontWeight: '500' }}
+          color={colors.primary}
+        >
+          Setting goals doesn&apos;t have to feel overwhelming. We&apos;ll start small.
         </ThemedText>
       </View>
     </View>

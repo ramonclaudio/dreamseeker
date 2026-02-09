@@ -4,8 +4,8 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
-import { DREAM_CATEGORIES } from '@/constants/dreams';
-import { type SlideColors, type DreamCategory, CATEGORY_ICONS } from './shared';
+import { DREAM_CATEGORIES, CATEGORY_ICONS } from '@/constants/dreams';
+import { type SlideColors, type DreamCategory } from './shared';
 
 export function DreamTitleSlide({
   colors,
@@ -30,7 +30,7 @@ export function DreamTitleSlide({
       <View style={{ gap: Spacing.sm }}>
         <ThemedText variant="title">What&apos;s your first dream?</ThemedText>
         <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>
-          Start with something that excites you. You can always add more later.
+          Pick the dream that's calling you right now. You can add more later.
         </ThemedText>
       </View>
 
@@ -75,7 +75,7 @@ export function DreamTitleSlide({
             borderColor: colors.border,
             minHeight: 60,
           }}
-          placeholder="e.g., Visit Japan, Start a business..."
+          placeholder="Visit Japan, start a business, buy a home..."
           placeholderTextColor={colors.mutedForeground}
           value={title}
           onChangeText={onChangeTitle}

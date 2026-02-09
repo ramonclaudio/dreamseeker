@@ -2,49 +2,51 @@ import { View } from 'react-native';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { Spacing, FontSize } from '@/constants/layout';
-import { type SlideColors, type Confidence, CONFIDENCE_OPTIONS } from './shared';
+import { type SlideColors, type Personality, PERSONALITY_OPTIONS } from './shared';
 import { RadioOptionList } from './radio-option-list';
 import { GabbyResponseCard } from './gabby-response-card';
 
-function getGabbyResponse(selected: Confidence | null): string | null {
+function getGabbyResponse(selected: Personality | null): string | null {
   switch (selected) {
-    case 'confident':
-      return "That's the energy! Channel that confidence into action.";
-    case 'somewhat':
-      return "That's honest. Confidence grows with every small win.";
-    case 'not-confident':
-      return "Perfect. Be confident. Be delusional. And if you're not there yet\u2014borrow some of the delusional confidence that I have in you until you're able to fully rise.";
+    case 'dreamer':
+      return "A dreamer at heart! Let's turn those visions into reality.";
+    case 'planner':
+      return "Love the strategy! Let's put that planning power to work.";
+    case 'doer':
+      return "Action-oriented! That's the energy we need.";
+    case 'explorer':
+      return "Curiosity is your superpower. Let's explore what's possible.";
     default:
       return null;
   }
 }
 
-export function ConfidenceSlide({
+export function PersonalitySlide({
   colors,
   selected,
   onSelect,
 }: {
   colors: SlideColors;
-  selected: Confidence | null;
-  onSelect: (confidence: Confidence) => void;
+  selected: Personality | null;
+  onSelect: (personality: Personality) => void;
 }) {
   const response = getGabbyResponse(selected);
 
   return (
     <View style={{ flex: 1, gap: Spacing.xl }}>
       <View style={{ gap: Spacing.sm }}>
-        <ThemedText variant="title">How confident are you?</ThemedText>
+        <ThemedText variant="title">Which one sounds like you?</ThemedText>
         <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>
-          Be honest. There&apos;s no wrong answer here.
+          Pick the style that fits you best.
         </ThemedText>
       </View>
 
       <RadioOptionList
-        options={CONFIDENCE_OPTIONS}
+        options={PERSONALITY_OPTIONS}
         selected={selected}
         onSelect={onSelect}
         colors={colors}
-        accessibilityPrefix="Confidence level"
+        accessibilityPrefix="Personality"
       />
 
       {response && <GabbyResponseCard response={response} colors={colors} />}

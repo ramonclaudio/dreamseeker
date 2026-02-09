@@ -2,42 +2,24 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { Confidence, DreamCategory, Pace } from '@/constants/dreams';
+import type { Confidence, DreamCategory, Pace, Personality, Motivation } from '@/constants/dreams';
+import { haptics } from '@/lib/haptics';
 
-export interface OnboardingState {
+interface OnboardingState {
   selectedCategories: DreamCategory[];
   dreamTitle: string;
   dreamCategory: DreamCategory;
   whyItMatters: string;
   confidence: Confidence | null;
   pace: Pace | null;
+  personality: Personality | null;
+  motivations: Motivation[];
   notificationTime: string | null;
 }
 
-export interface UseOnboardingResult {
-  currentSlide: number;
-  totalSlides: number;
-  state: OnboardingState;
-  isSubmitting: boolean;
-  error: string | null;
-  setCurrentSlide: (slide: number) => void;
-  goNext: () => void;
-  goBack: () => void;
-  canGoNext: boolean;
-  canGoBack: boolean;
-  toggleCategory: (category: DreamCategory) => void;
-  setDreamTitle: (title: string) => void;
-  setDreamCategory: (category: DreamCategory) => void;
-  setWhyItMatters: (text: string) => void;
-  setConfidence: (confidence: Confidence) => void;
-  setPace: (pace: Pace) => void;
-  setNotificationTime: (time: string | null) => void;
-  finish: () => Promise<boolean>;
-}
-
-const TOTAL_SLIDES = 10;
+const TOTAL_SLIDES = 14;
 const STORAGE_KEY = '@onboarding_state';
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
 
 const DEFAULT_STATE: OnboardingState = {
   selectedCategories: [],
@@ -46,10 +28,12 @@ const DEFAULT_STATE: OnboardingState = {
   whyItMatters: '',
   confidence: null,
   pace: null,
+  personality: null,
+  motivations: [],
   notificationTime: null,
 };
 
-export function useOnboarding(): UseOnboardingResult {
+export function useOnboarding() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +48,6 @@ export function useOnboarding(): UseOnboardingResult {
           try {
             const parsed = JSON.parse(saved) as { version?: number; slide: number; state: OnboardingState };
             if (parsed.version !== STORAGE_VERSION) {
-              // Version mismatch, clear stale data
               AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
               return;
             }
@@ -75,9 +58,7 @@ export function useOnboarding(): UseOnboardingResult {
           }
         }
       })
-      .catch(() => {
-        // Storage unavailable, continue with defaults
-      })
+      .catch(() => {})
       .finally(() => {
         initialized.current = true;
       });
@@ -94,6 +75,13 @@ export function useOnboarding(): UseOnboardingResult {
 
   const completeOnboarding = useMutation(api.userPreferences.completeOnboarding);
 
+  const updateField = useCallback(
+    <K extends keyof OnboardingState>(field: K, value: OnboardingState[K]) => {
+      setState((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+
   const toggleCategory = useCallback((category: DreamCategory) => {
     setState((prev) => {
       const isSelected = prev.selectedCategories.includes(category);
@@ -102,57 +90,50 @@ export function useOnboarding(): UseOnboardingResult {
         selectedCategories: isSelected
           ? prev.selectedCategories.filter((c) => c !== category)
           : [...prev.selectedCategories, category],
-        // Auto-set dream category to first selected if not yet set
         dreamCategory:
           !isSelected && prev.selectedCategories.length === 0 ? category : prev.dreamCategory,
       };
     });
   }, []);
 
-  const setDreamTitle = (title: string) => {
-    setState((prev) => ({ ...prev, dreamTitle: title }));
-  };
-
-  const setDreamCategory = (category: DreamCategory) => {
-    setState((prev) => ({ ...prev, dreamCategory: category }));
-  };
-
-  const setWhyItMatters = (text: string) => {
-    setState((prev) => ({ ...prev, whyItMatters: text }));
-  };
-
-  const setConfidence = (confidence: Confidence) => {
-    setState((prev) => ({ ...prev, confidence }));
-  };
-
-  const setPace = (pace: Pace) => {
-    setState((prev) => ({ ...prev, pace }));
-  };
-
-  const setNotificationTime = (time: string | null) => {
-    setState((prev) => ({ ...prev, notificationTime: time }));
-  };
+  const toggleMotivation = useCallback((motivation: Motivation) => {
+    setState((prev) => {
+      const isSelected = prev.motivations.includes(motivation);
+      return {
+        ...prev,
+        motivations: isSelected
+          ? prev.motivations.filter((m) => m !== motivation)
+          : [...prev.motivations, motivation],
+      };
+    });
+  }, []);
 
   const canGoNext = useMemo(() => {
     switch (currentSlide) {
-      case 3: // Categories - need at least one
+      case 3:
+        return state.personality !== null;
+      case 4:
+        return state.motivations.length > 0;
+      case 5:
         return state.selectedCategories.length > 0;
-      case 4: // Dream title - need text
+      case 6:
         return state.dreamTitle.trim().length > 0;
-      case 6: // Confidence - need selection
+      case 8:
         return state.confidence !== null;
-      case 7: // Pace - need selection
+      case 9:
         return state.pace !== null;
+      case 11:
+        return false;
       default:
         return true;
     }
   }, [currentSlide, state]);
 
   const goNext = useCallback(() => {
-    if (currentSlide < TOTAL_SLIDES - 1 && canGoNext) {
+    if (currentSlide < TOTAL_SLIDES - 1) {
       setCurrentSlide((prev) => prev + 1);
     }
-  }, [currentSlide, canGoNext]);
+  }, [currentSlide]);
 
   const goBack = () => {
     setCurrentSlide((prev) => Math.max(0, prev - 1));
@@ -161,6 +142,7 @@ export function useOnboarding(): UseOnboardingResult {
   const finish = useCallback(async (): Promise<boolean> => {
     if (!state.pace || state.selectedCategories.length === 0) {
       setError('Please complete all required fields');
+      haptics.error();
       return false;
     }
 
@@ -172,6 +154,8 @@ export function useOnboarding(): UseOnboardingResult {
         selectedCategories: state.selectedCategories,
         pace: state.pace,
         confidence: state.confidence ?? undefined,
+        personality: state.personality ?? undefined,
+        motivations: state.motivations.length > 0 ? state.motivations : undefined,
         notificationTime: state.notificationTime ?? undefined,
         firstDream: state.dreamTitle.trim()
           ? {
@@ -182,10 +166,12 @@ export function useOnboarding(): UseOnboardingResult {
           : undefined,
       });
 
+      haptics.success();
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to complete onboarding');
+      haptics.error();
       return false;
     } finally {
       setIsSubmitting(false);
@@ -198,18 +184,13 @@ export function useOnboarding(): UseOnboardingResult {
     state,
     isSubmitting,
     error,
-    setCurrentSlide,
     goNext,
     goBack,
     canGoNext,
     canGoBack: currentSlide > 0,
     toggleCategory,
-    setDreamTitle,
-    setDreamCategory,
-    setWhyItMatters,
-    setConfidence,
-    setPace,
-    setNotificationTime,
+    updateField,
+    toggleMotivation,
     finish,
   };
 }
