@@ -25,7 +25,7 @@ export function MeetGabbySlide({ colors }: { colors: SlideColors }) {
           style={{ width: 120, height: 120 }}
           contentFit="cover"
           accessible={true}
-          accessibilityLabel="Gabby, your AI dream coach"
+          accessibilityLabel="Gabby, your dream coach"
         />
       </View>
       <View style={{ gap: Spacing.md }}>

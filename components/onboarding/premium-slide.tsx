@@ -29,7 +29,7 @@ const PREMIUM_FEATURES = [
   },
   {
     icon: 'sparkles' as const,
-    title: 'AI-Powered Insights',
+    title: 'Personalized Insights',
     description: 'Get personalized guidance from Gabby',
   },
   {

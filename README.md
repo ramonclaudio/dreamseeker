@@ -113,7 +113,7 @@ User actions → Convex mutations → XP/streak/badge calculations → Real-time
 ## Roadmap
 
 **Near-term**
-- AI-powered action suggestions (personalized micro-actions based on dream context)
+- Personalized action suggestions (micro-actions based on dream context)
 - Streak freezes and recovery mechanics
 - Shareable win cards with @packslight branding
 - Home screen widgets (iOS/Android)

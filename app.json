@@ -2,7 +2,7 @@
   "expo": {
     "name": "DreamSeeker",
     "slug": "dreamseeker",
-    "description": "Your AI-powered dream coach. Set ambitious goals, build daily habits, and crush milestones with Gabby by your side.",
+    "description": "Your dream coach. Set ambitious goals, build daily habits, and crush milestones with Gabby by your side.",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",

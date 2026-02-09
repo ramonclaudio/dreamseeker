@@ -92,7 +92,7 @@ export default function SubscribeScreen() {
                 style={styles.headerSubtitle}
                 color={colors.mutedForeground}
               >
-                Unlock unlimited dreams and AI-powered insights to achieve everything you&apos;ve been putting off.
+                Unlock unlimited dreams and personalized insights to achieve everything you&apos;ve been putting off.
               </ThemedText>
             </View>
 
@@ -108,7 +108,7 @@ export default function SubscribeScreen() {
                   <FeatureRow icon="checkmark.circle.fill" text="3 active dreams" colors={colors} />
                   <FeatureRow icon="checkmark.circle.fill" text="1 journal entry per day" colors={colors} />
                   <FeatureRow icon="checkmark.circle.fill" text="Basic challenges" colors={colors} />
-                  <FeatureRow icon="xmark.circle.fill" text="AI-powered insights" colors={colors} isDisabled />
+                  <FeatureRow icon="xmark.circle.fill" text="Personalized insights" colors={colors} isDisabled />
                   <FeatureRow icon="xmark.circle.fill" text="Unlimited dreams" colors={colors} isDisabled />
                   <FeatureRow icon="xmark.circle.fill" text="Priority support" colors={colors} isDisabled />
                 </View>
@@ -139,7 +139,7 @@ export default function SubscribeScreen() {
                 <View style={styles.tierFeatures}>
                   <FeatureRow icon="checkmark.circle.fill" text="Unlimited active dreams" colors={colors} isPremium showBadge />
                   <FeatureRow icon="checkmark.circle.fill" text="Unlimited journal entries" colors={colors} isPremium showBadge />
-                  <FeatureRow icon="checkmark.circle.fill" text="AI-powered insights" colors={colors} isPremium showBadge />
+                  <FeatureRow icon="checkmark.circle.fill" text="Personalized insights" colors={colors} isPremium showBadge />
                   <FeatureRow icon="checkmark.circle.fill" text="Advanced challenges" colors={colors} isPremium />
                   <FeatureRow icon="checkmark.circle.fill" text="Priority support" colors={colors} isPremium />
                   <FeatureRow icon="checkmark.circle.fill" text="Early access to new features" colors={colors} isPremium />
