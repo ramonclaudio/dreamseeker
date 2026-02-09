@@ -9,8 +9,7 @@ import { Stack, usePathname, useGlobalSearchParams, type ErrorBoundaryProps, typ
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useCallback } from "react";
-import { View, Pressable, AppState, useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View, Pressable, AppState, useWindowDimensions, Text } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import "react-native-reanimated";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -30,9 +29,10 @@ import {
 import { isValidDeepLink } from "@/lib/deep-link";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { ThemedText } from "@/components/ui/themed-text";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Spacing, TouchTarget } from "@/constants/layout";
 import { Radius } from "@/constants/theme";
-import { ZIndex, Duration, Confetti } from "@/constants/ui";
+import { Duration, Confetti } from "@/constants/ui";
 
 const convex = new ConvexReactClient(env.convexUrl, {
   expectAuth: true,
@@ -40,53 +40,107 @@ const convex = new ConvexReactClient(env.convexUrl, {
 });
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
-  const colors = useColors();
+  // Don't use useColors() — the provider might have crashed
+  // Use hardcoded fallback colors instead
+  const isDark = useColorScheme() === "dark";
+  const fallbackColors = {
+    background: isDark ? "#191d19" : "#f3f6ef",
+    foreground: isDark ? "#f0f3ed" : "#2c3a2e",
+    mutedForeground: isDark ? "#8a9a8a" : "#6b7a6d",
+    primary: "#c7d1dd",
+    primaryForeground: "#1e2d3a",
+  };
+
+  // Log error for debugging but don't show it to the user
+  useEffect(() => {
+    console.error("[ErrorBoundary]", error);
+  }, [error]);
+
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: fallbackColors.background,
         alignItems: "center",
         justifyContent: "center",
-        padding: Spacing.xl,
-        gap: Spacing.md,
+        padding: Spacing["3xl"],
+        gap: Spacing.xl,
       }}
     >
-      <ThemedText
-        variant="title"
-        style={{ textAlign: "center" }}
-        color={colors.destructive}
-        numberOfLines={2}
-        adjustsFontSizeToFit
-        accessibilityRole="header"
+      <IconSymbol
+        name="exclamationmark.triangle"
+        size={64}
+        color={fallbackColors.mutedForeground}
+        style={{ marginBottom: Spacing.md }}
+      />
+      <Text
+        style={{
+          fontSize: 28,
+          lineHeight: 36,
+          fontWeight: "700",
+          textAlign: "center",
+          color: fallbackColors.foreground,
+          letterSpacing: -0.5,
+        }}
       >
-        Something went wrong
-      </ThemedText>
-      <ThemedText
-        style={{ textAlign: "center", marginBottom: Spacing.md }}
-        color={colors.mutedForeground}
-        numberOfLines={4}
-        ellipsizeMode="tail"
+        Oops! Something broke, girl.
+      </Text>
+      <Text
+        style={{
+          fontSize: 16,
+          lineHeight: 24,
+          textAlign: "center",
+          color: fallbackColors.mutedForeground,
+          marginBottom: Spacing.sm,
+        }}
       >
-        {error.message}
-      </ThemedText>
+        But we don't quit — let's try again.
+      </Text>
       <Pressable
         style={{
-          backgroundColor: colors.primary,
+          backgroundColor: fallbackColors.primary,
           paddingHorizontal: Spacing["2xl"],
           paddingVertical: Spacing.md,
           minHeight: TouchTarget.min,
           justifyContent: "center",
-          borderRadius: Radius.md,
+          borderRadius: Radius.full,
           borderCurve: "continuous",
+          shadowColor: fallbackColors.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 12,
+          elevation: 6,
+          marginBottom: Spacing.md,
         }}
         onPress={retry}
         accessibilityRole="button"
         accessibilityLabel="Try again"
       >
-        <ThemedText style={{ fontWeight: "600" }} color={colors.primaryForeground}>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "600",
+            color: fallbackColors.primaryForeground,
+          }}
+        >
           Try Again
-        </ThemedText>
+        </Text>
+      </Pressable>
+      <Pressable
+        onPress={() => router.push("/(app)/(tabs)/today")}
+        accessibilityRole="button"
+        accessibilityLabel="Go home"
+        style={{ padding: Spacing.md }}
+      >
+        <Text
+          style={{
+            fontSize: 14,
+            color: fallbackColors.mutedForeground,
+            textDecorationLine: "underline",
+          }}
+        >
+          Go Home
+        </Text>
       </Pressable>
     </View>
   );
@@ -134,8 +188,6 @@ function RootNavigator() {
   const pathname = usePathname();
   const params = useGlobalSearchParams();
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const insets = useSafeAreaInsets();
-
   usePushNotifications();
   useNotificationDeepLink();
 
@@ -170,23 +222,12 @@ function RootNavigator() {
     <KeyboardProvider>
       <NavigationThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-          {!["/", "/explore"].includes(pathname) && (
-            <View
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: ZIndex.statusBar,
-                height: insets.top,
-                backgroundColor: colors.background,
-              }}
-            />
-          )}
           <Stack
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: colors.background },
+              animation: 'slide_from_right',
+              animationDuration: 250,
             }}
           >
             {/* Public routes - only when NOT authenticated */}

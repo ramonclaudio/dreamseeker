@@ -10,11 +10,11 @@ export default function NotFoundScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
+      <Stack.Screen options={{ title: 'Lost?' }} />
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.lg, backgroundColor: colors.background }}>
-        <ThemedText variant="title">This screen does not exist.</ThemedText>
+        <ThemedText variant="title">This page doesn't exist, girl.</ThemedText>
         <Link href="/" style={{ paddingVertical: Spacing.lg, minHeight: TouchTarget.min, justifyContent: 'center' }} accessibilityRole="link" accessibilityLabel="Go to home screen">
-          <ThemedText variant="link" color={colors.mutedForeground}>Go to home screen!</ThemedText>
+          <ThemedText variant="link" color={colors.mutedForeground}>Take me home</ThemedText>
         </Link>
       </View>
     </>
