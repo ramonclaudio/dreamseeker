@@ -1,17 +1,19 @@
 import { query, mutation } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, getTodayString, assertDreamLimit } from './helpers';
+import { getAuthUserId, requireAuth, assertDreamLimit, awardXp } from './helpers';
 import {
   dreamCategoryValidator,
   paceValidator,
   confidenceValidator,
+  personalityValidator,
+  motivationValidator,
   XP_REWARDS,
-  getLevelFromXp,
   MAX_TITLE_LENGTH,
   MAX_WHY_LENGTH,
 } from './constants';
-import { hasEntitlement } from './revenuecat';
-import { PREMIUM_ENTITLEMENT, TIERS } from './subscriptions';
+import type { DreamCategory } from './constants';
+import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 
 export const getOnboardingStatus = query({
   args: {},
@@ -28,11 +30,44 @@ export const getOnboardingStatus = query({
   },
 });
 
+// ── Onboarding Helpers ──────────────────────────────────────────────────────
+
+/** Validate and create the user's first dream during onboarding. */
+async function createInitialDream(
+  ctx: MutationCtx,
+  userId: string,
+  dreamData: { title: string; category: DreamCategory; whyItMatters?: string }
+) {
+  const trimmedTitle = dreamData.title.trim();
+  if (!trimmedTitle) return;
+
+  if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+    throw new Error('Title too long');
+  }
+
+  if (dreamData.whyItMatters && dreamData.whyItMatters.trim().length > MAX_WHY_LENGTH) {
+    throw new Error('Description too long');
+  }
+
+  await assertDreamLimit(ctx, userId);
+
+  await ctx.db.insert('dreams', {
+    userId,
+    title: trimmedTitle,
+    category: dreamData.category,
+    whyItMatters: dreamData.whyItMatters?.trim(),
+    status: 'active',
+    createdAt: Date.now(),
+  });
+}
+
 export const completeOnboarding = mutation({
   args: {
     selectedCategories: v.array(dreamCategoryValidator),
     pace: paceValidator,
     confidence: v.optional(confidenceValidator),
+    personality: v.optional(personalityValidator),
+    motivations: v.optional(v.array(motivationValidator)),
     notificationTime: v.optional(v.string()),
     firstDream: v.optional(
       v.object({
@@ -47,15 +82,12 @@ export const completeOnboarding = mutation({
 
     if (args.selectedCategories.length === 0) throw new Error('At least one category is required');
     if (args.selectedCategories.length > 6) throw new Error('Too many categories');
-    // Deduplicate
     const uniqueCategories = [...new Set(args.selectedCategories)];
 
-    // Validate notification time format if provided
     if (args.notificationTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(args.notificationTime)) {
       throw new Error('Invalid notification time format');
     }
 
-    // Check if preferences already exist
     const existing = await ctx.db
       .query('userPreferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -70,6 +102,8 @@ export const completeOnboarding = mutation({
         selectedCategories: uniqueCategories,
         pace: args.pace,
         confidence: args.confidence,
+        personality: args.personality,
+        motivations: args.motivations,
         notificationTime: args.notificationTime,
       });
     } else {
@@ -79,64 +113,26 @@ export const completeOnboarding = mutation({
         selectedCategories: uniqueCategories,
         pace: args.pace,
         confidence: args.confidence,
+        personality: args.personality,
+        motivations: args.motivations,
         notificationTime: args.notificationTime,
         createdAt: Date.now(),
       });
     }
 
-    // Create first dream if provided
-    if (args.firstDream && args.firstDream.title.trim()) {
-      const trimmedTitle = args.firstDream.title.trim();
-
-      // Validate title length
-      if (trimmedTitle.length > MAX_TITLE_LENGTH) {
-        throw new Error('Title too long');
-      }
-
-      // Validate whyItMatters length
-      if (args.firstDream.whyItMatters && args.firstDream.whyItMatters.trim().length > MAX_WHY_LENGTH) {
-        throw new Error('Description too long');
-      }
-
-      // Check dream tier limit
-      await assertDreamLimit(ctx, userId);
-
-      await ctx.db.insert('dreams', {
-        userId,
-        title: trimmedTitle,
-        category: args.firstDream.category,
-        whyItMatters: args.firstDream.whyItMatters?.trim(),
-        status: 'active',
-        createdAt: Date.now(),
-      });
+    if (args.firstDream) {
+      await createInitialDream(ctx, userId, args.firstDream);
     }
 
-    // Initialize or update user progress with onboarding XP
-    const existingProgress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
+    await awardXp(ctx, userId, XP_REWARDS.onboardingComplete, { skipStreak: true });
 
-    const onboardingXp = XP_REWARDS.onboardingComplete;
-
-    if (existingProgress) {
-      const newXp = existingProgress.totalXp + onboardingXp;
-      await ctx.db.patch(existingProgress._id, {
-        totalXp: newXp,
-        level: getLevelFromXp(newXp).level,
-      });
-    } else {
-      await ctx.db.insert('userProgress', {
-        userId,
-        totalXp: onboardingXp,
-        level: getLevelFromXp(onboardingXp).level,
-        currentStreak: 0,
-        longestStreak: 0,
-        lastActiveDate: getTodayString(),
-        dreamsCompleted: 0,
-        actionsCompleted: 0,
-      });
+    // Check delusionally_confident badge
+    let badgeXp = 0;
+    if (args.confidence === 'not-confident') {
+      const result = await checkAndAwardBadge(ctx, userId, 'delusionally_confident');
+      badgeXp += result.xpAwarded;
     }
+    await applyBadgeXp(ctx, userId, badgeXp);
 
     return { success: true };
   },

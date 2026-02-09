@@ -6,6 +6,7 @@
  * - RESEND_API_KEY (@convex-dev/resend)
  */
 
+/* eslint-disable expo/no-dynamic-env-var -- Server-side env validation, not client-side Expo code */
 const required = (key: string): string => {
   const value = process.env[key];
   if (!value) throw new Error(`Missing required env var: ${key}`);
@@ -14,6 +15,7 @@ const required = (key: string): string => {
 
 const optional = (key: string, fallback: string): string =>
   process.env[key] ?? fallback;
+/* eslint-enable expo/no-dynamic-env-var */
 
 export const env = {
   siteUrl: required('SITE_URL'),
@@ -31,6 +33,6 @@ export const env = {
     testMode: optional('RESEND_TEST_MODE', 'false') !== 'false',
   },
   revenuecat: {
-    webhookBearerToken: optional('REVENUECAT_WEBHOOK_BEARER_TOKEN', ''),
+    webhookBearerToken: required('REVENUECAT_WEBHOOK_BEARER_TOKEN'),
   },
 } as const;

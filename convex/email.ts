@@ -1,7 +1,7 @@
 import { Resend, vOnEmailEventArgs } from '@convex-dev/resend';
 import { components, internal } from './_generated/api';
 import { ActionCtx, internalMutation } from './_generated/server';
-import { resetPasswordTemplate, otpVerificationTemplate } from './email_templates';
+import { resetPasswordTemplate, otpVerificationTemplate } from './emailTemplates';
 import { env } from './env';
 
 export const resend: Resend = new Resend(components.resend, {
@@ -17,14 +17,12 @@ const sendEmail = async (ctx: ActionCtx, options: {
   subject: string;
   html: string;
   idempotencyKey?: string;
-  headers?: Array<{ name: string; value: string }>;
+  headers?: { name: string; value: string }[];
 }) => {
   const { to, subject, html, idempotencyKey, headers = [] } = options;
   const entityRefId = idempotencyKey ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const emailHeaders: Array<{ name: string; value: string }> = [
+  const emailHeaders: { name: string; value: string }[] = [
     { name: 'X-Entity-Ref-ID', value: entityRefId },
-    { name: 'List-Unsubscribe', value: `<${env.siteUrl}/unsubscribe?email=${encodeURIComponent(to)}>` },
-    { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },
     ...headers,
   ];
   try {

@@ -4,6 +4,25 @@ import { authComponent } from './auth';
 import { components } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 
+/** Tables that have a `by_user` index on `userId`. */
+type UserIndexedTable =
+  | 'challengeCompletions'
+  | 'checkIns'
+  | 'journalEntries'
+  | 'focusSessions'
+  | 'userBadges'
+  | 'uploadRateLimit'
+  | 'pushNotificationRateLimit';
+
+/** Delete all rows in `table` where `by_user` index matches `userId`. */
+async function deleteAllByUser(ctx: MutationCtx, table: UserIndexedTable, userId: string) {
+  const rows = await ctx.db
+    .query(table)
+    .withIndex('by_user', (q: any) => q.eq('userId', userId))
+    .collect();
+  await Promise.all(rows.map((row) => ctx.db.delete(row._id)));
+}
+
 export const deleteAccount = mutation({
   args: {},
   handler: async (ctx) => {
@@ -12,19 +31,21 @@ export const deleteAccount = mutation({
 
     const userId = user._id;
 
-    // Delete all dreams and their actions
+    // Delete all dreams and their actions (parallelized)
     const dreams = await ctx.db
       .query('dreams')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
-    for (const dream of dreams) {
-      const actions = await ctx.db
-        .query('actions')
-        .withIndex('by_dream', (q) => q.eq('dreamId', dream._id))
-        .collect();
-      for (const action of actions) await ctx.db.delete(action._id);
-      await ctx.db.delete(dream._id);
-    }
+    await Promise.all(
+      dreams.map(async (dream) => {
+        const actions = await ctx.db
+          .query('actions')
+          .withIndex('by_dream', (q) => q.eq('dreamId', dream._id))
+          .collect();
+        await Promise.all(actions.map((a) => ctx.db.delete(a._id)));
+        await ctx.db.delete(dream._id);
+      })
+    );
 
     // Delete user progress
     const progress = await ctx.db
@@ -33,12 +54,14 @@ export const deleteAccount = mutation({
       .first();
     if (progress) await ctx.db.delete(progress._id);
 
-    // Delete challenge completions
-    const completions = await ctx.db
-      .query('challengeCompletions')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect();
-    for (const completion of completions) await ctx.db.delete(completion._id);
+    // Delete user data from tables with by_user index
+    await deleteAllByUser(ctx, 'challengeCompletions', userId);
+    await deleteAllByUser(ctx, 'checkIns', userId);
+    await deleteAllByUser(ctx, 'journalEntries', userId);
+    await deleteAllByUser(ctx, 'focusSessions', userId);
+    await deleteAllByUser(ctx, 'userBadges', userId);
+    await deleteAllByUser(ctx, 'uploadRateLimit', userId);
+    await deleteAllByUser(ctx, 'pushNotificationRateLimit', userId);
 
     // Delete user preferences
     const prefs = await ctx.db
@@ -86,7 +109,10 @@ export const deleteAccount = mutation({
 const deleteAllByField = async (ctx: MutationCtx, model: string, field: string, value: string) => {
   let cursor: string | null = null;
   let isDone = false;
-  // Better Auth adapter expects literal union types for model/field, but we call dynamically
+  // Type assertion required: Better Auth's adapter.deleteMany expects a narrow literal
+  // union type for model/field (e.g. 'user' | 'session'), but we call this helper
+  // dynamically with runtime strings. The assertion is safe because Better Auth only
+  // uses these values as DB table/field lookups at runtime.
   const input = { model, where: [{ field, value }] } as { model: 'user'; where: [{ field: '_id'; value: string }] };
   while (!isDone) {
     const result: { isDone: boolean; continueCursor: string } = await ctx.runMutation(

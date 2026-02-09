@@ -5,12 +5,24 @@ import {
   getAuthUserId,
   requireAuth,
   getOwnedDream,
-  getTodayString,
   assertDreamLimit,
-  deductDreamXp,
-  restoreDreamXp,
+  awardXp,
 } from './helpers';
-import { dreamCategoryValidator, MAX_TITLE_LENGTH, MAX_WHY_LENGTH, XP_REWARDS, getLevelFromXp } from './constants';
+import {
+  dreamCategoryValidator,
+  dreamStatusValidator,
+  DREAM_CATEGORY_LIST,
+  MAX_TITLE_LENGTH,
+  MAX_WHY_LENGTH,
+  MAX_ACTION_TEXT_LENGTH,
+  MAX_CUSTOM_CATEGORY_NAME_LENGTH,
+  MAX_CUSTOM_CATEGORY_COLOR_LENGTH,
+  MAX_REFLECTION_LENGTH,
+  XP_REWARDS,
+} from './constants';
+import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
+import { requireText, checkLength, sanitizeActions } from './validation';
+import { canComplete } from './dreamGuards';
 
 // List all active dreams for the current user
 export const list = query({
@@ -36,46 +48,16 @@ export const list = query({
   },
 });
 
-// List all dreams (including completed) for the current user
-export const listAll = query({
-  args: {},
-  handler: async (ctx) => {
+// List dreams by status (completed, archived, or active)
+export const listByStatus = query({
+  args: { status: dreamStatusValidator },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
     return await ctx.db
       .query('dreams')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .order('desc')
-      .collect();
-  },
-});
-
-// List completed dreams
-export const listCompleted = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    return await ctx.db
-      .query('dreams')
-      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'completed'))
-      .order('desc')
-      .collect();
-  },
-});
-
-// List archived dreams
-export const listArchived = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    return await ctx.db
-      .query('dreams')
-      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'archived'))
+      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', args.status))
       .order('desc')
       .collect();
   },
@@ -103,37 +85,55 @@ export const get = query({
   },
 });
 
+// List all active dreams with per-dream action progress
+export const listWithActionCounts = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const dreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+      .order('desc')
+      .collect();
+
+    return await Promise.all(
+      dreams.map(async (dream) => {
+        const actions = await ctx.db
+          .query('actions')
+          .withIndex('by_dream', (q) => q.eq('dreamId', dream._id))
+          .filter((q) => q.neq(q.field('status'), 'archived'))
+          .collect();
+
+        return {
+          ...dream,
+          completedActions: actions.filter((a) => a.isCompleted).length,
+          totalActions: actions.length,
+        };
+      })
+    );
+  },
+});
+
 // Get dream counts by category
 export const getCategoryCounts = query({
   args: {},
   handler: async (ctx) => {
+    const defaultCounts = Object.fromEntries(DREAM_CATEGORY_LIST.map((c) => [c, 0]));
+
     const userId = await getAuthUserId(ctx);
-    if (!userId)
-      return {
-        travel: 0,
-        money: 0,
-        career: 0,
-        lifestyle: 0,
-        growth: 0,
-        relationships: 0,
-      };
+    if (!userId) return defaultCounts;
 
     const dreams = await ctx.db
       .query('dreams')
       .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
       .collect();
 
-    const counts = {
-      travel: 0,
-      money: 0,
-      career: 0,
-      lifestyle: 0,
-      growth: 0,
-      relationships: 0,
-    };
+    const counts: Record<string, number> = { ...defaultCounts };
 
     for (const dream of dreams) {
-      counts[dream.category]++;
+      counts[dream.category] = (counts[dream.category] ?? 0) + 1;
     }
 
     return counts;
@@ -147,22 +147,22 @@ export const create = mutation({
     category: dreamCategoryValidator,
     whyItMatters: v.optional(v.string()),
     targetDate: v.optional(v.number()),
+    initialActions: v.optional(v.array(v.string())),
+    customCategoryName: v.optional(v.string()),
+    customCategoryIcon: v.optional(v.string()),
+    customCategoryColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
 
-    const trimmedTitle = args.title.trim();
-    if (trimmedTitle.length === 0) throw new Error('Dream title cannot be empty');
-    if (trimmedTitle.length > MAX_TITLE_LENGTH)
-      throw new Error(`Dream title cannot exceed ${MAX_TITLE_LENGTH} characters`);
-
-    if (args.whyItMatters && args.whyItMatters.length > MAX_WHY_LENGTH) {
-      throw new Error(`"Why it matters" cannot exceed ${MAX_WHY_LENGTH} characters`);
-    }
+    const trimmedTitle = requireText(args.title, MAX_TITLE_LENGTH, 'Dream title');
+    checkLength(args.whyItMatters, MAX_WHY_LENGTH, '"Why it matters"');
+    checkLength(args.customCategoryName, MAX_CUSTOM_CATEGORY_NAME_LENGTH, 'Custom category name');
+    checkLength(args.customCategoryColor, MAX_CUSTOM_CATEGORY_COLOR_LENGTH, 'Custom category color');
 
     await assertDreamLimit(ctx, userId);
 
-    return await ctx.db.insert('dreams', {
+    const dreamId = await ctx.db.insert('dreams', {
       userId,
       title: trimmedTitle,
       category: args.category,
@@ -170,7 +170,31 @@ export const create = mutation({
       targetDate: args.targetDate,
       status: 'active',
       createdAt: Date.now(),
+      customCategoryName: args.customCategoryName?.trim(),
+      customCategoryIcon: args.customCategoryIcon,
+      customCategoryColor: args.customCategoryColor?.trim(),
     });
+
+    // Batch-insert initial actions if provided
+    if (args.initialActions && args.initialActions.length > 0) {
+      const cleanedActions = sanitizeActions(args.initialActions, 20, MAX_ACTION_TEXT_LENGTH);
+      const now = Date.now();
+      await Promise.all(
+        cleanedActions.map((text, index) =>
+            ctx.db.insert('actions', {
+              userId,
+              dreamId,
+              text,
+              isCompleted: false,
+              order: index,
+              status: 'active',
+              createdAt: now,
+            })
+          )
+      );
+    }
+
+    return dreamId;
   },
 });
 
@@ -182,6 +206,9 @@ export const update = mutation({
     whyItMatters: v.optional(v.string()),
     targetDate: v.optional(v.number()),
     category: v.optional(dreamCategoryValidator),
+    customCategoryName: v.optional(v.string()),
+    customCategoryIcon: v.optional(v.string()),
+    customCategoryColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
@@ -190,26 +217,20 @@ export const update = mutation({
     const updates: Partial<Doc<'dreams'>> = {};
 
     if (args.title !== undefined) {
-      const trimmedTitle = args.title.trim();
-      if (trimmedTitle.length === 0) throw new Error('Dream title cannot be empty');
-      if (trimmedTitle.length > MAX_TITLE_LENGTH)
-        throw new Error(`Dream title cannot exceed ${MAX_TITLE_LENGTH} characters`);
-      updates.title = trimmedTitle;
+      updates.title = requireText(args.title, MAX_TITLE_LENGTH, 'Dream title');
     }
 
     if (args.whyItMatters !== undefined) {
-      if (args.whyItMatters.length > MAX_WHY_LENGTH) {
-        throw new Error(`"Why it matters" cannot exceed ${MAX_WHY_LENGTH} characters`);
-      }
+      checkLength(args.whyItMatters, MAX_WHY_LENGTH, '"Why it matters"');
       updates.whyItMatters = args.whyItMatters.trim();
     }
 
-    if (args.targetDate !== undefined) {
-      updates.targetDate = args.targetDate;
-    }
+    checkLength(args.customCategoryName, MAX_CUSTOM_CATEGORY_NAME_LENGTH, 'Custom category name');
+    checkLength(args.customCategoryColor, MAX_CUSTOM_CATEGORY_COLOR_LENGTH, 'Custom category color');
 
-    if (args.category !== undefined) {
-      updates.category = args.category;
+    // Pass-through optional fields
+    for (const key of ['targetDate', 'category', 'customCategoryName', 'customCategoryIcon', 'customCategoryColor'] as const) {
+      if (args[key] !== undefined) (updates as Record<string, unknown>)[key] = args[key];
     }
 
     await ctx.db.patch(args.id, updates);
@@ -218,14 +239,13 @@ export const update = mutation({
 
 // Complete a dream
 export const complete = mutation({
-  args: { id: v.id('dreams') },
+  args: { id: v.id('dreams'), timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
     const dream = await getOwnedDream(ctx, args.id, userId);
 
-    if (dream.status === 'completed') {
-      throw new Error('Dream is already completed');
-    }
+    const check = canComplete(dream);
+    if (!check.allowed) throw new Error(check.error!);
 
     await ctx.db.patch(args.id, {
       status: 'completed',
@@ -233,157 +253,36 @@ export const complete = mutation({
     });
 
     const xpReward = XP_REWARDS.dreamComplete;
-    const progress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
-
-    if (progress) {
-      const newXp = progress.totalXp + xpReward;
-      await ctx.db.patch(progress._id, {
-        totalXp: newXp,
-        level: getLevelFromXp(newXp).level,
-        dreamsCompleted: progress.dreamsCompleted + 1,
-      });
-    } else {
-      await ctx.db.insert('userProgress', {
-        userId,
-        totalXp: xpReward,
-        level: getLevelFromXp(xpReward).level,
-        currentStreak: 0,
-        longestStreak: 0,
-        lastActiveDate: getTodayString(),
-        dreamsCompleted: 1,
-        actionsCompleted: 0,
-      });
-    }
-
-    return { xpAwarded: xpReward };
-  },
-});
-
-// Archive a dream (soft delete) - reverses XP and stats
-// Note: Streaks are intentionally not affected by archive/restore.
-// They represent historical engagement regardless of current archive state.
-export const archive = mutation({
-  args: { id: v.id('dreams') },
-  handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-    const dream = await getOwnedDream(ctx, args.id, userId);
-
-    // Get all actions for this dream
-    const actions = await ctx.db
-      .query('actions')
-      .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
-      .collect();
-
-    const xpToDeduct = await deductDreamXp(ctx, userId, dream, actions);
-
-    // Archive all actions for this dream
-    await Promise.all(
-      actions.map((action) => ctx.db.patch(action._id, { status: 'archived' as const }))
-    );
-
-    await ctx.db.patch(args.id, { status: 'archived' });
-
-    return { xpDeducted: xpToDeduct, actionsArchived: actions.length };
-  },
-});
-
-// Restore an archived dream - re-adds XP and stats
-export const restore = mutation({
-  args: { id: v.id('dreams') },
-  handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-    const dream = await getOwnedDream(ctx, args.id, userId);
-
-    if (dream.status !== 'archived') {
-      throw new Error('Dream is not archived');
-    }
-
-    // Check tier limits before restoring (only if restoring to active)
-    const restoreToStatus = dream.completedAt ? 'completed' : 'active';
-
-    if (restoreToStatus === 'active') {
-      await assertDreamLimit(ctx, userId);
-    }
-
-    // Get all actions for this dream to restore XP
-    const actions = await ctx.db
-      .query('actions')
-      .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
-      .collect();
-
-    const xpToRestore = await restoreDreamXp(ctx, userId, dream, actions);
-
-    // Restore all actions for this dream
-    await Promise.all(
-      actions.map((action) => ctx.db.patch(action._id, { status: 'active' as const }))
-    );
-
-    await ctx.db.patch(args.id, { status: restoreToStatus });
-
-    return { xpRestored: xpToRestore };
-  },
-});
-
-// Reopen a completed dream - reverses completion rewards
-export const reopen = mutation({
-  args: { id: v.id('dreams') },
-  handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-    const dream = await getOwnedDream(ctx, args.id, userId);
-
-    if (dream.status !== 'completed') {
-      throw new Error('Dream is not completed');
-    }
-
-    await assertDreamLimit(ctx, userId);
-
-    const xpReward = XP_REWARDS.dreamComplete;
-    const progress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
-
-    if (progress) {
-      const newXp = Math.max(0, progress.totalXp - xpReward);
-      await ctx.db.patch(progress._id, {
-        totalXp: newXp,
-        level: getLevelFromXp(newXp).level,
-        dreamsCompleted: Math.max(0, progress.dreamsCompleted - 1),
-      });
-    }
-
-    await ctx.db.patch(args.id, {
-      status: 'active',
-      completedAt: undefined,
+    await awardXp(ctx, userId, xpReward, {
+      skipStreak: true,
+      incrementDreams: 1,
+      timezone: args.timezone ?? 'UTC',
     });
 
-    return { xpDeducted: xpReward };
+    // Check dream_achiever badge — accumulate XP, apply in a single patch
+    let newBadge = null;
+    let badgeXp = 0;
+    const result = await checkAndAwardBadge(ctx, userId, 'dream_achiever');
+    badgeXp += result.xpAwarded;
+    if (result.awarded) newBadge = result.badge;
+
+    await applyBadgeXp(ctx, userId, badgeXp);
+
+    return { xpAwarded: xpReward + badgeXp, newBadge };
   },
 });
 
-// Permanently delete a dream
-export const remove = mutation({
-  args: { id: v.id('dreams') },
+// Save reflection on a completed dream
+export const saveReflection = mutation({
+  args: { id: v.id('dreams'), reflection: v.string() },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
-    const dream = await ctx.db.get(args.id);
-    if (!dream) return; // Idempotent: already deleted
-    if (dream.userId !== userId) throw new Error('Forbidden');
+    const dream = await getOwnedDream(ctx, args.id, userId);
+    if (dream.status !== 'completed') throw new Error('Dream must be completed to add reflection');
 
-    // Get all actions for this dream
-    const actions = await ctx.db
-      .query('actions')
-      .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
-      .collect();
+    const trimmed = requireText(args.reflection, MAX_REFLECTION_LENGTH, 'Reflection');
 
-    await deductDreamXp(ctx, userId, dream, actions);
-
-    // Delete all associated actions
-    await Promise.all(actions.map((action) => ctx.db.delete(action._id)));
-
-    await ctx.db.delete(args.id);
+    await ctx.db.patch(args.id, { reflection: trimmed });
   },
 });
+
