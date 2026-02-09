@@ -4,7 +4,7 @@ import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -63,7 +63,7 @@ export default function PrivacyScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT, maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Device Permissions</ThemedText>
@@ -98,8 +98,8 @@ export default function PrivacyScreen() {
           <View style={[dividerStyle, { backgroundColor: colors.border }]} />
           <PrivacyItem
             icon="checklist"
-            label="Task Data"
-            description="Your tasks and completion history"
+            label="Action Data"
+            description="Your actions and completion history"
             colors={colors}
           />
         </MaterialCard>
