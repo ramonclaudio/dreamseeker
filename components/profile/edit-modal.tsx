@@ -44,6 +44,9 @@ export function EditModal({
   placeholder,
   keyboardType = "default",
   autoCapitalize = "sentences",
+  multiline,
+  maxLength,
+  allowEmpty,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -55,6 +58,9 @@ export function EditModal({
   placeholder?: string;
   keyboardType?: "default" | "email-address";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  multiline?: boolean;
+  maxLength?: number;
+  allowEmpty?: boolean;
 }) {
   const [value, setValue] = useState(initialValue);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +73,7 @@ export function EditModal({
   };
 
   const handleSave = async () => {
-    if (!value.trim()) {
+    if (!allowEmpty && !value.trim()) {
       setError(`${label} cannot be empty`);
       return;
     }
@@ -165,6 +171,7 @@ export function EditModal({
                   borderWidth: 1,
                   borderColor: colors.border,
                 },
+                multiline && { minHeight: 100, textAlignVertical: "top" },
               ]}
               placeholder={placeholder}
               placeholderTextColor={colors.mutedForeground}
@@ -176,9 +183,19 @@ export function EditModal({
               keyboardType={keyboardType}
               autoCapitalize={autoCapitalize}
               autoFocus
+              multiline={multiline}
+              maxLength={maxLength}
               accessibilityLabel={label}
               accessibilityHint={`Enter your ${label.toLowerCase()}`}
             />
+            {maxLength && (
+              <ThemedText
+                style={{ fontSize: FontSize.sm, textAlign: "right" }}
+                color={colors.mutedForeground}
+              >
+                {value.length}/{maxLength}
+              </ThemedText>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -104,13 +104,13 @@ export default function HelpScreen() {
         <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: 'continuous', overflow: 'hidden' }}>
           <FAQItem
             question="How do I delete my account?"
-            answer="Go to Profile → Delete Account. This will permanently remove all your data."
+            answer="Go to Settings → Delete Account. This will permanently remove all your data."
             colors={colors}
           />
           <View style={[dividerStyle, { backgroundColor: colors.border }]} />
           <FAQItem
             question="Why aren't notifications working?"
-            answer="Make sure notifications are enabled in Profile → Notifications. You must use a physical device."
+            answer="Make sure notifications are enabled in Settings → Notifications. You must use a physical device."
             colors={colors}
           />
         </MaterialCard>

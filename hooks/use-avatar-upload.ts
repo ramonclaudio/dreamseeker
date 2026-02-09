@@ -11,6 +11,7 @@ type User = {
   image?: string | null;
   imageStorageId?: string | null;
   name?: string | null;
+  displayName?: string | null;
   email?: string | null;
 };
 
@@ -134,7 +135,7 @@ export function useAvatarUpload(user: User | undefined | null) {
   }, [user?.image, handlePickImage, removeAvatar]);
 
   const avatarInitial =
-    user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "?";
+    (user?.displayName ?? user?.name)?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "?";
 
   return { isUploading, showOptions, avatarInitial };
 }

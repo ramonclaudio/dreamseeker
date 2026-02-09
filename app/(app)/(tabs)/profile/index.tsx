@@ -1,143 +1,77 @@
-import { useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  View,
-  ActivityIndicator,
-} from "react-native";
+import { useState, useEffect } from "react";
+import { View, ScrollView, ActivityIndicator, Pressable } from "react-native";
 import { useQuery, useMutation } from "convex/react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
-import { ProfileField } from "@/components/profile/profile-field";
-import { EditModal } from "@/components/profile/edit-modal";
-import { ChangePasswordModal } from "@/components/profile/change-password-modal";
-import { AvatarSection } from "@/components/profile/avatar-section";
-import { SubscriptionSection } from "@/components/profile/subscription-section";
-import {
-  SettingsSection,
-  SettingsItem,
-  SettingsLinkItem,
-  settingsDividerStyle,
-} from "@/components/profile/settings-section";
-import { ThemePicker } from "@/components/profile/theme-picker";
 import { MaterialCard } from "@/components/ui/material-card";
+import { GlassSwitch } from "@/components/ui/glass-switch";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { AvatarSection } from "@/components/profile/avatar-section";
+import { BannerSection } from "@/components/profile/banner-section";
+import { EditModal } from "@/components/profile/edit-modal";
+import { useColors } from "@/hooks/use-color-scheme";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
+import { useBannerUpload } from "@/hooks/use-banner-upload";
+import { haptics } from "@/lib/haptics";
+import { router } from "expo-router";
+import { timezone } from "@/lib/timezone";
+import { api } from "@/convex/_generated/api";
 import { Radius } from "@/constants/theme";
 import {
-  MaxWidth,
   Spacing,
   FontSize,
   IconSize,
+  MaxWidth,
   TAB_BAR_HEIGHT,
 } from "@/constants/layout";
-import { Size } from "@/constants/ui";
-import { useColors, useThemeMode } from "@/hooks/use-color-scheme";
-import { useAvatarUpload } from "@/hooks/use-avatar-upload";
-import { authClient } from "@/lib/auth-client";
-import { haptics } from "@/lib/haptics";
-import { api } from "@/convex/_generated/api";
-import { useSubscription } from "@/hooks/use-subscription";
+import { Opacity } from "@/constants/ui";
+import { MAX_BIO_LENGTH, MAX_DISPLAY_NAME_LENGTH } from "@/convex/constants";
 
-type EditField = "name" | "username" | "email" | null;
-
-const FIELD_CONFIG = {
-  name: {
-    title: "Edit Name",
-    label: "Name",
-    placeholder: "Enter your name",
-    autoCapitalize: "words" as const,
-  },
-  username: {
-    title: "Edit Username",
-    label: "Username",
-    placeholder: "Enter your username (3-20 characters)",
-    autoCapitalize: "none" as const,
-  },
-  email: {
-    title: "Edit Email",
-    label: "Email",
-    placeholder: "Enter your email",
-    autoCapitalize: "none" as const,
-    keyboardType: "email-address" as const,
-  },
-} as const;
+type EditField = "displayName" | "bio" | null;
 
 export default function ProfileScreen() {
   const colors = useColors();
-  const { mode, setMode } = useThemeMode();
   const user = useQuery(api.auth.getCurrentUser);
-  const deleteAccountMutation = useMutation(api.users.deleteAccount);
-  const { isPremium, dreamLimit, dreamCount, showUpgrade, showCustomerCenter, restorePurchases } = useSubscription();
+  const progress = useQuery(api.progress.getProgress, { timezone });
+  const friendCount = useQuery(api.friends.getFriendCount, {});
+  const pendingCount = useQuery(api.friends.getPendingCount, {});
+  const getOrCreateProfile = useMutation(api.community.getOrCreateProfile);
+  const updateProfile = useMutation(api.community.updateProfile);
   const {
     isUploading: isUploadingAvatar,
     showOptions: showAvatarOptions,
     avatarInitial,
   } = useAvatarUpload(user);
+  const {
+    isUploading: isUploadingBanner,
+    bannerUrl,
+    showOptions: showBannerOptions,
+  } = useBannerUpload();
 
   const [editField, setEditField] = useState<EditField>(null);
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
 
-  const handleUpdateField = async (field: "name" | "username" | "email", value: string) => {
-    if (field === "username") {
-      if (value.length < 3) { haptics.error(); throw new Error("Username must be at least 3 characters"); }
-      if (value.length > 20) { haptics.error(); throw new Error("Username must be at most 20 characters"); }
-    }
+  // Ensure community profile exists for displayName/bio editing
+  useEffect(() => { if (user) getOrCreateProfile(); }, [user !== null]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (field === "email") {
-      const { error } = await authClient.changeEmail({ newEmail: value });
-      if (error) { haptics.error(); throw new Error(error.message ?? "Failed to update email"); }
-    } else {
-      const { error } = await authClient.updateUser({ [field]: value });
-      if (error) {
-        haptics.error();
-        const message = error.message ?? "";
-        if (field === "username" && message.toLowerCase().includes("already taken")) {
-          throw new Error("Username is already taken");
-        }
-        throw new Error(message || `Failed to update ${field}`);
-      }
-    }
-    haptics.success();
-  };
+  // Sync isPublic from server
+  useEffect(() => { if (user) setIsPublic(user.isPublic); }, [user?.isPublic]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSignOut = () => {
-    haptics.medium();
-    authClient.signOut();
-  };
-
-  const performDeleteAccount = async () => {
-    setIsDeleting(true);
+  const handleTogglePublic = async (value: boolean) => {
+    haptics.light();
+    setIsPublic(value);
     try {
-      await deleteAccountMutation();
-      await authClient.signOut();
-    } catch (error) {
-      setIsDeleting(false);
-      const message =
-        error instanceof Error ? error.message : "Unable to delete account. Please try again.";
-      if (process.env.EXPO_OS === "web") {
-        window.alert(message);
-      } else {
-        Alert.alert("Deletion Failed", message);
-      }
+      await updateProfile({ isPublic: value });
+    } catch {
+      setIsPublic(!value);
+      haptics.error();
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (isDeleting) return;
-    haptics.warning();
-    const message =
-      "Are you sure you want to delete your account? This will permanently delete all your data including dreams, sessions, and profile information. This action cannot be undone.";
-
-    if (process.env.EXPO_OS === "web") {
-      if (window.confirm(message)) performDeleteAccount();
-    } else {
-      Alert.alert("Delete Account", message, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: performDeleteAccount },
-      ]);
-    }
+  const handleUpdateField = async (field: NonNullable<EditField>, value: string) => {
+    await updateProfile({ [field]: value });
+    haptics.success();
   };
 
   if (!user) {
@@ -148,14 +82,16 @@ export default function ProfileScreen() {
     );
   }
 
-  const fieldDividerStyle = { height: Size.dividerThick, marginLeft: Spacing.lg };
-  const sectionStyle = { marginTop: Spacing["2xl"], paddingHorizontal: Spacing.xl, gap: Spacing.sm };
-  const sectionTitleStyle = {
-    fontSize: FontSize.md,
-    fontWeight: "600" as const,
-    textTransform: "uppercase" as const,
-    marginLeft: Spacing.md,
-  };
+  const displayName = user.displayName || user.name || "Your Name";
+  const username = user.username ? `@${user.username}` : "";
+  const bio = user.bio || "";
+
+  const fieldConfig = {
+    displayName: { title: "Edit Display Name", label: "Display Name", value: user.displayName || "", placeholder: "How others see you", autoCapitalize: "words" as const, allowEmpty: true, maxLength: MAX_DISPLAY_NAME_LENGTH },
+    bio: { title: "Edit Bio", label: "Bio", value: bio, placeholder: "Tell others about yourself", autoCapitalize: "sentences" as const, allowEmpty: true, multiline: true, maxLength: MAX_BIO_LENGTH },
+  } as const;
+
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -167,8 +103,38 @@ export default function ProfileScreen() {
           alignSelf: "center",
           width: "100%",
         }}
-        contentInsetAdjustmentBehavior="automatic"
       >
+        {/* Banner — extends into safe area */}
+        <BannerSection
+          bannerUrl={bannerUrl}
+          isUploading={isUploadingBanner}
+          onPress={showBannerOptions}
+          colors={colors}
+          topInset={insets.top}
+        />
+
+        {/* Settings icon — floating over banner */}
+        <Pressable
+          onPress={() => { haptics.light(); router.push("/(app)/(tabs)/profile/settings"); }}
+          style={({ pressed }) => ({
+            position: "absolute",
+            top: insets.top + Spacing.xs,
+            right: Spacing.lg,
+            opacity: pressed ? Opacity.pressed : 1,
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: "rgba(0,0,0,0.35)",
+            alignItems: "center",
+            justifyContent: "center",
+          })}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+        >
+          <IconSymbol name="gearshape.fill" size={IconSize.xl} color="#fff" />
+        </Pressable>
+
+        {/* Avatar overlapping banner */}
         <AvatarSection
           image={user.image}
           avatarInitial={avatarInitial}
@@ -177,111 +143,169 @@ export default function ProfileScreen() {
           colors={colors}
         />
 
-        <View style={sectionStyle}>
-          <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
-            Account Info
+        {/* Display name — tap to edit */}
+        <Pressable
+          onPress={() => { haptics.selection(); setEditField("displayName"); }}
+          style={({ pressed }) => ({
+            opacity: pressed ? Opacity.pressed : 1,
+            paddingHorizontal: Spacing.xl,
+            paddingTop: Spacing.md,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: Spacing.xs,
+          })}
+          accessibilityRole="button"
+          accessibilityLabel="Edit display name"
+        >
+          <ThemedText style={{ fontSize: FontSize["5xl"], fontWeight: "700", flex: 1 }} numberOfLines={1}>
+            {displayName}
           </ThemedText>
-          <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: "continuous", overflow: "hidden" }}>
-            <ProfileField label="Name" value={user.name || ""} onPress={() => { haptics.selection(); setEditField("name"); }} colors={colors} />
-            <View style={[fieldDividerStyle, { backgroundColor: colors.border }]} />
-            <ProfileField label="Username" value={user.username ? `@${user.username}` : ""} onPress={() => { haptics.selection(); setEditField("username"); }} colors={colors} />
-            <View style={[fieldDividerStyle, { backgroundColor: colors.border }]} />
-            <ProfileField label="Email" value={user.email || ""} onPress={() => { haptics.selection(); setEditField("email"); }} colors={colors} />
-          </MaterialCard>
+          <IconSymbol name="pencil" size={IconSize.md} color={colors.mutedForeground} />
+        </Pressable>
+
+        {/* Username */}
+        {username ? (
+          <View style={{ paddingHorizontal: Spacing.xl, paddingTop: Spacing.xxs }}>
+            <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>
+              {username}
+            </ThemedText>
+          </View>
+        ) : null}
+
+        {/* Bio — tap to edit */}
+        <Pressable
+          onPress={() => { haptics.selection(); setEditField("bio"); }}
+          style={({ pressed }) => ({
+            opacity: pressed ? Opacity.pressed : 1,
+            paddingHorizontal: Spacing.xl,
+            paddingTop: Spacing.sm,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: Spacing.xs,
+          })}
+          accessibilityRole="button"
+          accessibilityLabel="Edit bio"
+        >
+          <ThemedText
+            style={{ fontSize: FontSize.base, lineHeight: 20, flex: 1 }}
+            color={bio ? colors.foreground : colors.mutedForeground}
+            numberOfLines={3}
+          >
+            {bio || "Add a bio..."}
+          </ThemedText>
+          <IconSymbol name="pencil" size={IconSize.md} color={colors.mutedForeground} style={{ marginTop: 2 }} />
+        </Pressable>
+
+        {/* Friends & Requests */}
+        <View style={{ flexDirection: "row", paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, gap: Spacing.xl }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: "700" }}>
+              {friendCount ?? 0}
+            </ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
+              Friends
+            </ThemedText>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: "700" }}>
+              {pendingCount ?? 0}
+            </ThemedText>
+            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
+              Requests
+            </ThemedText>
+          </View>
         </View>
 
-        <View style={sectionStyle}>
-          <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>
-            Security
-          </ThemedText>
+        {/* View public profile */}
+        <View style={{ paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl }}>
+          <Pressable
+            onPress={() => { haptics.light(); router.push(`/user-profile/${user._id}`); }}
+            style={({ pressed }) => ({
+              opacity: pressed ? Opacity.pressed : 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: Spacing.xs,
+              paddingVertical: Spacing.md,
+              borderRadius: Radius.lg,
+              borderCurve: "continuous",
+              backgroundColor: colors.secondary,
+            })}
+            accessibilityRole="button"
+            accessibilityLabel="View public profile"
+          >
+            <IconSymbol name="eye.fill" size={IconSize.md} color={colors.mutedForeground} />
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: "600" }} color={colors.mutedForeground}>
+              View Public Profile
+            </ThemedText>
+          </Pressable>
+        </View>
+
+        {/* Public/Private toggle */}
+        <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing["2xl"] }}>
           <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: "continuous", overflow: "hidden" }}>
-            <Pressable
-              style={({ pressed }) => ({
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: Spacing.lg,
-                minHeight: 44,
-                borderRadius: Radius.lg,
-                borderCurve: "continuous",
-                opacity: pressed ? 0.7 : 1,
-              })}
-              onPress={() => { haptics.selection(); setShowChangePassword(true); }}
-              accessibilityRole="button"
-              accessibilityLabel="Change password"
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.md }}>
-                <IconSymbol name="lock.fill" size={IconSize["2xl"]} color={colors.mutedForeground} />
-                <ThemedText style={{ fontSize: FontSize.xl }}>Change Password</ThemedText>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: Spacing.lg }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.md, flex: 1 }}>
+                <IconSymbol name={isPublic ? "globe" : "lock.fill"} size={IconSize["2xl"]} color={colors.mutedForeground} />
+                <View style={{ flex: 1, gap: Spacing.xxs }}>
+                  <ThemedText style={{ fontSize: FontSize.xl }}>
+                    {isPublic ? "Public Profile" : "Private Profile"}
+                  </ThemedText>
+                  <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>
+                    {isPublic ? "Others can find and add you" : "Only friends can see your profile"}
+                  </ThemedText>
+                </View>
               </View>
-              <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
-            </Pressable>
+              <GlassSwitch value={isPublic} onValueChange={handleTogglePublic} />
+            </View>
           </MaterialCard>
         </View>
 
-        <SubscriptionSection
-          isPremium={isPremium}
-          dreamLimit={dreamLimit}
-          dreamCount={dreamCount}
-          showUpgrade={showUpgrade}
-          showCustomerCenter={showCustomerCenter}
-          restorePurchases={restorePurchases}
-          colors={colors}
-        />
-
-        <SettingsSection title="Appearance" colors={colors}>
-          <ThemePicker mode={mode} onModeChange={setMode} colors={colors} />
-        </SettingsSection>
-
-        <SettingsSection title="Preferences" colors={colors}>
-          <SettingsLinkItem href="/profile/notifications" icon="bell.fill" label="Notifications" colors={colors} />
-          <View style={[settingsDividerStyle, { backgroundColor: colors.border }]} />
-          <SettingsLinkItem href="/profile/privacy" icon="hand.raised.fill" label="Privacy" colors={colors} />
-        </SettingsSection>
-
-        <SettingsSection title="Support" colors={colors}>
-          <SettingsLinkItem href="/profile/help" icon="questionmark.circle.fill" label="Help" colors={colors} />
-          <View style={[settingsDividerStyle, { backgroundColor: colors.border }]} />
-          <SettingsLinkItem href="/profile/about" icon="info.circle.fill" label="About" colors={colors} />
-        </SettingsSection>
-
-        <SettingsSection title="Account" colors={colors}>
-          <SettingsItem icon="rectangle.portrait.and.arrow.right" label="Sign Out" onPress={handleSignOut} showChevron={false} colors={colors} />
-        </SettingsSection>
-
-        <SettingsSection title="Danger Zone" colors={colors}>
-          {isDeleting ? (
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", padding: Spacing.lg, gap: Spacing.md }}>
-              <ActivityIndicator color={colors.destructive} />
-              <ThemedText style={{ fontSize: FontSize.xl, fontWeight: "500" }} color={colors.destructive}>
-                Deleting account...
-              </ThemedText>
-            </View>
-          ) : (
-            <SettingsItem icon="trash.fill" label="Delete Account" onPress={handleDeleteAccount} destructive showChevron={false} colors={colors} />
-          )}
-        </SettingsSection>
-
-        {editField && (
-          <EditModal
-            visible
-            onClose={() => setEditField(null)}
-            title={FIELD_CONFIG[editField].title}
-            label={FIELD_CONFIG[editField].label}
-            value={editField === "username" ? (user.username || "") : (user[editField] || "")}
-            onSave={(value) => handleUpdateField(editField, value)}
-            colors={colors}
-            placeholder={FIELD_CONFIG[editField].placeholder}
-            autoCapitalize={FIELD_CONFIG[editField].autoCapitalize}
-            keyboardType={editField === "email" ? "email-address" : undefined}
-          />
+        {/* Stats */}
+        {progress && (
+          <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing["2xl"] }}>
+            <MaterialCard style={{ borderRadius: Radius.lg, borderCurve: "continuous", overflow: "hidden" }}>
+              <View style={{ flexDirection: "row", padding: Spacing.lg }}>
+                <View style={{ flex: 1, alignItems: "center", gap: Spacing.xs }}>
+                  <ThemedText style={{ fontSize: FontSize["3xl"], fontWeight: "700" }}>{progress.level}</ThemedText>
+                  <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>Level</ThemedText>
+                </View>
+                <View style={{ flex: 1, alignItems: "center", gap: Spacing.xs }}>
+                  <ThemedText style={{ fontSize: FontSize["3xl"], fontWeight: "700" }}>{progress.totalXp}</ThemedText>
+                  <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>XP</ThemedText>
+                </View>
+                <View style={{ flex: 1, alignItems: "center", gap: Spacing.xs }}>
+                  <ThemedText style={{ fontSize: FontSize["3xl"], fontWeight: "700" }}>{progress.currentStreak}</ThemedText>
+                  <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>Streak</ThemedText>
+                </View>
+                <View style={{ flex: 1, alignItems: "center", gap: Spacing.xs }}>
+                  <ThemedText style={{ fontSize: FontSize["3xl"], fontWeight: "700" }}>{progress.dreamsCompleted}</ThemedText>
+                  <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>Dreams</ThemedText>
+                </View>
+              </View>
+            </MaterialCard>
+          </View>
         )}
 
-        <ChangePasswordModal
-          visible={showChangePassword}
-          onClose={() => setShowChangePassword(false)}
-          colors={colors}
-        />
+        {editField && (() => {
+          const config = fieldConfig[editField];
+          return (
+            <EditModal
+              visible
+              onClose={() => setEditField(null)}
+              title={config.title}
+              label={config.label}
+              value={config.value}
+              onSave={(value) => handleUpdateField(editField, value)}
+              colors={colors}
+              placeholder={config.placeholder}
+              autoCapitalize={config.autoCapitalize}
+              allowEmpty={config.allowEmpty}
+              multiline={"multiline" in config ? (config.multiline as boolean) : undefined}
+              maxLength={config.maxLength}
+            />
+          );
+        })()}
       </ScrollView>
     </View>
   );
