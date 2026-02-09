@@ -116,7 +116,7 @@ export default function TodayScreen() {
               variant="title"
               accessibilityRole="header"
             >
-              {user?.name ? `Hi, ${user.name.split(" ")[0]}` : "Home"}
+              {user?.displayName || user?.name ? `Hi, ${(user.displayName ?? user.name)!.split(" ")[0]}` : "Home"}
             </ThemedText>
             <ThemedText color={colors.mutedForeground}>
               {new Date().toLocaleDateString("en-US", {
@@ -223,7 +223,7 @@ export default function TodayScreen() {
         {/* Morning Check-in */}
         {!isLoading && showMorningCheckIn && (
           <MorningCheckIn
-            name={user?.name?.split(" ")[0]}
+            name={(user?.displayName ?? user?.name)?.split(" ")[0]}
             onSubmit={submitMorning}
           />
         )}

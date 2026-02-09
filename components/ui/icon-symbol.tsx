@@ -16,6 +16,7 @@ const ANDROID_MAPPING = {
   "checkmark.circle.fill": "check-circle",
   xmark: "close",
   gear: "cog",
+  "gearshape": "cog",
   "gearshape.fill": "cog",
   "sun.max.fill": "white-balance-sunny",
   "sun.max": "white-balance-sunny",
@@ -24,6 +25,7 @@ const ANDROID_MAPPING = {
   person: "account-outline",
   "person.crop.circle": "account-circle",
   "lock.fill": "lock",
+  "lock.open.fill": "lock-open",
   "rectangle.portrait.and.arrow.right": "logout",
   "trash.fill": "delete",
   pencil: "pencil",
@@ -94,6 +96,12 @@ const ANDROID_MAPPING = {
   "crown.fill": "crown",
   // Additional icons
   "arrow.clockwise": "refresh",
+  "magnifyingglass": "magnify",
+  "person.badge.plus": "account-plus",
+  "eye.fill": "eye",
+  "eye.slash.fill": "eye-off",
+  "person.2": "account-group",
+  globe: "earth",
 } as const;
 
 export type IconSymbolName = keyof typeof ANDROID_MAPPING;

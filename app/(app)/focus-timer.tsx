@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { View, Pressable, TextInput } from "react-native";
+import { View, Pressable, TextInput, ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery, useMutation } from "convex/react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,17 +82,36 @@ export default function FocusTimerScreen() {
   const [isCustom, setIsCustom] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("");
 
-  const dream = useQuery(
-    api.dreams.get,
-    dreamId ? { id: dreamId as Id<"dreams"> } : "skip"
+  const dreams = useQuery(api.dreams.listWithActionCounts);
+  const [selectedDreamId, setSelectedDreamId] = useState<Id<"dreams"> | undefined>(
+    dreamId ? (dreamId as Id<"dreams">) : undefined
   );
+  const [selectedActionId, setSelectedActionId] = useState<Id<"actions"> | undefined>(
+    actionId ? (actionId as Id<"actions">) : undefined
+  );
+
+  // Sync route params to selection (e.g. navigated from dream detail)
+  useEffect(() => {
+    if (dreamId) setSelectedDreamId(dreamId as Id<"dreams">);
+  }, [dreamId]);
+  useEffect(() => {
+    if (actionId) setSelectedActionId(actionId as Id<"actions">);
+  }, [actionId]);
+
+  const selectedDream = dreams?.find((d) => d._id === selectedDreamId);
+  const actions = useQuery(
+    api.actions.list,
+    selectedDreamId ? { dreamId: selectedDreamId } : "skip"
+  );
+  const pendingActions = actions?.filter((a) => !a.isCompleted);
+  const selectedAction = actions?.find((a) => a._id === selectedActionId);
   const completeFocusSession = useMutation(api.focusSessions.complete);
 
   const handleComplete = useCallback(async () => {
     try {
       const result = await completeFocusSession({
-        dreamId: dreamId ? (dreamId as Id<"dreams">) : undefined,
-        actionId: actionId ? (actionId as Id<"actions">) : undefined,
+        dreamId: selectedDreamId,
+        actionId: selectedActionId,
         duration: timer.duration,
       });
       haptics.success();
@@ -102,7 +121,7 @@ export default function FocusTimerScreen() {
       haptics.error();
       setCompletionMessage("Session complete! XP will sync shortly.");
     }
-  }, [completeFocusSession, dreamId, actionId, timer.duration]);
+  }, [completeFocusSession, selectedDreamId, selectedActionId, timer.duration]);
 
   const prevStatusRef = useRef(timer.status);
   useEffect(() => {
@@ -125,7 +144,8 @@ export default function FocusTimerScreen() {
   };
 
   const strokeDashoffset = CIRCUMFERENCE * (1 - timer.progress);
-  const contextLabel = actionText ? actionText : dream?.title ?? null;
+  const contextLabel = selectedAction?.text ?? actionText ?? selectedDream?.title ?? null;
+  const contextIsAction = !!(selectedAction?.text || actionText);
 
   return (
     <View
@@ -159,7 +179,7 @@ export default function FocusTimerScreen() {
       {contextLabel && (
         <View style={{ alignItems: "center", marginTop: Spacing.md }}>
           <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-            {actionText ? "Working on" : "Focusing on"}
+            {contextIsAction ? "Working on" : "Focusing on"}
           </ThemedText>
           <ThemedText
             style={{ fontSize: FontSize["2xl"], fontWeight: "600", textAlign: "center" }}
@@ -167,6 +187,117 @@ export default function FocusTimerScreen() {
           >
             {contextLabel}
           </ThemedText>
+        </View>
+      )}
+
+      {/* Dream link pills */}
+      {timer.status === "idle" && dreams && dreams.length > 0 && (
+        <View style={{ marginTop: Spacing.xl }}>
+          <ThemedText
+            style={{
+              fontSize: FontSize.base,
+              fontWeight: "600",
+              textTransform: "uppercase",
+              marginBottom: Spacing.sm,
+            }}
+            color={colors.mutedForeground}
+          >
+            Link to a dream
+          </ThemedText>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: Spacing.sm }}
+          >
+            {dreams.map((d) => {
+              const isSelected = selectedDreamId === d._id;
+              return (
+                <Pressable
+                  key={d._id}
+                  onPress={() => {
+                    haptics.selection();
+                    setSelectedDreamId(isSelected ? undefined : d._id);
+                    setSelectedActionId(undefined);
+                  }}
+                  style={({ pressed }) => ({
+                    paddingVertical: Spacing.sm,
+                    paddingHorizontal: Spacing.lg,
+                    borderRadius: Radius.full,
+                    borderWidth: 1.5,
+                    borderColor: isSelected ? colors.accentBlue : colors.border,
+                    backgroundColor: isSelected ? `${colors.accentBlue}15` : colors.card,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <ThemedText
+                    style={{
+                      fontSize: FontSize.base,
+                      fontWeight: isSelected ? "600" : "400",
+                    }}
+                    color={isSelected ? colors.foreground : colors.mutedForeground}
+                    numberOfLines={1}
+                  >
+                    {d.title}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {/* Action pills — shown when a dream is selected and has pending actions */}
+          {pendingActions && pendingActions.length > 0 && (
+            <View style={{ marginTop: Spacing.md }}>
+              <ThemedText
+                style={{
+                  fontSize: FontSize.sm,
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  marginBottom: Spacing.xs,
+                }}
+                color={colors.mutedForeground}
+              >
+                Link to an action
+              </ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: Spacing.sm }}
+              >
+                {pendingActions.map((a) => {
+                  const isSelected = selectedActionId === a._id;
+                  return (
+                    <Pressable
+                      key={a._id}
+                      onPress={() => {
+                        haptics.selection();
+                        setSelectedActionId(isSelected ? undefined : a._id);
+                      }}
+                      style={({ pressed }) => ({
+                        paddingVertical: Spacing.xs,
+                        paddingHorizontal: Spacing.md,
+                        borderRadius: Radius.full,
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? colors.primary : colors.border,
+                        backgroundColor: isSelected ? `${colors.primary}15` : colors.card,
+                        opacity: pressed ? 0.7 : 1,
+                      })}
+                    >
+                      <ThemedText
+                        style={{
+                          fontSize: FontSize.sm,
+                          fontWeight: isSelected ? "600" : "400",
+                        }}
+                        color={isSelected ? colors.foreground : colors.mutedForeground}
+                        numberOfLines={1}
+                      >
+                        {a.text}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
         </View>
       )}
 

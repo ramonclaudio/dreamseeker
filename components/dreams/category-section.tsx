@@ -19,10 +19,12 @@ export const CategorySection = memo(function CategorySection({
   category,
   dreams,
   colors,
+  hiddenDreamIds,
 }: {
   category: DreamCategory;
   dreams: DreamWithCounts[];
   colors: ColorPalette;
+  hiddenDreamIds?: Set<string>;
 }) {
   const config = DREAM_CATEGORIES[category];
   const shown = dreams.slice(0, MAX_INLINE_DREAMS);
@@ -93,7 +95,7 @@ export const CategorySection = memo(function CategorySection({
 
       {/* Inline dream cards */}
       {shown.map((dream) => (
-        <CompactDreamRow key={dream._id} dream={dream} colors={colors} />
+        <CompactDreamRow key={dream._id} dream={dream} colors={colors} isHidden={hiddenDreamIds?.has(dream._id)} />
       ))}
 
       {/* See all link */}

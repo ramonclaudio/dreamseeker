@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/convex/_generated/api';
@@ -40,6 +40,13 @@ export default function JournalNewScreen() {
     isEditing ? { id: id as Id<'journalEntries'> } : 'skip'
   );
 
+  const isHidden = useQuery(
+    api.hiddenItems.isHidden,
+    isEditing ? { itemId: id as string } : 'skip'
+  );
+  const hideItemMutation = useMutation(api.hiddenItems.hideItem);
+  const unhideItemMutation = useMutation(api.hiddenItems.unhideItem);
+
   const dreams = useQuery(api.dreams.listWithActionCounts);
   const dailyPrompt = useQuery(api.journalPrompts.getDailyPrompt, { timezone });
 
@@ -65,6 +72,20 @@ export default function JournalNewScreen() {
       setDreamId(dreamIdParam as Id<'dreams'>);
     }
   }, [isEditing, dreamIdParam]);
+
+  const handleToggleVisibility = async () => {
+    if (!isEditing) return;
+    haptics.selection();
+    try {
+      if (isHidden) {
+        await unhideItemMutation({ itemId: id as string });
+      } else {
+        await hideItemMutation({ itemType: 'journal', itemId: id as string });
+      }
+    } catch {
+      haptics.error();
+    }
+  };
 
   const handleDelete = () => {
     if (!isEditing) return;
@@ -168,6 +189,19 @@ export default function JournalNewScreen() {
               style={{ minHeight: TouchTarget.min, justifyContent: 'center' }}
             >
               <IconSymbol name="trash.fill" size={IconSize.xl} color={colors.destructive} />
+            </Pressable>
+          )}
+          {isEditing && (
+            <Pressable
+              onPress={handleToggleVisibility}
+              hitSlop={12}
+              style={{ minHeight: TouchTarget.min, justifyContent: 'center' }}
+            >
+              <IconSymbol
+                name={isHidden ? "lock.fill" : "lock.open.fill"}
+                size={IconSize.xl}
+                color={isHidden ? colors.mutedForeground : colors.accentBlue}
+              />
             </Pressable>
           )}
           <Pressable

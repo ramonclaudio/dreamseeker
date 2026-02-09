@@ -81,9 +81,11 @@ function ProgressRing({
 export const CompactDreamRow = memo(function CompactDreamRow({
   dream,
   colors,
+  isHidden,
 }: {
   dream: DreamWithCounts;
   colors: ColorPalette;
+  isHidden?: boolean;
 }) {
   const config = getCategoryConfig(dream);
   const hasSteps = dream.totalActions > 0;
@@ -157,6 +159,9 @@ export const CompactDreamRow = memo(function CompactDreamRow({
                     >
                       · {targetLabel}
                     </ThemedText>
+                  )}
+                  {isHidden && (
+                    <IconSymbol name="lock.fill" size={IconSize.sm} color={colors.mutedForeground} />
                   )}
                 </View>
               </View>

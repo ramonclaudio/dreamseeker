@@ -178,6 +178,7 @@ export default function AppLayout() {
         <Stack.Screen name="focus-timer" options={{ presentation: 'modal', headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="subscribe" options={{ presentation: 'modal', title: 'Upgrade to Premium', headerShown: true, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="dream-complete/[id]" options={{ presentation: 'fullScreenModal', headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="user-profile/[id]" options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }} />
       </Stack>
 
       {/* Level-up celebration modal */}

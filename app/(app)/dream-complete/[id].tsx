@@ -170,7 +170,7 @@ export default function DreamCompleteScreen() {
             completedActions={completedActions}
             totalActions={totalActions}
             completedAt={dream.completedAt ?? Date.now()}
-            handle={user?.name ?? undefined}
+            handle={user?.displayName ?? user?.name ?? undefined}
             colors={colors}
           />
         )}

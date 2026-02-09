@@ -77,9 +77,14 @@ export const WinCard = forwardRef<View, WinCardProps>(function WinCard(
       </View>
 
       {/* Branding */}
-      <ThemedText style={[styles.branding, { opacity: 0.5 }]} color={colors.onColor}>
-        @{handle || 'dreamseeker'}
-      </ThemedText>
+      <View style={styles.brandingContainer}>
+        <ThemedText style={[styles.branding, { opacity: 0.7 }]} color={colors.onColor}>
+          @{handle || 'dreamseeker'}
+        </ThemedText>
+        <ThemedText style={[styles.subBranding, { opacity: 0.4 }]} color={colors.onColor}>
+          built with @packslight
+        </ThemedText>
+      </View>
     </View>
   );
 });
@@ -136,8 +141,17 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
   },
+  brandingContainer: {
+    alignItems: "center",
+    gap: 2,
+  },
   branding: {
     fontSize: FontSize.sm,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  subBranding: {
+    fontSize: FontSize.xs,
     fontWeight: "500",
     textAlign: "center",
   },

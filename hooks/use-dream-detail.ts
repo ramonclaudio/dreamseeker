@@ -38,6 +38,9 @@ export function useDreamDetail(id: string) {
     api.journal.listByDream,
     dream ? { dreamId } : "skip"
   );
+  const isHidden = useQuery(api.hiddenItems.isHidden, { itemId: dreamId });
+  const hideItem = useMutation(api.hiddenItems.hideItem);
+  const unhideItem = useMutation(api.hiddenItems.unhideItem);
 
   const createAction = useMutation(api.actions.create);
   const toggleAction = useMutation(api.actions.toggle);
@@ -49,6 +52,19 @@ export function useDreamDetail(id: string) {
   const reopenDream = useMutation(api.dreamLifecycle.reopen);
   const restoreDream = useMutation(api.dreamLifecycle.restore);
   const removeDream = useMutation(api.dreamLifecycle.remove);
+
+  const handleToggleVisibility = useCallback(async () => {
+    haptics.selection();
+    try {
+      if (isHidden) {
+        await unhideItem({ itemId: dreamId });
+      } else {
+        await hideItem({ itemType: 'dream', itemId: dreamId });
+      }
+    } catch {
+      haptics.error();
+    }
+  }, [isHidden, dreamId, hideItem, unhideItem]);
 
   const handleAddAction = async () => {
     if (!newActionText.trim() || !dream) return;
@@ -270,6 +286,8 @@ export function useDreamDetail(id: string) {
     authLoading,
     dream,
     dreamId,
+    isHidden: isHidden ?? false,
+    handleToggleVisibility,
     journalEntries,
     newActionText,
     setNewActionText,

@@ -67,6 +67,19 @@ export default function DreamDetailScreen() {
           headerRight: () => (
             <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xl }}>
               <Pressable
+                onPress={detail.handleToggleVisibility}
+                hitSlop={HitSlop.md}
+                accessibilityRole="button"
+                accessibilityLabel={detail.isHidden ? "Make visible to friends" : "Hide from friends"}
+                style={{ padding: Spacing.xs }}
+              >
+                <IconSymbol
+                  name={detail.isHidden ? "lock.fill" : "lock.open.fill"}
+                  size={IconSize.xl}
+                  color={detail.isHidden ? colors.mutedForeground : colors.primary}
+                />
+              </Pressable>
+              <Pressable
                 onPress={() => { haptics.selection(); detail.setShowEditDream(true); }}
                 hitSlop={HitSlop.md}
                 accessibilityRole="button"

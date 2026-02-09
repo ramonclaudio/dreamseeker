@@ -11,15 +11,15 @@ import { useColors } from "@/hooks/use-color-scheme";
 export function UserAvatar({ size = 36 }: { size?: number }) {
   const colors = useColors();
   const user = useQuery(api.auth.getCurrentUser);
-  const initial = user?.name?.charAt(0).toUpperCase() ?? "?";
+  const initial = (user?.displayName ?? user?.name)?.charAt(0).toUpperCase() ?? "?";
 
   return (
     <Pressable
       onPress={() => router.push("/(app)/(tabs)/profile")}
       style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1 })}
       accessibilityRole="button"
-      accessibilityLabel="View profile"
-      accessibilityHint="Opens your profile screen"
+      accessibilityLabel="Profile"
+      accessibilityHint="Opens your profile"
     >
       {user?.image ? (
         <Image
