@@ -32,6 +32,7 @@ type EditField = "displayName" | "bio" | null;
 
 export default function ProfileScreen() {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const user = useQuery(api.auth.getCurrentUser);
   const progress = useQuery(api.progress.getProgress, { timezone });
   const friendCount = useQuery(api.friends.getFriendCount, {});
@@ -90,8 +91,6 @@ export default function ProfileScreen() {
     displayName: { title: "Edit Display Name", label: "Display Name", value: user.displayName || "", placeholder: "How others see you", autoCapitalize: "words" as const, allowEmpty: true, maxLength: MAX_DISPLAY_NAME_LENGTH },
     bio: { title: "Edit Bio", label: "Bio", value: bio, placeholder: "Tell others about yourself", autoCapitalize: "sentences" as const, allowEmpty: true, multiline: true, maxLength: MAX_BIO_LENGTH },
   } as const;
-
-  const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

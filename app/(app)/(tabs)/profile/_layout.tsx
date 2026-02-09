@@ -1,11 +1,6 @@
-import { Pressable } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColors } from '@/hooks/use-color-scheme';
-import { haptics } from '@/lib/haptics';
-import { IconSize, Spacing } from '@/constants/layout';
-import { Opacity } from '@/constants/ui';
 
 export default function ProfileLayout() {
   const colors = useColors();
