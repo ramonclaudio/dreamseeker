@@ -23,6 +23,15 @@ function notifyListeners() {
   listeners.forEach((listener) => listener());
 }
 
+function updateGlobalMode(newMode: ThemeMode) {
+  globalMode = newMode;
+  if (process.env.EXPO_OS !== "web") {
+    Appearance.setColorScheme(newMode === "system" ? "unspecified" : newMode);
+  }
+  storage.set(STORAGE_KEY, newMode).catch(() => {});
+  notifyListeners();
+}
+
 // Initialize from storage on module load
 (async () => {
   try {
@@ -57,13 +66,8 @@ export function useThemeMode(): { mode: ThemeMode; setMode: (mode: ThemeMode) =>
   }, []);
 
   const setMode = useCallback((newMode: ThemeMode) => {
-    globalMode = newMode;
+    updateGlobalMode(newMode);
     setModeState(newMode);
-    if (process.env.EXPO_OS !== "web") {
-      Appearance.setColorScheme(newMode === "system" ? "unspecified" : newMode);
-    }
-    storage.set(STORAGE_KEY, newMode).catch(() => {});
-    notifyListeners();
   }, []);
 
   return { mode, setMode };

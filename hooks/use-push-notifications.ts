@@ -56,7 +56,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
       name: "Default",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#3b82f6",
+      lightColor: "#7b8d9e",
     });
   }
 
@@ -224,41 +224,3 @@ export async function getInitialNotificationResponse(): Promise<Notifications.No
 export async function clearBadge(): Promise<void> {
   await Notifications.setBadgeCountAsync(0);
 }
-
-export async function getBadgeCount(): Promise<number> {
-  return Notifications.getBadgeCountAsync();
-}
-
-export async function setBadgeCount(count: number): Promise<void> {
-  await Notifications.setBadgeCountAsync(count);
-}
-
-export async function scheduleLocalNotification(
-  title: string,
-  body: string,
-  data?: Record<string, unknown>,
-  delaySeconds = 0,
-): Promise<string> {
-  return Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-      data,
-      sound: "default",
-    },
-    trigger:
-      delaySeconds > 0
-        ? { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: delaySeconds }
-        : null,
-  });
-}
-
-export async function cancelAllNotifications(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
-}
-
-export async function dismissAllNotifications(): Promise<void> {
-  await Notifications.dismissAllNotificationsAsync();
-}
-
-export { Notifications };
