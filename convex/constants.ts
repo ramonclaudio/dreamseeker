@@ -53,6 +53,37 @@ export const moodValidator = v.union(
   v.literal('tough')
 );
 
+export const friendRequestStatusValidator = v.union(
+  v.literal('pending'),
+  v.literal('accepted'),
+  v.literal('rejected')
+);
+
+export const hiddenItemTypeValidator = v.union(
+  v.literal('dream'),
+  v.literal('journal'),
+  v.literal('action')
+);
+
+export const feedEventTypeValidator = v.union(
+  v.literal('dream_created'),
+  v.literal('dream_completed'),
+  v.literal('action_completed'),
+  v.literal('journal_entry'),
+  v.literal('badge_earned'),
+  v.literal('level_up'),
+  v.literal('streak_milestone')
+);
+
+export const feedMetadataValidator = v.union(
+  v.object({ title: v.string(), category: dreamCategoryValidator }),  // dream_created, dream_completed
+  v.object({ text: v.string(), dreamTitle: v.string() }),             // action_completed
+  v.object({ title: v.string(), mood: v.optional(moodValidator) }),   // journal_entry
+  v.object({ badgeKey: v.string(), title: v.string() }),              // badge_earned
+  v.object({ streak: v.number() }),                                   // streak_milestone
+  v.object({ level: v.number(), title: v.string() }),                 // level_up
+);
+
 // ── Types ───────────────────────────────────────────────────────────────────
 
 export type DreamCategory = 'travel' | 'money' | 'career' | 'lifestyle' | 'growth' | 'relationships' | 'custom';
@@ -62,6 +93,17 @@ export type Confidence = 'confident' | 'somewhat' | 'not-confident';
 export type Personality = 'dreamer' | 'planner' | 'doer' | 'explorer';
 export type Motivation = 'feel-better' | 'career-growth' | 'adventure' | 'financial-freedom' | 'relationships' | 'self-discipline';
 export type Mood = 'great' | 'good' | 'okay' | 'tough';
+export type FriendRequestStatus = 'pending' | 'accepted' | 'rejected';
+export type HiddenItemType = 'dream' | 'journal' | 'action';
+export type FeedEventType = 'dream_created' | 'dream_completed' | 'action_completed' | 'journal_entry' | 'badge_earned' | 'level_up' | 'streak_milestone';
+
+export type FeedMetadata =
+  | { title: string; category: DreamCategory }
+  | { text: string; dreamTitle: string }
+  | { title: string; mood?: Mood }
+  | { badgeKey: string; title: string }
+  | { streak: number }
+  | { level: number; title: string };
 
 export const DREAM_CATEGORY_LIST: DreamCategory[] = [
   'travel', 'money', 'career', 'lifestyle', 'growth', 'relationships', 'custom',
@@ -135,6 +177,12 @@ export const MAX_TAGS_COUNT = 20;
 
 export const FREE_JOURNAL_DAILY_LIMIT = 1;
 
+export const MAX_BIO_LENGTH = 200;
+export const MAX_DISPLAY_NAME_LENGTH = 50;
+export const SEARCH_RESULTS_LIMIT = 20;
+export const FEED_PAGE_SIZE = 30;
+export const FEED_FRIENDS_RECENT_LIMIT = 10;
+
 // ── Dream Categories (display metadata) ─────────────────────────────────────
 
 export const DREAM_CATEGORIES = {
@@ -183,3 +231,14 @@ export function isEarlyBird(localHour: number): boolean {
 export function isNightOwl(localHour: number): boolean {
   return localHour >= NIGHT_OWL_HOUR;
 }
+
+// ── Weekly Challenges ──────────────────────────────────────────────────────
+
+export const WEEKLY_CHALLENGES = [
+  { id: 'wc1', quote: 'Tell someone about a dream you have never shared before.', theme: 'vulnerability' },
+  { id: 'wc2', quote: 'Take one small action today that scares you a little.', theme: 'courage' },
+  { id: 'wc3', quote: "Celebrate a friend's win as loudly as you'd celebrate your own.", theme: 'community' },
+  { id: 'wc4', quote: 'Write down three things that would make this week extraordinary.', theme: 'intention' },
+  { id: 'wc5', quote: 'Reach out to someone who inspires you and tell them why.', theme: 'connection' },
+  { id: 'wc6', quote: 'Do one thing today that your future self will thank you for.', theme: 'growth' },
+] as const;

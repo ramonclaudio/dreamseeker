@@ -8,6 +8,10 @@ import {
   personalityValidator,
   motivationValidator,
   moodValidator,
+  friendRequestStatusValidator,
+  hiddenItemTypeValidator,
+  feedEventTypeValidator,
+  feedMetadataValidator,
 } from './constants';
 
 export default defineSchema({
@@ -191,4 +195,76 @@ export default defineSchema({
     userId: v.string(),
     createdAt: v.number(),
   }).index('by_user', ['userId']),
+
+  // ── Community ────────────────────────────────────────────────────────────
+
+  // User profiles — community-facing profile data
+  userProfiles: defineTable({
+    userId: v.string(),
+    username: v.string(),
+    displayName: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    bannerStorageId: v.optional(v.id('_storage')),
+    isPublic: v.boolean(),
+    hideAll: v.optional(v.boolean()),
+    defaultHideDreams: v.optional(v.boolean()),
+    defaultHideJournals: v.optional(v.boolean()),
+    defaultHideActions: v.optional(v.boolean()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_username', ['username'])
+    .index('by_public_username', ['isPublic', 'username']),
+
+  // Friend requests — directional request from one user to another
+  friendRequests: defineTable({
+    fromUserId: v.string(),
+    toUserId: v.string(),
+    status: friendRequestStatusValidator,
+    createdAt: v.number(),
+    respondedAt: v.optional(v.number()),
+  })
+    .index('by_from', ['fromUserId'])
+    .index('by_to_status', ['toUserId', 'status'])
+    .index('by_pair', ['fromUserId', 'toUserId']),
+
+  // Friendships — bidirectional (two rows per connection)
+  friendships: defineTable({
+    userId: v.string(),
+    friendId: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_pair', ['userId', 'friendId']),
+
+  // Hidden items — per-item privacy overrides for friends
+  hiddenItems: defineTable({
+    userId: v.string(),
+    itemType: hiddenItemTypeValidator,
+    itemId: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_item', ['userId', 'itemId']),
+
+  // Activity feed — events for the community feed
+  activityFeed: defineTable({
+    userId: v.string(),
+    type: feedEventTypeValidator,
+    referenceId: v.optional(v.string()),
+    metadata: v.optional(feedMetadataValidator),
+    createdAt: v.number(),
+  })
+    .index('by_user_created', ['userId', 'createdAt']),
+
+  // Feed reactions — emoji reactions on feed events
+  feedReactions: defineTable({
+    feedEventId: v.id('activityFeed'),
+    userId: v.string(),
+    emoji: v.union(v.literal('fire'), v.literal('heart'), v.literal('clap')),
+    createdAt: v.number(),
+  })
+    .index('by_event', ['feedEventId'])
+    .index('by_user_event', ['userId', 'feedEventId']),
 });
