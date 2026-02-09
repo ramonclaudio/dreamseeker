@@ -1,102 +1,121 @@
-// Base color palettes
+// Base color palettes — sage green bg (#f3f6ef) + soft blue-grey primary (#c7d1dd)
 const lightColors = {
-  background: '#ffffff',
-  foreground: '#171717',
+  background: '#f3f6ef',
+  foreground: '#2c3a2e',
   card: '#ffffff',
-  cardForeground: '#171717',
+  cardForeground: '#2c3a2e',
   popover: '#ffffff',
-  popoverForeground: '#171717',
-  primary: '#262626',
-  primaryForeground: '#fafafa',
-  // Accent blue for tinted Liquid Glass buttons (HIG: prominent button styling)
-  accentBlue: '#007AFF',
-  accentBlueForeground: '#ffffff',
-  secondary: '#f5f5f5',
-  secondaryForeground: '#262626',
-  muted: '#f5f5f5',
-  mutedForeground: '#666666',
-  accent: '#f5f5f5',
-  accentForeground: '#262626',
-  destructive: '#dc2626',
-  destructiveForeground: '#fafafa',
-  destructiveBackground: 'rgba(220, 38, 38, 0.1)',
-  success: '#16a34a',
-  successForeground: '#f0fdf4',
-  successBackground: 'rgba(22, 163, 74, 0.1)',
-  border: '#e5e5e5',
-  input: '#e5e5e5',
-  ring: '#a3a3a3',
-  text: '#171717',
-  tint: '#262626',
-  icon: '#666666',
-  tabIconDefault: '#666666',
-  tabIconSelected: '#262626',
-  separator: 'rgba(60, 60, 67, 0.29)', // iOS standard separator
+  popoverForeground: '#2c3a2e',
+  primary: '#c7d1dd',
+  primaryForeground: '#1e2d3a',
+  accentBlue: '#c7d1dd',
+  accentBlueForeground: '#1e2d3a',
+  secondary: '#e6ebe2',
+  secondaryForeground: '#2c3a2e',
+  muted: '#e6ebe2',
+  mutedForeground: '#6b7a6d',
+  accent: '#e6ebe2',
+  accentForeground: '#2c3a2e',
+  destructive: '#c4453a',
+  destructiveForeground: '#fef5f4',
+  destructiveBackground: 'rgba(196, 69, 58, 0.10)',
+  success: '#4a8a50',
+  successForeground: '#f0f5f0',
+  successBackground: 'rgba(74, 138, 80, 0.10)',
+  border: '#d8ddd3',
+  input: '#d8ddd3',
+  ring: '#a3b0a5',
+  text: '#2c3a2e',
+  tint: '#7b8d9e',
+  icon: '#6b7a6d',
+  tabIconDefault: '#6b7a6d',
+  tabIconSelected: '#7b8d9e',
+  separator: 'rgba(44, 58, 46, 0.18)',
   overlay: 'rgba(0, 0, 0, 0.4)',
-  shadow: 'rgba(0, 0, 0, 0.1)', // Subtle shadow for elevated elements
+  shadow: 'rgba(0, 0, 0, 0.05)',
+  gold: '#c4a84c',
+  onColor: '#ffffff',
+  surfaceTinted: '#edf1e9',
+  // Accent border tokens
+  borderAccent: 'rgba(199, 209, 221, 0.30)',
+  borderAccentStrong: 'rgba(199, 209, 221, 0.55)',
+  glowShadow: 'rgba(199, 209, 221, 0.20)',
 };
 
 const darkColors = {
-  background: '#171717',
-  foreground: '#fafafa',
-  card: '#262626',
-  cardForeground: '#fafafa',
-  popover: '#333333',
-  popoverForeground: '#fafafa',
-  primary: '#e5e5e5',
-  primaryForeground: '#262626',
-  secondary: '#333333',
-  secondaryForeground: '#fafafa',
-  muted: '#333333',
-  mutedForeground: '#a3a3a3',
-  accent: '#404040',
-  accentForeground: '#fafafa',
-  // Accent blue for tinted Liquid Glass buttons (HIG: prominent button styling)
-  accentBlue: '#0A84FF', // iOS system blue (dark mode variant)
-  accentBlueForeground: '#ffffff',
-  destructive: '#f87171',
+  background: '#191d19',
+  foreground: '#f0f3ed',
+  card: '#242824',
+  cardForeground: '#f0f3ed',
+  popover: '#2e332e',
+  popoverForeground: '#f0f3ed',
+  primary: '#c7d1dd',
+  primaryForeground: '#1e2d3a',
+  secondary: '#242a22',
+  secondaryForeground: '#f0f3ed',
+  muted: '#242a22',
+  mutedForeground: '#8a9a8a',
+  accent: '#2d3630',
+  accentForeground: '#f0f3ed',
+  accentBlue: '#c7d1dd',
+  accentBlueForeground: '#1e2d3a',
+  destructive: '#e87070',
   destructiveForeground: '#fef2f2',
-  destructiveBackground: 'rgba(248, 113, 113, 0.15)',
-  success: '#22c55e',
-  successForeground: '#14532d',
-  successBackground: 'rgba(34, 197, 94, 0.15)',
-  border: 'rgba(255, 255, 255, 0.1)',
-  input: 'rgba(255, 255, 255, 0.15)',
-  ring: '#737373',
-  text: '#fafafa',
-  tint: '#e5e5e5',
-  icon: '#a3a3a3',
-  tabIconDefault: '#a3a3a3',
-  tabIconSelected: '#e5e5e5',
-  separator: 'rgba(84, 84, 88, 0.6)', // iOS standard dark separator
+  destructiveBackground: 'rgba(232, 112, 112, 0.15)',
+  success: '#6bba6f',
+  successForeground: '#143214',
+  successBackground: 'rgba(107, 186, 111, 0.15)',
+  border: 'rgba(255, 255, 255, 0.08)',
+  input: 'rgba(255, 255, 255, 0.12)',
+  ring: '#6b7c6b',
+  text: '#f0f3ed',
+  tint: '#c7d1dd',
+  icon: '#8a9a8a',
+  tabIconDefault: '#8a9a8a',
+  tabIconSelected: '#c7d1dd',
+  separator: 'rgba(84, 92, 84, 0.50)',
   overlay: 'rgba(0, 0, 0, 0.6)',
-  shadow: 'rgba(0, 0, 0, 0.3)', // Darker shadow for dark mode visibility
+  shadow: 'rgba(0, 0, 0, 0.3)',
+  gold: '#d4b85a',
+  onColor: '#f0f3ed',
+  surfaceTinted: '#1e241e',
+  // Accent border tokens
+  borderAccent: 'rgba(199, 209, 221, 0.15)',
+  borderAccentStrong: 'rgba(199, 209, 221, 0.35)',
+  glowShadow: 'rgba(199, 209, 221, 0.20)',
 };
 
 // High contrast variants (for iOS Increase Contrast setting)
-// - Darker text, more saturated colors, solid borders
 const lightHighContrast = {
   ...lightColors,
   foreground: '#000000',
   cardForeground: '#000000',
   popoverForeground: '#000000',
-  primary: '#000000',
+  primary: '#9aaab8',
+  primaryForeground: '#0f1a24',
+  accentBlue: '#9aaab8',
   secondaryForeground: '#000000',
-  mutedForeground: '#4a4a4a', // Darker for better contrast (7:1+)
+  mutedForeground: '#4a5a4c',
   accentForeground: '#000000',
-  destructive: '#b91c1c', // Darker red
-  destructiveBackground: 'rgba(185, 28, 28, 0.15)', // More visible in high contrast
-  success: '#15803d', // Darker green
-  successBackground: 'rgba(21, 128, 61, 0.15)',
-  border: '#a3a3a3', // More visible border
-  input: '#a3a3a3',
+  destructive: '#a33830',
+  destructiveBackground: 'rgba(163, 56, 48, 0.15)',
+  success: '#3a7a40',
+  successBackground: 'rgba(58, 122, 64, 0.15)',
+  border: '#a8b0a3',
+  input: '#a8b0a3',
   text: '#000000',
-  tint: '#000000',
-  icon: '#4a4a4a',
-  tabIconDefault: '#4a4a4a',
-  tabIconSelected: '#000000',
-  separator: 'rgba(60, 60, 67, 0.6)', // More visible in high contrast
+  tint: '#5e7080',
+  icon: '#4a5a4c',
+  tabIconDefault: '#4a5a4c',
+  tabIconSelected: '#5e7080',
+  separator: 'rgba(44, 58, 46, 0.45)',
   overlay: 'rgba(0, 0, 0, 0.5)',
+  gold: '#a89030',
+  onColor: '#ffffff',
+  surfaceTinted: '#e2e8de',
+  borderAccent: 'rgba(154, 170, 184, 0.35)',
+  borderAccentStrong: 'rgba(154, 170, 184, 0.60)',
+  glowShadow: 'rgba(154, 170, 184, 0.30)',
 };
 
 const darkHighContrast = {
@@ -104,25 +123,33 @@ const darkHighContrast = {
   foreground: '#ffffff',
   cardForeground: '#ffffff',
   popoverForeground: '#ffffff',
-  primary: '#ffffff',
+  primary: '#dce3eb',
+  primaryForeground: '#0f1a24',
+  accentBlue: '#dce3eb',
   secondaryForeground: '#ffffff',
-  mutedForeground: '#d4d4d4', // Lighter for better contrast
+  mutedForeground: '#b8c8b8',
   accentForeground: '#ffffff',
-  destructive: '#fca5a5', // Lighter red
+  destructive: '#fca5a5',
   destructiveForeground: '#ffffff',
-  destructiveBackground: 'rgba(252, 165, 165, 0.2)', // More visible in high contrast
-  success: '#4ade80', // Lighter green
+  destructiveBackground: 'rgba(252, 165, 165, 0.20)',
+  success: '#86d48a',
   successForeground: '#000000',
-  successBackground: 'rgba(74, 222, 128, 0.2)',
-  border: 'rgba(255, 255, 255, 0.3)', // More visible border
-  input: 'rgba(255, 255, 255, 0.3)',
+  successBackground: 'rgba(134, 212, 138, 0.20)',
+  border: 'rgba(255, 255, 255, 0.25)',
+  input: 'rgba(255, 255, 255, 0.25)',
   text: '#ffffff',
-  tint: '#ffffff',
-  icon: '#d4d4d4',
-  tabIconDefault: '#d4d4d4',
-  tabIconSelected: '#ffffff',
-  separator: 'rgba(142, 142, 147, 0.6)', // More visible in high contrast
+  tint: '#dce3eb',
+  icon: '#b8c8b8',
+  tabIconDefault: '#b8c8b8',
+  tabIconSelected: '#dce3eb',
+  separator: 'rgba(138, 154, 138, 0.60)',
   overlay: 'rgba(0, 0, 0, 0.7)',
+  gold: '#e8d878',
+  onColor: '#ffffff',
+  surfaceTinted: '#2d3630',
+  borderAccent: 'rgba(220, 227, 235, 0.25)',
+  borderAccentStrong: 'rgba(220, 227, 235, 0.50)',
+  glowShadow: 'rgba(220, 227, 235, 0.30)',
 };
 
 export const Colors = {
@@ -132,7 +159,6 @@ export const Colors = {
   darkHighContrast,
 };
 
-export type ColorScheme = 'light' | 'dark';
 export type ColorPalette = typeof lightColors;
 
 export const Radius = {
@@ -140,10 +166,10 @@ export const Radius = {
   sm: 6,
   md: 8,
   DEFAULT: 10,
-  lg: 12,
-  xl: 14,
-  '2xl': 18,
-  '3xl': 22,
+  lg: 16,
+  xl: 18,
+  '2xl': 22,
+  '3xl': 26,
   full: 9999,
 };
 
@@ -154,14 +180,3 @@ export const Typography = {
   subtitle: { fontSize: 20, lineHeight: 26, fontWeight: '600' as const },
   link: { fontSize: 16, lineHeight: 24 },
 };
-
-export const Fonts = process.env.EXPO_OS === 'ios'
-  ? { sans: 'system-ui', serif: 'ui-serif', rounded: 'ui-rounded', mono: 'ui-monospace' }
-  : process.env.EXPO_OS === 'web'
-    ? {
-        sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        serif: "Georgia, 'Times New Roman', serif",
-        rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-        mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-      }
-    : { sans: 'normal', serif: 'serif', rounded: 'normal', mono: 'monospace' };

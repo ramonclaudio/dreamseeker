@@ -21,7 +21,7 @@ Built for the [RevenueCat Shipyard Hackathon](https://revenuecat.com).
 - **Gamification** — XP rewards, 5-level progression (Dreamer → Trailblazer), daily streaks
 - **Daily Challenges** — Category-specific challenges with XP rewards
 - **Mindset Moments** — Inspirational quotes by category
-- **Onboarding** — 10-slide guided flow with category selection, pace, and confidence preferences
+- **Onboarding** — 13-slide guided flow with category selection, pace, and confidence preferences
 - **Subscriptions** — Free (3 dreams) and Premium (unlimited) via RevenueCat
 - **Auth** — Email/password + Apple Sign-In, verification, password reset, rate limiting
 - **Profile** — Avatar upload, theme picker, account deletion with full data cleanup
@@ -31,9 +31,10 @@ Built for the [RevenueCat Shipyard Hackathon](https://revenuecat.com).
 
 ```text
 (auth)/ → sign-in, sign-up, forgot-password, reset-password
-(app)/  → onboarding, subscribe, dream/[id]
-        → (tabs)/ → home, today, explore, profile
-                     home/[category] → filtered dreams
+(app)/  → onboarding, subscribe, dream/[id], create-dream, dream-complete/[id],
+          journal-entry, focus-timer
+        → (tabs)/ → today, (dreams), journal, progress, profile
+                     (dreams)/[category] → filtered dreams
                      profile/notifications, privacy, help, about
 ```
 
@@ -363,18 +364,6 @@ eas build --platform ios --profile production    # App Store
 - [ ] Create production webhook in RevenueCat pointing to prod Convex URL
 - [ ] Submit in-app purchases for review (App Store / Play Store)
 - [ ] Test full signup and purchase flow in TestFlight / Internal Testing
-
----
-
-## Upstream
-
-Based on [expo-starter-app](https://github.com/ramonclaudio/expo-starter-app) (revenuecat branch):
-
-```bash
-git remote add upstream https://github.com/ramonclaudio/expo-starter-app.git
-git fetch upstream
-git merge upstream/revenuecat
-```
 
 ---
 

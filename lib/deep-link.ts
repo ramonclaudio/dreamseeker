@@ -1,11 +1,17 @@
 const APP_SCHEME = 'dreamseeker';
 
 export const ALLOWED_DEEP_LINK_PATHS = [
-  '/tasks',
+  '/today',
+  '/dream',
+  '/journal',
+  '/progress',
   '/profile',
-  '/explore',
-  '/history',
+  '/focus-timer',
+  '/create-dream',
   '/subscribe',
+  '/onboarding',
+  '/dream-complete',
+  '/reset-password',
 ] as const;
 
 export function isValidDeepLink(url: string): boolean {

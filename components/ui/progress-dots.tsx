@@ -20,7 +20,7 @@ function Dot({ isActive, colors }: { isActive: boolean; colors: ReturnType<typeo
   const animatedStyle = useAnimatedStyle(() => ({
     width: withTiming(isActive ? ACTIVE_DOT_WIDTH : DOT_SIZE, { duration: 200 }),
     backgroundColor: withTiming(
-      interpolateColor(isActive ? 1 : 0, [0, 1], [colors.border, colors.primary]),
+      interpolateColor(isActive ? 1 : 0, [0, 1], [colors.surfaceTinted, colors.primary]),
       { duration: 200 }
     ),
   }));

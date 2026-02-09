@@ -1,3 +1,4 @@
+/* global jest */
 // Mock SDK 55 winter runtime modules that aren't yet mocked by jest-expo
 // This is needed until jest-expo is updated for SDK 55's new winter modules
 

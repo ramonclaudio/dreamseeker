@@ -10,7 +10,7 @@ import { GlassSwitch } from '@/components/ui/glass-switch';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget } from '@/constants/layout';
+import { FontSize, IconSize, LineHeight, MaxWidth, Spacing, TouchTarget, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { Opacity } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -125,7 +125,7 @@ export default function NotificationsScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: Spacing['4xl'], maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT, maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>Push Notifications</ThemedText>
@@ -184,7 +184,7 @@ export default function NotificationsScreen() {
         <MaterialCard style={cardStyle}>
           <View style={{ padding: Spacing.lg }}>
             <ThemedText style={{ fontSize: FontSize.base, lineHeight: LineHeight.base }} color={colors.mutedForeground}>
-              Push notifications keep you informed about important updates, task reminders, and account activity.
+              Push notifications keep you informed about important updates, action reminders, and account activity.
               {'\n\n'}
               You can manage notification preferences in your device settings at any time.
             </ThemedText>

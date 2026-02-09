@@ -3,9 +3,10 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 export type TabBadges = {
-  home: string | null;
+  dreams: string | null;
   today: string | null;
-  explore: string | null;
+  journal: string | null;
+  progress: string | null;
   profile: string | null;
 };
 
@@ -30,9 +31,10 @@ export function useTabBadges(): TabBadges {
   const todayBadge = pendingCount === 0 ? null : pendingCount > 9 ? '9+' : String(pendingCount);
 
   return {
-    home: null,
+    dreams: null,
     today: todayBadge,
-    explore: null,
+    journal: null,
+    progress: null,
     profile: null,
   };
 }

@@ -1,7 +1,19 @@
 import { query, mutation } from './_generated/server';
+import type { QueryCtx } from './_generated/server';
+import type { Id, Doc } from './_generated/dataModel';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, getTodayString, getYesterdayString, calculateStreak } from './helpers';
-import { MAX_ACTION_TEXT_LENGTH, XP_REWARDS, getLevelFromXp } from './constants';
+import { getAuthUserId, requireAuth, awardXp, deductXp } from './helpers';
+import { getStartOfDay, getLocalHour } from './dates';
+import { requireText } from './validation';
+import { MAX_ACTION_TEXT_LENGTH, XP_REWARDS, isEarlyBird, isNightOwl, PERMISSION_GRANTED_WINDOW_MS, LASER_FOCUSED_THRESHOLD } from './constants';
+import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
+
+async function getDreamMap(ctx: QueryCtx, dreamIds: Id<'dreams'>[]) {
+  const dreams = await Promise.all(dreamIds.map((id) => ctx.db.get(id)));
+  return new Map(
+    dreams.filter((d): d is Doc<'dreams'> => d !== null).map((d) => [d._id, d])
+  );
+}
 
 // List actions for a dream
 export const list = query({
@@ -43,22 +55,52 @@ export const listPending = query({
       .collect();
 
     // Get dream titles for context, filtering out archived dreams
-    const dreamIds = [...new Set(actions.map((a) => a.dreamId))];
-    const dreams = await Promise.all(dreamIds.map((id) => ctx.db.get(id)));
-    const activeDreamMap = new Map(
-      dreams
-        .filter((d): d is NonNullable<typeof d> => d !== null && d.status !== 'archived')
-        .map((d) => [d._id, d])
-    );
+    const dreamIds = Array.from(new Set(actions.map((a) => a.dreamId)));
+    const dreamMap = await getDreamMap(ctx, dreamIds);
 
     // Only return actions for active dreams
     return actions
-      .filter((action) => activeDreamMap.has(action.dreamId))
+      .filter((action) => {
+        const dream = dreamMap.get(action.dreamId);
+        return dream && dream.status !== 'archived';
+      })
       .map((action) => ({
         ...action,
-        dreamTitle: activeDreamMap.get(action.dreamId)?.title ?? 'Unknown Dream',
-        dreamCategory: activeDreamMap.get(action.dreamId)?.category,
+        dreamTitle: dreamMap.get(action.dreamId)?.title ?? 'Unknown Dream',
+        dreamCategory: dreamMap.get(action.dreamId)?.category,
       }));
+  },
+});
+
+// List actions completed today (for daily review)
+export const listCompletedToday = query({
+  args: { timezone: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const startOfToday = getStartOfDay(args.timezone);
+
+    const actions = await ctx.db
+      .query('actions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('isCompleted'), true),
+          q.gte(q.field('completedAt'), startOfToday),
+          q.neq(q.field('status'), 'archived')
+        )
+      )
+      .collect();
+
+    // Get dream titles
+    const dreamIds = Array.from(new Set(actions.map((a) => a.dreamId)));
+    const dreamMap = await getDreamMap(ctx, dreamIds);
+
+    return actions.map((action) => ({
+      ...action,
+      dreamTitle: dreamMap.get(action.dreamId)?.title ?? 'Unknown Dream',
+    }));
   },
 });
 
@@ -77,10 +119,7 @@ export const create = mutation({
     if (dream.userId !== userId) throw new Error('Forbidden');
     if (dream.status !== 'active') throw new Error('Cannot add actions to a non-active dream');
 
-    const trimmedText = args.text.trim();
-    if (trimmedText.length === 0) throw new Error('Action text cannot be empty');
-    if (trimmedText.length > MAX_ACTION_TEXT_LENGTH)
-      throw new Error(`Action text cannot exceed ${MAX_ACTION_TEXT_LENGTH} characters`);
+    const trimmedText = requireText(args.text, MAX_ACTION_TEXT_LENGTH, 'Action text');
 
     // Get the highest order number for this dream
     const existingActions = await ctx.db
@@ -104,7 +143,11 @@ export const create = mutation({
 
 // Toggle action completion
 export const toggle = mutation({
-  args: { id: v.id('actions') },
+  args: {
+    id: v.id('actions'),
+    timezoneOffsetMinutes: v.optional(v.number()),
+    timezone: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
 
@@ -124,58 +167,64 @@ export const toggle = mutation({
       completedAt: newIsCompleted ? Date.now() : undefined,
     });
 
-    // Update user progress
-    const progress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
-
-    const today = getTodayString();
-    const yesterday = getYesterdayString();
     const xpReward = XP_REWARDS.actionComplete;
 
     if (newIsCompleted) {
-      if (progress) {
-        const newStreak = calculateStreak(
-          progress.currentStreak,
-          progress.lastActiveDate,
-          today,
-          yesterday
-        );
-        const newXp = progress.totalXp + xpReward;
+      const { streakMilestone } = await awardXp(ctx, userId, xpReward, {
+        incrementActions: 1,
+        timezone: args.timezone ?? 'UTC',
+      });
 
-        await ctx.db.patch(progress._id, {
-          totalXp: newXp,
-          level: getLevelFromXp(newXp).level,
-          actionsCompleted: progress.actionsCompleted + 1,
-          currentStreak: newStreak,
-          longestStreak: Math.max(progress.longestStreak, newStreak),
-          lastActiveDate: today,
-        });
-      } else {
-        await ctx.db.insert('userProgress', {
-          userId,
-          totalXp: xpReward,
-          level: getLevelFromXp(xpReward).level,
-          currentStreak: 1,
-          longestStreak: 1,
-          lastActiveDate: today,
-          dreamsCompleted: 0,
-          actionsCompleted: 1,
-        });
+      // Badge checks — accumulate XP, apply in a single patch at the end
+      let newBadge = null;
+      let badgeXp = 0;
+      const now = Date.now();
+
+      // Check early bird / night owl (use client timezone if provided)
+      const localHour = getLocalHour(now, args.timezoneOffsetMinutes ?? 0);
+      if (isEarlyBird(localHour)) {
+        const result = await checkAndAwardBadge(ctx, userId, 'early_bird');
+        badgeXp += result.xpAwarded;
+        if (result.awarded) newBadge = result.badge;
+      }
+      if (isNightOwl(localHour)) {
+        const result = await checkAndAwardBadge(ctx, userId, 'night_owl');
+        badgeXp += result.xpAwarded;
+        if (result.awarded) newBadge = result.badge;
       }
 
-      return { xpAwarded: xpReward, completed: true };
+      // Check permission granted (first action within 24h of dream creation)
+      if (dream && now - dream.createdAt < PERMISSION_GRANTED_WINDOW_MS) {
+        const result = await checkAndAwardBadge(ctx, userId, 'permission_granted');
+        badgeXp += result.xpAwarded;
+        if (result.awarded) newBadge = result.badge;
+      }
+
+      // Check laser focused (10 actions on one dream in 7 days)
+      const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+      const recentDreamActions = await ctx.db
+        .query('actions')
+        .withIndex('by_dream', (q) => q.eq('dreamId', action.dreamId))
+        .filter((q) =>
+          q.and(
+            q.eq(q.field('isCompleted'), true),
+            q.gte(q.field('completedAt'), sevenDaysAgo)
+          )
+        )
+        .collect();
+      if (recentDreamActions.length >= LASER_FOCUSED_THRESHOLD) {
+        const result = await checkAndAwardBadge(ctx, userId, 'laser_focused');
+        badgeXp += result.xpAwarded;
+        if (result.awarded) newBadge = result.badge;
+      }
+
+      // Single patch for all badge XP
+      await applyBadgeXp(ctx, userId, badgeXp);
+
+      return { xpAwarded: xpReward + badgeXp, completed: true, newBadge, streakMilestone };
     } else {
       // Deduct XP if uncompleting (minimum 0, don't update streak)
-      if (progress && progress.totalXp > 0) {
-        const newXp = Math.max(0, progress.totalXp - xpReward);
-        await ctx.db.patch(progress._id, {
-          totalXp: newXp,
-          level: getLevelFromXp(newXp).level,
-          actionsCompleted: Math.max(0, progress.actionsCompleted - 1),
-        });
-      }
+      await deductXp(ctx, userId, xpReward, { decrementActions: 1 });
 
       return { xpAwarded: -xpReward, completed: false };
     }
@@ -195,38 +244,9 @@ export const update = mutation({
     if (!action) throw new Error('Action not found');
     if (action.userId !== userId) throw new Error('Forbidden');
 
-    const trimmedText = args.text.trim();
-    if (trimmedText.length === 0) throw new Error('Action text cannot be empty');
-    if (trimmedText.length > MAX_ACTION_TEXT_LENGTH)
-      throw new Error(`Action text cannot exceed ${MAX_ACTION_TEXT_LENGTH} characters`);
+    const trimmedText = requireText(args.text, MAX_ACTION_TEXT_LENGTH, 'Action text');
 
     await ctx.db.patch(args.id, { text: trimmedText });
-  },
-});
-
-// Reorder actions
-export const reorder = mutation({
-  args: {
-    dreamId: v.id('dreams'),
-    actionIds: v.array(v.id('actions')),
-  },
-  handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-
-    const dream = await ctx.db.get(args.dreamId);
-    if (!dream) throw new Error('Dream not found');
-    if (dream.userId !== userId) throw new Error('Forbidden');
-
-    if (args.actionIds.length > 100) throw new Error('Too many actions');
-
-    await Promise.all(
-      args.actionIds.map(async (actionId, i) => {
-        const action = await ctx.db.get(actionId);
-        if (action && action.userId === userId && action.dreamId === args.dreamId) {
-          await ctx.db.patch(actionId, { order: i });
-        }
-      })
-    );
   },
 });
 
@@ -242,19 +262,7 @@ export const remove = mutation({
 
     // Deduct XP if the action was completed
     if (action.isCompleted) {
-      const progress = await ctx.db
-        .query('userProgress')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .first();
-
-      if (progress) {
-        const newXp = Math.max(0, progress.totalXp - XP_REWARDS.actionComplete);
-        await ctx.db.patch(progress._id, {
-          totalXp: newXp,
-          level: getLevelFromXp(newXp).level,
-          actionsCompleted: Math.max(0, progress.actionsCompleted - 1),
-        });
-      }
+      await deductXp(ctx, userId, XP_REWARDS.actionComplete, { decrementActions: 1 });
     }
 
     await ctx.db.delete(args.id);

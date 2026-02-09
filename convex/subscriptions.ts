@@ -9,7 +9,7 @@ export const TIERS = {
 
 export type TierKey = keyof typeof TIERS;
 
-export const PREMIUM_ENTITLEMENT = 'premium';
+export const PREMIUM_ENTITLEMENT = 'DreamSeeker Premium';
 
 export const getSubscriptionStatus = query({
   args: {},

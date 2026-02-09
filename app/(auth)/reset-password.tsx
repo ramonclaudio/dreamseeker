@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { View, TextInput, Pressable, KeyboardAvoidingView, ScrollView } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 
 import { authClient } from "@/lib/auth-client";
 import { haptics } from "@/lib/haptics";
 import { useColors } from "@/hooks/use-color-scheme";
 import { authStyles as styles, getErrorStyles } from "@/constants/auth-styles";
+import { Spacing } from "@/constants/layout";
 import { ThemedText } from "@/components/ui/themed-text";
 
 export default function ResetPasswordScreen() {
@@ -121,6 +122,18 @@ export default function ResetPasswordScreen() {
             <ThemedText selectable style={getErrorStyles(colors).text}>
               {error}
             </ThemedText>
+            {(error.includes("expired") || error.includes("Invalid reset link")) && (
+              <Link href="/forgot-password" asChild>
+                <Pressable
+                  style={[styles.linkTouchTarget, { alignSelf: "center", marginTop: Spacing.sm }]}
+                  accessibilityRole="link"
+                  accessibilityLabel="Request a new link"
+                  accessibilityHint="Navigate to forgot password to request a new reset link"
+                >
+                  <ThemedText style={styles.linkText}>Request a new link</ThemedText>
+                </Pressable>
+              </Link>
+            )}
           </View>
         )}
 
@@ -193,6 +206,21 @@ export default function ResetPasswordScreen() {
               {isLoading ? "Resetting..." : "Reset Password"}
             </ThemedText>
           </Pressable>
+        </View>
+
+        <View style={styles.footer}>
+          <Link href="/sign-in" asChild>
+            <Pressable
+              style={styles.linkTouchTarget}
+              accessibilityRole="link"
+              accessibilityLabel="Back to sign in"
+              accessibilityHint="Navigate back to sign in screen"
+            >
+              <ThemedText style={styles.linkText} color={colors.mutedForeground}>
+                Back to Sign In
+              </ThemedText>
+            </Pressable>
+          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

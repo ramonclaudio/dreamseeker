@@ -2,8 +2,12 @@ import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Id, Doc } from './_generated/dataModel';
 import { authComponent } from './auth';
 import { XP_REWARDS, getLevelFromXp } from './constants';
+import { computeStreakUpdate } from './streak';
 import { TIERS, PREMIUM_ENTITLEMENT } from './subscriptions';
 import { hasEntitlement } from './revenuecat';
+import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
+import { getTodayString, getYesterdayString } from './dates';
+import { calculateArchiveXpDeduction, calculateRestoreXpGain } from './dreamGuards';
 
 // ── Auth Guards ─────────────────────────────────────────────────────────────
 
@@ -23,27 +27,122 @@ export const getOwnedDream = async (ctx: MutationCtx, id: Id<'dreams'>, userId: 
   return dream;
 };
 
-// ── Date Utilities ──────────────────────────────────────────────────────────
+// ── Progress Retrieval ──────────────────────────────────────────────────────
 
-export const getTodayString = () => new Date().toISOString().split('T')[0];
+async function getOrCreateProgress(
+  ctx: MutationCtx,
+  userId: string,
+  opts: {
+    xpReward: number;
+    skipStreak?: boolean;
+    incrementActions?: number;
+    incrementDreams?: number;
+    timezone: string;
+  }
+): Promise<{ existing: Doc<'userProgress'>; today: string; yesterday: string } | { created: true; newStreak: number; xpAwarded: number }> {
+  const progress = await ctx.db
+    .query('userProgress')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
 
-export function getYesterdayString() {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split('T')[0];
+  if (progress) {
+    return {
+      existing: progress,
+      today: getTodayString(opts.timezone),
+      yesterday: getYesterdayString(opts.timezone),
+    };
+  }
+
+  const newStreak = opts.skipStreak ? 0 : 1;
+  await ctx.db.insert('userProgress', {
+    ...createDefaultProgress(userId, {
+      totalXp: opts.xpReward,
+      level: getLevelFromXp(opts.xpReward).level,
+      currentStreak: newStreak,
+      longestStreak: newStreak,
+      actionsCompleted: opts.incrementActions ?? 0,
+      dreamsCompleted: opts.incrementDreams ?? 0,
+      timezone: opts.timezone,
+    }),
+  });
+
+  return { created: true, newStreak, xpAwarded: opts.xpReward };
 }
 
-// ── Streak Calculation ──────────────────────────────────────────────────────
+// ── XP Award ────────────────────────────────────────────────────────────────
 
-export function calculateStreak(
-  currentStreak: number,
-  lastActiveDate: string,
-  today: string,
-  yesterday: string
-): number {
-  if (lastActiveDate === today) return currentStreak; // Already active today
-  if (lastActiveDate === yesterday) return currentStreak + 1; // Consecutive day
-  return 1; // Streak broken, start fresh
+const ON_FIRE_STREAK_THRESHOLD = 7;
+
+/**
+ * Consolidated XP/streak/progress handler. All XP-granting mutations
+ * should use this instead of duplicating get-or-create + streak + milestone logic.
+ *
+ * Handles streak milestones and the on_fire badge (7-day streak) in a single
+ * db.patch call to avoid OCC double-patch issues.
+ */
+export async function awardXp(
+  ctx: MutationCtx,
+  userId: string,
+  xpReward: number,
+  opts?: {
+    skipStreak?: boolean;
+    incrementActions?: number;
+    incrementDreams?: number;
+    timezone?: string;
+  }
+): Promise<{
+  xpAwarded: number;
+  newStreak: number;
+  streakMilestone: { streak: number; xpReward: number } | null;
+}> {
+  const tz = opts?.timezone ?? 'UTC';
+  const result = await getOrCreateProgress(ctx, userId, {
+    xpReward,
+    skipStreak: opts?.skipStreak,
+    incrementActions: opts?.incrementActions,
+    incrementDreams: opts?.incrementDreams,
+    timezone: tz,
+  });
+
+  if ('created' in result) {
+    return { xpAwarded: result.xpAwarded, newStreak: result.newStreak, streakMilestone: null };
+  }
+
+  const { existing: progress, today, yesterday } = result;
+  const skipStreak = opts?.skipStreak ?? false;
+
+  const streak = computeStreakUpdate(progress, today, yesterday, skipStreak);
+  const newXp = progress.totalXp + xpReward + streak.milestoneXp;
+
+  const patch: Record<string, unknown> = {
+    ...streak.patch,
+    totalXp: newXp,
+    level: getLevelFromXp(newXp).level,
+    lastActiveDate: today,
+  };
+
+  if (opts?.incrementActions) {
+    patch.actionsCompleted = progress.actionsCompleted + opts.incrementActions;
+  }
+  if (opts?.incrementDreams) {
+    patch.dreamsCompleted = progress.dreamsCompleted + opts.incrementDreams;
+  }
+
+  await ctx.db.patch(progress._id, patch);
+
+  // Centralized on_fire badge check
+  let badgeXp = 0;
+  if (!skipStreak && streak.newStreak >= ON_FIRE_STREAK_THRESHOLD) {
+    const badgeResult = await checkAndAwardBadge(ctx, userId, 'on_fire');
+    badgeXp += badgeResult.xpAwarded;
+  }
+  await applyBadgeXp(ctx, userId, badgeXp);
+
+  return {
+    xpAwarded: xpReward + streak.milestoneXp + badgeXp,
+    newStreak: streak.newStreak,
+    streakMilestone: streak.streakMilestone,
+  };
 }
 
 // ── Progress Utilities ──────────────────────────────────────────────────────
@@ -57,6 +156,7 @@ export function createDefaultProgress(
     longestStreak?: number;
     dreamsCompleted?: number;
     actionsCompleted?: number;
+    timezone?: string;
   }
 ) {
   return {
@@ -65,7 +165,7 @@ export function createDefaultProgress(
     level: overrides?.level ?? 1,
     currentStreak: overrides?.currentStreak ?? 0,
     longestStreak: overrides?.longestStreak ?? 0,
-    lastActiveDate: getTodayString(),
+    lastActiveDate: getTodayString(overrides?.timezone ?? 'UTC'),
     dreamsCompleted: overrides?.dreamsCompleted ?? 0,
     actionsCompleted: overrides?.actionsCompleted ?? 0,
   };
@@ -95,6 +195,36 @@ export async function assertDreamLimit(ctx: MutationCtx, userId: string) {
 }
 
 /**
+ * Deduct XP from a user's progress. Clamps to 0.
+ * Optionally decrements actionsCompleted / dreamsCompleted.
+ */
+export async function deductXp(
+  ctx: MutationCtx,
+  userId: string,
+  amount: number,
+  opts?: { decrementActions?: number; decrementDreams?: number }
+) {
+  const progress = await ctx.db
+    .query('userProgress')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
+  if (!progress || amount <= 0) return;
+
+  const newXp = Math.max(0, progress.totalXp - amount);
+  const patch: Record<string, unknown> = {
+    totalXp: newXp,
+    level: getLevelFromXp(newXp).level,
+  };
+  if (opts?.decrementActions) {
+    patch.actionsCompleted = Math.max(0, progress.actionsCompleted - opts.decrementActions);
+  }
+  if (opts?.decrementDreams) {
+    patch.dreamsCompleted = Math.max(0, progress.dreamsCompleted - opts.decrementDreams);
+  }
+  await ctx.db.patch(progress._id, patch);
+}
+
+/**
  * Deduct XP for a dream and its completed actions.
  */
 export async function deductDreamXp(
@@ -104,27 +234,13 @@ export async function deductDreamXp(
   actions: Doc<'actions'>[]
 ) {
   const completedActionsCount = actions.filter((a) => a.isCompleted).length;
+  const xpToDeduct = calculateArchiveXpDeduction(completedActionsCount, dream.status as 'active' | 'completed' | 'archived');
+  const dreamsToDeduct = dream.status === 'completed' ? 1 : 0;
 
-  let xpToDeduct = completedActionsCount * XP_REWARDS.actionComplete;
-  let dreamsToDeduct = 0;
-
-  if (dream.status === 'completed') {
-    xpToDeduct += XP_REWARDS.dreamComplete;
-    dreamsToDeduct = 1;
-  }
-
-  const progress = await ctx.db
-    .query('userProgress')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
-    .first();
-
-  if (progress && xpToDeduct > 0) {
-    const newXp = Math.max(0, progress.totalXp - xpToDeduct);
-    await ctx.db.patch(progress._id, {
-      totalXp: newXp,
-      level: getLevelFromXp(newXp).level,
-      actionsCompleted: Math.max(0, progress.actionsCompleted - completedActionsCount),
-      dreamsCompleted: Math.max(0, progress.dreamsCompleted - dreamsToDeduct),
+  if (xpToDeduct > 0) {
+    await deductXp(ctx, userId, xpToDeduct, {
+      decrementActions: completedActionsCount,
+      decrementDreams: dreamsToDeduct,
     });
   }
 
@@ -141,14 +257,8 @@ export async function restoreDreamXp(
   actions: Doc<'actions'>[]
 ) {
   const completedActionsCount = actions.filter((a) => a.isCompleted).length;
-
-  let xpToRestore = completedActionsCount * XP_REWARDS.actionComplete;
-  let dreamsToRestore = 0;
-
-  if (dream.completedAt) {
-    xpToRestore += XP_REWARDS.dreamComplete;
-    dreamsToRestore = 1;
-  }
+  const xpToRestore = calculateRestoreXpGain(completedActionsCount, !!dream.completedAt);
+  const dreamsToRestore = dream.completedAt ? 1 : 0;
 
   const progress = await ctx.db
     .query('userProgress')

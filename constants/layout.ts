@@ -1,5 +1,3 @@
-import { I18nManager } from "react-native";
-
 // Spacing scale (4pt base) - use for padding, margin, gap
 export const Spacing = {
   xxs: 2,
@@ -66,6 +64,9 @@ export const Breakpoint = {
   desktop: 1024, // iPad Pro 11" width
 } as const;
 
+// Floating tab bar clearance
+export const TAB_BAR_HEIGHT = 80;
+
 // Icon sizes
 export const IconSize = {
   sm: 14,
@@ -78,6 +79,3 @@ export const IconSize = {
   "5xl": 48,
   "6xl": 64,
 } as const;
-
-// RTL support
-export const isRTL = I18nManager.isRTL;

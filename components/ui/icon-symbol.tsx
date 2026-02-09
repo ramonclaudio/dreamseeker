@@ -30,10 +30,10 @@ const ANDROID_MAPPING = {
   "camera.fill": "camera",
   "photo.fill": "image",
   "xmark.circle.fill": "close-circle",
+  star: "star-outline",
   "star.fill": "star",
   sparkles: "auto-fix",
   gift: "gift",
-  "clock.arrow.circlepath": "history",
   "paintpalette.fill": "palette",
   "square.and.arrow.up": "share-variant",
   "bell.fill": "bell",
@@ -48,6 +48,8 @@ const ANDROID_MAPPING = {
   "envelope.fill": "email",
   "envelope.badge": "email-alert",
   "exclamationmark.bubble.fill": "alert-circle",
+  "exclamationmark.triangle": "alert",
+  "exclamationmark.triangle.fill": "alert",
   "creditcard.fill": "credit-card",
   "map.fill": "map-marker",
   "safari.fill": "compass",
@@ -78,6 +80,20 @@ const ANDROID_MAPPING = {
   "plus.circle.fill": "plus-circle",
   "circle.fill": "circle",
   circle: "circle-outline",
+  // Onboarding personality/motivation icons
+  "list.bullet": "format-list-bulleted",
+  "person.2.fill": "account-group",
+  "figure.walk": "walk",
+  // Journal icons
+  "book.fill": "book-open-variant",
+  book: "book-open-outline",
+  "square.and.pencil": "square-edit-outline",
+  // Focus timer & streak milestone icons
+  timer: "timer-outline",
+  "diamond.fill": "diamond-stone",
+  "crown.fill": "crown",
+  // Additional icons
+  "arrow.clockwise": "refresh",
 } as const;
 
 export type IconSymbolName = keyof typeof ANDROID_MAPPING;

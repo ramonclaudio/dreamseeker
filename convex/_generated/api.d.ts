@@ -10,24 +10,38 @@
 
 import type * as actions from "../actions.js";
 import type * as auth from "../auth.js";
+import type * as badgeChecks from "../badgeChecks.js";
+import type * as badges from "../badges.js";
 import type * as challenges from "../challenges.js";
+import type * as checkIns from "../checkIns.js";
 import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
+import type * as dates from "../dates.js";
+import type * as dreamGuards from "../dreamGuards.js";
+import type * as dreamLifecycle from "../dreamLifecycle.js";
 import type * as dreams from "../dreams.js";
 import type * as email from "../email.js";
-import type * as email_templates from "../email_templates.js";
+import type * as emailTemplates from "../emailTemplates.js";
 import type * as env from "../env.js";
+import type * as focusSessions from "../focusSessions.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
+import type * as journal from "../journal.js";
+import type * as journalPrompts from "../journalPrompts.js";
 import type * as mindset from "../mindset.js";
 import type * as notifications from "../notifications.js";
+import type * as notificationsReceipts from "../notificationsReceipts.js";
+import type * as notificationsSend from "../notificationsSend.js";
+import type * as notificationsTokens from "../notificationsTokens.js";
 import type * as progress from "../progress.js";
 import type * as revenuecat from "../revenuecat.js";
 import type * as seed from "../seed.js";
 import type * as storage from "../storage.js";
+import type * as streak from "../streak.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as userPreferences from "../userPreferences.js";
 import type * as users from "../users.js";
+import type * as validation from "../validation.js";
 
 import type {
   ApiFromModules,
@@ -38,24 +52,38 @@ import type {
 declare const fullApi: ApiFromModules<{
   actions: typeof actions;
   auth: typeof auth;
+  badgeChecks: typeof badgeChecks;
+  badges: typeof badges;
   challenges: typeof challenges;
+  checkIns: typeof checkIns;
   constants: typeof constants;
   crons: typeof crons;
+  dates: typeof dates;
+  dreamGuards: typeof dreamGuards;
+  dreamLifecycle: typeof dreamLifecycle;
   dreams: typeof dreams;
   email: typeof email;
-  email_templates: typeof email_templates;
+  emailTemplates: typeof emailTemplates;
   env: typeof env;
+  focusSessions: typeof focusSessions;
   helpers: typeof helpers;
   http: typeof http;
+  journal: typeof journal;
+  journalPrompts: typeof journalPrompts;
   mindset: typeof mindset;
   notifications: typeof notifications;
+  notificationsReceipts: typeof notificationsReceipts;
+  notificationsSend: typeof notificationsSend;
+  notificationsTokens: typeof notificationsTokens;
   progress: typeof progress;
   revenuecat: typeof revenuecat;
   seed: typeof seed;
   storage: typeof storage;
+  streak: typeof streak;
   subscriptions: typeof subscriptions;
   userPreferences: typeof userPreferences;
   users: typeof users;
+  validation: typeof validation;
 }>;
 
 /**

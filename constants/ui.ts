@@ -1,4 +1,4 @@
-// UI Constants - Opacity, Shadow, Z-Index, Animation, Sizes
+// UI Constants - Opacity, Z-Index, Animation, Sizes
 
 // Opacity values for interactive states
 export const Opacity = {
@@ -6,26 +6,6 @@ export const Opacity = {
   active: 0.8,
   disabled: 0.5,
   muted: 0.6,
-} as const;
-
-// Material blur intensities (HIG: use for content layer, NOT Liquid Glass)
-// Liquid Glass is reserved for controls/navigation only
-export const Material = {
-  ultraThin: 20, // Most translucent - full-screen views, light scheme
-  thin: 40, // More translucent - overlay views, light scheme
-  regular: 60, // Default - overlay views, balanced
-  thick: 80, // More opaque - overlay views, dark scheme
-  ultraThick: 95, // Mostly opaque - heavy blur
-  bar: 50, // System toolbars
-} as const;
-
-export type MaterialLevel = keyof typeof Material;
-
-// Box shadow patterns
-export const Shadow = {
-  sm: '0 1px 2px',
-  md: '0 2px 4px',
-  lg: '0 4px 8px',
 } as const;
 
 // Z-index layering
@@ -69,25 +49,10 @@ export const Responsive = {
     maxHeight: 300,
     screenRatio: 0.25,
   },
-  heroImage: {
-    maxWidth: 290,
-    aspectRatio: 178 / 290,
-    screenRatio: 0.7,
-  },
-  exploreIcon: {
-    minSize: 250,
-    maxSize: 350,
-    screenRatio: 0.7,
-    offsetBottomRatio: 0.29,
-    offsetLeftRatio: 0.11,
-  },
   avatar: {
     phone: 100,
     tablet: 110,
     desktop: 120,
-  },
-  reactLogo: {
-    size: 100,
   },
 } as const;
 
@@ -97,11 +62,7 @@ export const Confetti = {
   originY: -20,
   fallSpeed: 3000,
   explosionSpeed: 400,
-} as const;
-
-// Keyboard configuration
-export const Keyboard = {
-  verticalOffset: 100,
+  colors: ['#c7d1dd', '#a8b5c4', '#7b8d9e', '#c4a84c', '#6b9670'],
 } as const;
 
 // Accessibility
@@ -109,7 +70,3 @@ export const Accessibility = {
   maxFontSizeMultiplier: 2,
 } as const;
 
-// Empty state padding
-export const EmptyState = {
-  paddingVertical: 60,
-} as const;

@@ -3,9 +3,9 @@ import { useQuery } from 'convex/react';
 import Purchases from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import { api } from '@/convex/_generated/api';
-import type { TierKey } from '@/convex/subscriptions';
+import { PREMIUM_ENTITLEMENT, type TierKey } from '@/convex/subscriptions';
 
-export interface UseSubscriptionResult {
+interface UseSubscriptionResult {
   tier: TierKey;
   isPremium: boolean;
   dreamLimit: number | null;
@@ -14,8 +14,8 @@ export interface UseSubscriptionResult {
   dreamsRemaining: number | null;
   isLoading: boolean;
   showUpgrade: () => Promise<boolean>;
-  restore: () => Promise<boolean>;
-  manageBilling: () => Promise<void>;
+  showCustomerCenter: () => Promise<void>;
+  restorePurchases: () => Promise<boolean>;
 }
 
 export function useSubscription(): UseSubscriptionResult {
@@ -24,7 +24,7 @@ export function useSubscription(): UseSubscriptionResult {
   const showUpgrade = useCallback(async (): Promise<boolean> => {
     try {
       const result = await RevenueCatUI.presentPaywallIfNeeded({
-        requiredEntitlementIdentifier: 'premium',
+        requiredEntitlementIdentifier: PREMIUM_ENTITLEMENT,
       });
 
       if (__DEV__) {
@@ -38,10 +38,10 @@ export function useSubscription(): UseSubscriptionResult {
     }
   }, []);
 
-  const restore = useCallback(async (): Promise<boolean> => {
+  const restorePurchases = useCallback(async (): Promise<boolean> => {
     try {
       const customerInfo = await Purchases.restorePurchases();
-      const hasPremium = 'premium' in customerInfo.entitlements.active;
+      const hasPremium = PREMIUM_ENTITLEMENT in customerInfo.entitlements.active;
 
       if (__DEV__) {
         console.log('[Subscription] Restore complete, premium:', hasPremium);
@@ -66,16 +66,24 @@ export function useSubscription(): UseSubscriptionResult {
     }
   }, []);
 
+  const showCustomerCenter = useCallback(async (): Promise<void> => {
+    try {
+      await RevenueCatUI.presentCustomerCenter();
+    } catch (error) {
+      if (__DEV__) console.error('[Subscription] Customer center error:', error);
+    }
+  }, []);
+
   return {
     tier: status?.tier ?? 'free',
     isPremium: status?.isPremium ?? false,
     dreamLimit: status?.dreamLimit ?? 3,
     dreamCount: status?.dreamCount ?? 0,
-    canCreateDream: status?.canCreateDream ?? false,
+    canCreateDream: status?.canCreateDream ?? true,
     dreamsRemaining: status?.dreamsRemaining ?? null,
     isLoading: status === undefined,
     showUpgrade,
-    restore,
-    manageBilling,
+    showCustomerCenter,
+    restorePurchases,
   };
 }
