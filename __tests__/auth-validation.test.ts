@@ -1,94 +1,130 @@
-describe('Auth Validation', () => {
-  describe('Password validation', () => {
-    const MIN_PASSWORD_LENGTH = 10;
-    const MAX_PASSWORD_LENGTH = 128;
+/**
+ * Auth validation tests.
+ *
+ * Tests the REAL validation functions from convex/validation.ts —
+ * the same functions used by sign-up.tsx and backend mutations.
+ */
+import {
+  validatePassword,
+  validateUsername,
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH,
+  MAX_USERNAME_LENGTH,
+  USERNAME_REGEX,
+} from '../convex/validation';
 
-    const isValidPassword = (password: string): boolean => {
-      return password.length >= MIN_PASSWORD_LENGTH && password.length <= MAX_PASSWORD_LENGTH;
-    };
+// ── validatePassword ────────────────────────────────────────────────────────
 
-    it('rejects passwords shorter than 10 characters', () => {
-      expect(isValidPassword('')).toBe(false);
-      expect(isValidPassword('short')).toBe(false);
-      expect(isValidPassword('123456789')).toBe(false);
-    });
-
-    it('accepts passwords with 10+ characters', () => {
-      expect(isValidPassword('1234567890')).toBe(true);
-      expect(isValidPassword('validPassword123')).toBe(true);
-      expect(isValidPassword('a'.repeat(10))).toBe(true);
-    });
-
-    it('rejects passwords longer than 128 characters', () => {
-      expect(isValidPassword('a'.repeat(129))).toBe(false);
-      expect(isValidPassword('a'.repeat(200))).toBe(false);
-    });
-
-    it('accepts passwords at exactly max length', () => {
-      expect(isValidPassword('a'.repeat(128))).toBe(true);
-    });
+describe('validatePassword', () => {
+  it('rejects empty password', () => {
+    expect(validatePassword('').valid).toBe(false);
   });
 
-  describe('Username validation', () => {
-    const MIN_USERNAME_LENGTH = 3;
-    const MAX_USERNAME_LENGTH = 20;
-    const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
-
-    const isValidUsername = (username: string): { valid: boolean; error?: string } => {
-      if (username.length < MIN_USERNAME_LENGTH) {
-        return { valid: false, error: 'Username must be at least 3 characters' };
-      }
-      if (username.length > MAX_USERNAME_LENGTH) {
-        return { valid: false, error: 'Username must be at most 20 characters' };
-      }
-      if (!USERNAME_REGEX.test(username)) {
-        return { valid: false, error: 'Username can only contain letters, numbers, underscores, and hyphens' };
-      }
-      return { valid: true };
-    };
-
-    it('rejects usernames shorter than 3 characters', () => {
-      expect(isValidUsername('').valid).toBe(false);
-      expect(isValidUsername('a').valid).toBe(false);
-      expect(isValidUsername('ab').valid).toBe(false);
-    });
-
-    it('accepts usernames with 3-20 characters', () => {
-      expect(isValidUsername('abc').valid).toBe(true);
-      expect(isValidUsername('user123').valid).toBe(true);
-      expect(isValidUsername('a'.repeat(20)).valid).toBe(true);
-    });
-
-    it('rejects usernames longer than 20 characters', () => {
-      expect(isValidUsername('a'.repeat(21)).valid).toBe(false);
-    });
-
-    it('accepts valid characters', () => {
-      expect(isValidUsername('user_name').valid).toBe(true);
-      expect(isValidUsername('user-name').valid).toBe(true);
-      expect(isValidUsername('User123').valid).toBe(true);
-      expect(isValidUsername('_underscore_').valid).toBe(true);
-    });
-
-    it('rejects invalid characters', () => {
-      expect(isValidUsername('user name').valid).toBe(false);
-      expect(isValidUsername('user@name').valid).toBe(false);
-      expect(isValidUsername('user.name').valid).toBe(false);
-      expect(isValidUsername('user!name').valid).toBe(false);
-    });
+  it('rejects passwords shorter than MIN_PASSWORD_LENGTH', () => {
+    expect(validatePassword('short').valid).toBe(false);
+    expect(validatePassword('a'.repeat(MIN_PASSWORD_LENGTH - 1)).valid).toBe(false);
   });
 
-  describe('Email validation', () => {
-    const isEmail = (str: string): boolean => str.includes('@');
+  it('accepts passwords at exactly MIN_PASSWORD_LENGTH', () => {
+    expect(validatePassword('a'.repeat(MIN_PASSWORD_LENGTH)).valid).toBe(true);
+  });
 
-    it('identifies email addresses', () => {
-      expect(isEmail('user@example.com')).toBe(true);
-      expect(isEmail('test@test.co')).toBe(true);
-    });
+  it('accepts passwords within valid range', () => {
+    expect(validatePassword('validPassword123').valid).toBe(true);
+    expect(validatePassword('a'.repeat(50)).valid).toBe(true);
+  });
 
-    it('identifies non-email identifiers', () => {
-      expect(isEmail('username')).toBe(false);
-      expect(isEmail('john_doe')).toBe(false);
-    });
+  it('accepts passwords at exactly MAX_PASSWORD_LENGTH', () => {
+    expect(validatePassword('a'.repeat(MAX_PASSWORD_LENGTH)).valid).toBe(true);
+  });
+
+  it('rejects passwords exceeding MAX_PASSWORD_LENGTH', () => {
+    expect(validatePassword('a'.repeat(MAX_PASSWORD_LENGTH + 1)).valid).toBe(false);
+  });
+
+  it('returns descriptive error for too-short password', () => {
+    const result = validatePassword('short');
+    expect(result.error).toContain(`${MIN_PASSWORD_LENGTH}`);
+  });
+
+  it('returns descriptive error for too-long password', () => {
+    const result = validatePassword('a'.repeat(MAX_PASSWORD_LENGTH + 1));
+    expect(result.error).toContain(`${MAX_PASSWORD_LENGTH}`);
+  });
+});
+
+// ── validateUsername ─────────────────────────────────────────────────────────
+
+describe('validateUsername', () => {
+  it('rejects empty username', () => {
+    expect(validateUsername('').valid).toBe(false);
+  });
+
+  it('rejects usernames shorter than MIN_USERNAME_LENGTH', () => {
+    expect(validateUsername('a').valid).toBe(false);
+    expect(validateUsername('ab').valid).toBe(false);
+  });
+
+  it('accepts usernames at exactly MIN_USERNAME_LENGTH', () => {
+    expect(validateUsername('abc').valid).toBe(true);
+  });
+
+  it('accepts valid usernames within range', () => {
+    expect(validateUsername('user123').valid).toBe(true);
+    expect(validateUsername('a'.repeat(MAX_USERNAME_LENGTH)).valid).toBe(true);
+  });
+
+  it('rejects usernames exceeding MAX_USERNAME_LENGTH', () => {
+    expect(validateUsername('a'.repeat(MAX_USERNAME_LENGTH + 1)).valid).toBe(false);
+  });
+
+  it('accepts underscores and hyphens', () => {
+    expect(validateUsername('user_name').valid).toBe(true);
+    expect(validateUsername('user-name').valid).toBe(true);
+    expect(validateUsername('_under_').valid).toBe(true);
+  });
+
+  it('rejects spaces', () => {
+    expect(validateUsername('user name').valid).toBe(false);
+  });
+
+  it('rejects special characters', () => {
+    expect(validateUsername('user@name').valid).toBe(false);
+    expect(validateUsername('user.name').valid).toBe(false);
+    expect(validateUsername('user!name').valid).toBe(false);
+    expect(validateUsername('user#name').valid).toBe(false);
+  });
+
+  it('returns descriptive error for invalid characters', () => {
+    const result = validateUsername('user@name');
+    expect(result.error).toContain('letters, numbers, underscores, and hyphens');
+  });
+});
+
+// ── Constants integrity ────────────────────────────────────────────────────
+
+describe('Auth validation constants', () => {
+  it('MIN_PASSWORD_LENGTH is 10', () => {
+    expect(MIN_PASSWORD_LENGTH).toBe(10);
+  });
+
+  it('MAX_PASSWORD_LENGTH is 128', () => {
+    expect(MAX_PASSWORD_LENGTH).toBe(128);
+  });
+
+  it('MIN_USERNAME_LENGTH is 3', () => {
+    expect(MIN_USERNAME_LENGTH).toBe(3);
+  });
+
+  it('MAX_USERNAME_LENGTH is 20', () => {
+    expect(MAX_USERNAME_LENGTH).toBe(20);
+  });
+
+  it('USERNAME_REGEX matches expected pattern', () => {
+    expect(USERNAME_REGEX.test('abc123')).toBe(true);
+    expect(USERNAME_REGEX.test('a_b-c')).toBe(true);
+    expect(USERNAME_REGEX.test('a b')).toBe(false);
+    expect(USERNAME_REGEX.test('a@b')).toBe(false);
   });
 });
