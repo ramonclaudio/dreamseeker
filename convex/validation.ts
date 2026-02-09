@@ -1,0 +1,87 @@
+/**
+ * Pure input validation helpers.
+ *
+ * Every mutation that validates user input should use these instead
+ * of inlining the same trim → empty → length pattern.
+ */
+
+/** Trim, reject empty, reject over maxLength. Returns trimmed string. */
+export function requireText(text: string, maxLength: number, fieldName: string): string {
+  const trimmed = text.trim();
+  if (trimmed.length === 0) throw new Error(`${fieldName} cannot be empty`);
+  if (trimmed.length > maxLength) throw new Error(`${fieldName} cannot exceed ${maxLength} characters`);
+  return trimmed;
+}
+
+/** Reject if truthy and over maxLength. No-op for empty/undefined. */
+export function checkLength(text: string | undefined, maxLength: number, fieldName: string): void {
+  if (text && text.length > maxLength) {
+    throw new Error(`${fieldName} cannot exceed ${maxLength} characters`);
+  }
+}
+
+/** Validate + clean tags array. Returns cleaned tags. */
+export function validateTags(tags: string[], maxCount: number, maxTagLength: number): string[] {
+  if (tags.length > maxCount) throw new Error(`Cannot have more than ${maxCount} tags`);
+  const cleaned = tags.map((t) => t.trim()).filter((t) => t.length > 0);
+  for (const tag of cleaned) {
+    if (tag.length > maxTagLength) throw new Error(`Tag cannot exceed ${maxTagLength} characters`);
+  }
+  return cleaned;
+}
+
+/** Validate Expo push token format and length. */
+export function validatePushToken(token: string): void {
+  if (token.length > 200) throw new Error('Invalid token');
+  if (!token.startsWith('ExponentPushToken[')) throw new Error('Invalid token format');
+}
+
+/** Trim and filter initial actions, cap count. Returns cleaned actions. */
+export function sanitizeActions(actions: string[], maxCount: number, maxTextLength: number): string[] {
+  if (actions.length > maxCount) throw new Error('Too many initial actions');
+  return actions
+    .map((text) => text.trim())
+    .filter((text) => text.length > 0 && text.length <= maxTextLength);
+}
+
+// ── Focus Session Validation ────────────────────────────────────────────────
+
+export const MIN_FOCUS_DURATION = 60; // 1 minute in seconds
+export const MAX_FOCUS_DURATION = 28800; // 8 hours in seconds
+
+export function validateFocusDuration(seconds: number): { valid: boolean; error?: string } {
+  if (seconds < MIN_FOCUS_DURATION) return { valid: false, error: 'Session must be at least 1 minute' };
+  if (seconds > MAX_FOCUS_DURATION) return { valid: false, error: 'Session cannot exceed 8 hours' };
+  return { valid: true };
+}
+
+// ── Auth Validation ─────────────────────────────────────────────────────────
+
+export const MIN_PASSWORD_LENGTH = 10;
+export const MAX_PASSWORD_LENGTH = 128;
+export const MIN_USERNAME_LENGTH = 3;
+export const MAX_USERNAME_LENGTH = 20;
+export const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+export function validatePassword(password: string): { valid: boolean; error?: string } {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { valid: false, error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` };
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { valid: false, error: `Password cannot exceed ${MAX_PASSWORD_LENGTH} characters` };
+  }
+  return { valid: true };
+}
+
+export function validateUsername(username: string): { valid: boolean; error?: string } {
+  if (username.length < MIN_USERNAME_LENGTH) {
+    return { valid: false, error: 'Username must be 3-20 characters' };
+  }
+  if (username.length > MAX_USERNAME_LENGTH) {
+    return { valid: false, error: 'Username must be 3-20 characters' };
+  }
+  if (!USERNAME_REGEX.test(username)) {
+    return { valid: false, error: 'Username can only contain letters, numbers, underscores, and hyphens' };
+  }
+  return { valid: true };
+}
