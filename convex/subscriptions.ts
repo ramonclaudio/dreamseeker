@@ -1,14 +1,8 @@
 import { authQuery } from './functions';
 import { hasEntitlement } from './revenuecat';
+import { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscription-constants';
 
-export const TIERS = {
-  free: { name: 'Free', limit: null }, // Unlimited dreams — premium gates community only
-  premium: { name: 'Premium', limit: null }, // Unlimited dreams + community access
-} as const;
-
-export type TierKey = keyof typeof TIERS;
-
-export const PREMIUM_ENTITLEMENT = 'DreamSeeker Premium';
+export { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscription-constants';
 
 export const getSubscriptionStatus = authQuery({
   args: {},
