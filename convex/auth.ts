@@ -25,7 +25,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
     apple: {
       clientId: env.apple.clientId,
       clientSecret: env.apple.clientSecret,
-      appBundleIdentifier: 'com.ramonclaudio.dreamseeker',
+      appBundleIdentifier: 'com.rmncldyo.dreamseeker',
     },
   },
   emailAndPassword: {

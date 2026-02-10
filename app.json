@@ -2,7 +2,7 @@
   "expo": {
     "name": "DreamSeeker",
     "slug": "dreamseeker",
-    "description": "Your dream coach. Set ambitious goals, build daily habits, and crush milestones with Gabby by your side.",
+    "description": "From dreaming to doing. Set ambitious goals, break them into daily micro-actions, and crush milestones with streaks, XP, and celebrations.",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ramonclaudio.dreamseeker",
+      "bundleIdentifier": "com.rmncldyo.dreamseeker",
       "appleTeamId": "SWH9LXWCC3",
       "buildNumber": "1",
       "icon": "./assets/images/dreamseeker-app-icon.icon",
