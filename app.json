@@ -109,6 +109,9 @@
     },
     "updates": {
       "url": "https://u.expo.dev/27495040-f0ab-4f2f-b207-72a0dbc118b6"
+    },
+    "android": {
+      "package": "com.rmncldyo.dreamseeker"
     }
   }
 }
