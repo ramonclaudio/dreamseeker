@@ -11,9 +11,9 @@ type GetStartedCard = {
 };
 
 const ALL_CARDS: GetStartedCard[] = [
-  { id: 'create-dream', title: 'Dream it', description: "What's calling you? Put it down.", action: '/(app)/create-dream' },
-  { id: 'add-action', title: 'Break it down', description: 'Big dreams need small steps', action: '' },
-  { id: 'complete-action', title: 'Make your first move', description: 'Momentum starts with one action', action: '/(app)/(tabs)/today' },
+  { id: 'create-dream', title: 'Dream it', description: 'Name what calls you', action: '/(app)/create-dream' },
+  { id: 'add-action', title: 'Break it down', description: 'Big dreams, small steps', action: '' },
+  { id: 'complete-action', title: 'Make your first move', description: 'Start your momentum', action: '/(app)/(tabs)/today' },
 ];
 
 export function useGetStarted() {

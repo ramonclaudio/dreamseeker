@@ -17,12 +17,8 @@ export function useAccessibilitySettings(): AccessibilitySettings {
   useEffect(() => {
     const fetchSettings = async () => {
       const [boldText, reduceTransparency] = await Promise.all([
-        process.env.EXPO_OS === "ios"
-          ? AccessibilityInfo.isBoldTextEnabled()
-          : Promise.resolve(false),
-        process.env.EXPO_OS === "ios"
-          ? AccessibilityInfo.isReduceTransparencyEnabled()
-          : Promise.resolve(false),
+        AccessibilityInfo.isBoldTextEnabled(),
+        AccessibilityInfo.isReduceTransparencyEnabled(),
       ]);
 
       setSettings({ boldText, reduceTransparency });
@@ -30,18 +26,14 @@ export function useAccessibilitySettings(): AccessibilitySettings {
 
     fetchSettings();
 
-    const subscriptions: ReturnType<typeof AccessibilityInfo.addEventListener>[] = [];
-
-    if (process.env.EXPO_OS === "ios") {
-      subscriptions.push(
-        AccessibilityInfo.addEventListener("boldTextChanged", (value) =>
-          setSettings((prev) => ({ ...prev, boldText: value })),
-        ),
-        AccessibilityInfo.addEventListener("reduceTransparencyChanged", (value) =>
-          setSettings((prev) => ({ ...prev, reduceTransparency: value })),
-        ),
-      );
-    }
+    const subscriptions = [
+      AccessibilityInfo.addEventListener("boldTextChanged", (value) =>
+        setSettings((prev) => ({ ...prev, boldText: value })),
+      ),
+      AccessibilityInfo.addEventListener("reduceTransparencyChanged", (value) =>
+        setSettings((prev) => ({ ...prev, reduceTransparency: value })),
+      ),
+    ];
 
     return () => subscriptions.forEach((sub) => sub.remove());
   }, []);

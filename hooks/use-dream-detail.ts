@@ -25,12 +25,20 @@ function confirmAction(
   ]);
 }
 
+export type BadgeInfo = {
+  key: string;
+  title: string;
+  description?: string;
+  icon?: string;
+};
+
 export function useDreamDetail(id: string) {
   const { isLoading: authLoading } = useConvexAuth();
   const [newActionText, setNewActionText] = useState("");
   const [isCompleting, setIsCompleting] = useState(false);
   const [showEditDream, setShowEditDream] = useState(false);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
+  const [newBadge, setNewBadge] = useState<BadgeInfo | null>(null);
 
   const dreamId = id as Id<"dreams">;
   const dream = useQuery(api.dreams.get, { id: dreamId });
@@ -38,9 +46,6 @@ export function useDreamDetail(id: string) {
     api.journal.listByDream,
     dream ? { dreamId } : "skip"
   );
-  const isHidden = useQuery(api.hiddenItems.isHidden, { itemId: dreamId });
-  const hideItem = useMutation(api.hiddenItems.hideItem);
-  const unhideItem = useMutation(api.hiddenItems.unhideItem);
 
   const createAction = useMutation(api.actions.create);
   const toggleAction = useMutation(api.actions.toggle);
@@ -52,19 +57,6 @@ export function useDreamDetail(id: string) {
   const reopenDream = useMutation(api.dreamLifecycle.reopen);
   const restoreDream = useMutation(api.dreamLifecycle.restore);
   const removeDream = useMutation(api.dreamLifecycle.remove);
-
-  const handleToggleVisibility = useCallback(async () => {
-    haptics.selection();
-    try {
-      if (isHidden) {
-        await unhideItem({ itemId: dreamId });
-      } else {
-        await hideItem({ itemType: 'dream', itemId: dreamId });
-      }
-    } catch {
-      haptics.error();
-    }
-  }, [isHidden, dreamId, hideItem, unhideItem]);
 
   const handleAddAction = async () => {
     if (!newActionText.trim() || !dream) return;
@@ -87,12 +79,13 @@ export function useDreamDetail(id: string) {
       haptics.selection();
 
       try {
-        await toggleAction({ id: actionId, timezoneOffsetMinutes: new Date().getTimezoneOffset(), timezone });
+        const result = await toggleAction({ id: actionId, timezoneOffsetMinutes: new Date().getTimezoneOffset(), timezone });
 
         // Add success haptic when completing (not uncompleting)
         if (!wasCompleted) {
           haptics.success();
         }
+        if (result?.newBadge) setNewBadge(result.newBadge);
       } catch {
         haptics.error();
       }
@@ -126,7 +119,7 @@ export function useDreamDetail(id: string) {
         "Are you sure? This will also deduct any XP earned from this action.",
         async () => {
           try {
-            await removeAction({ id: actionId });
+            await removeAction({ id: actionId, timezone });
             haptics.warning();
           } catch {
             haptics.error();
@@ -166,9 +159,10 @@ export function useDreamDetail(id: string) {
     const doComplete = async () => {
       setIsCompleting(true);
       try {
-        await completeDream({ id: dream._id });
+        const result = await completeDream({ id: dream._id });
         haptics.success();
-        router.replace(`/(app)/dream-complete/${dream._id}` as never);
+        const badgeParam = result?.newBadge ? `?badge=${encodeURIComponent(JSON.stringify(result.newBadge))}` : '';
+        router.replace(`/(app)/dream-complete/${dream._id}${badgeParam}` as never);
       } catch (error) {
         if (__DEV__) console.error("[Dream] Complete failed:", error);
         haptics.error();
@@ -222,12 +216,7 @@ export function useDreamDetail(id: string) {
           haptics.warning();
         } catch (e) {
           haptics.error();
-          if (e instanceof Error && e.message === "LIMIT_REACHED") {
-            Alert.alert(
-              "Dream Limit Reached",
-              "You have reached your free dream limit. Upgrade to premium for unlimited dreams."
-            );
-          }
+          haptics.error();
         } finally {
           setIsCompleting(false);
         }
@@ -246,15 +235,8 @@ export function useDreamDetail(id: string) {
         try {
           await restoreDream({ id: dream._id });
           haptics.success();
-        } catch (e) {
-          if (e instanceof Error && e.message === "LIMIT_REACHED") {
-            Alert.alert(
-              "Dream Limit Reached",
-              "You have reached your free dream limit. Upgrade to premium for unlimited dreams."
-            );
-          } else {
-            haptics.error();
-          }
+        } catch {
+          haptics.error();
         } finally {
           setIsCompleting(false);
         }
@@ -270,7 +252,7 @@ export function useDreamDetail(id: string) {
       "This will permanently delete this dream and all its actions. This cannot be undone.",
       async () => {
         try {
-          await removeDream({ id: dream._id });
+          await removeDream({ id: dream._id, timezone });
           haptics.warning();
           router.back();
         } catch {
@@ -286,8 +268,6 @@ export function useDreamDetail(id: string) {
     authLoading,
     dream,
     dreamId,
-    isHidden: isHidden ?? false,
-    handleToggleVisibility,
     journalEntries,
     newActionText,
     setNewActionText,
@@ -307,5 +287,7 @@ export function useDreamDetail(id: string) {
     handleReopenDream,
     handleRestoreDream,
     handleDeleteDream,
+    newBadge,
+    setNewBadge,
   } as const;
 }

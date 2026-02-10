@@ -5,9 +5,8 @@ import { api } from '@/convex/_generated/api';
 export type TabBadges = {
   dreams: string | null;
   today: string | null;
-  community: string | null;
+  boards: string | null;
   progress: string | null;
-  profile: string | null;
 };
 
 /**
@@ -23,21 +22,17 @@ export type TabBadges = {
 export function useTabBadges(): TabBadges {
   // Query pending actions for the Today tab badge
   const pendingActions = useQuery(api.actions.listPending);
-  const pendingFriendRequests = useQuery(api.friends.getPendingCount);
 
   // Count pending actions
   const pendingCount = pendingActions?.length ?? 0;
-  const friendRequestCount = pendingFriendRequests ?? 0;
 
   // Format badge text - show count up to 9, then "9+"
   const todayBadge = pendingCount === 0 ? null : pendingCount > 9 ? '9+' : String(pendingCount);
-  const communityBadge = friendRequestCount === 0 ? null : friendRequestCount > 9 ? '9+' : String(friendRequestCount);
 
   return {
     dreams: null,
     today: todayBadge,
-    community: communityBadge,
+    boards: null,
     progress: null,
-    profile: null,
   };
 }

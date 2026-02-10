@@ -30,6 +30,6 @@ export function useJournal() {
       dreamId?: Id<'dreams'>;
       tags?: string[];
     }) => updateMutation(args),
-    remove: async (id: Id<'journalEntries'>) => removeMutation({ id }),
+    remove: async (id: Id<'journalEntries'>) => removeMutation({ id, timezone }),
   };
 }

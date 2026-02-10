@@ -143,14 +143,7 @@ export function useCreateDream() {
       return dreamId;
     } catch (e) {
       const raw = e instanceof Error ? e.message : '';
-      let message: string;
-      if (raw === 'LIMIT_REACHED') {
-        message = 'You\'ve reached your free dream limit. Upgrade to Premium for unlimited dreams.';
-      } else if (raw) {
-        message = 'Something went wrong. Please try again.';
-      } else {
-        message = 'Failed to create dream';
-      }
+      const message = raw ? 'Something went wrong. Please try again.' : 'Failed to create dream';
       setState((prev) => ({ ...prev, error: message }));
       return null;
     } finally {

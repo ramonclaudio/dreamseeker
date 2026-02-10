@@ -11,15 +11,15 @@ interface OnboardingState {
   dreamCategory: DreamCategory;
   whyItMatters: string;
   confidence: Confidence | null;
-  pace: Pace | null;
+  pace: Pace;
   personality: Personality | null;
   motivations: Motivation[];
   notificationTime: string | null;
 }
 
-const TOTAL_SLIDES = 14;
+const TOTAL_SLIDES = 5;
 const STORAGE_KEY = '@onboarding_state';
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 4;
 
 const DEFAULT_STATE: OnboardingState = {
   selectedCategories: [],
@@ -27,7 +27,7 @@ const DEFAULT_STATE: OnboardingState = {
   dreamCategory: 'growth',
   whyItMatters: '',
   confidence: null,
-  pace: null,
+  pace: 'steady',
   personality: null,
   motivations: [],
   notificationTime: null,
@@ -108,22 +108,17 @@ export function useOnboarding() {
     });
   }, []);
 
+  // Slide order:
+  // 0: Welcome, 1: You + Goals (personality + motivations + categories)
+  // 2: Your First Dream (title + optional why), 3: Notifications, 4: Celebration
   const canGoNext = useMemo(() => {
     switch (currentSlide) {
-      case 3:
-        return state.personality !== null;
-      case 4:
-        return state.motivations.length > 0;
-      case 5:
-        return state.selectedCategories.length > 0;
-      case 6:
+      case 1: // You + Your Goals
+        return state.personality !== null && state.motivations.length > 0 && state.selectedCategories.length > 0;
+      case 2: // Dream Title
         return state.dreamTitle.trim().length > 0;
-      case 8:
-        return state.confidence !== null;
-      case 9:
-        return state.pace !== null;
-      case 11:
-        return false;
+      case 3: // Notifications
+        return false; // Only advances via explicit button
       default:
         return true;
     }
@@ -140,7 +135,7 @@ export function useOnboarding() {
   };
 
   const finish = useCallback(async (): Promise<boolean> => {
-    if (!state.pace || state.selectedCategories.length === 0) {
+    if (state.selectedCategories.length === 0) {
       setError('Please complete all required fields');
       haptics.error();
       return false;

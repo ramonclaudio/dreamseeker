@@ -8,9 +8,7 @@ export function useAppleAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (process.env.EXPO_OS === "ios") {
-      AppleAuthentication.isAvailableAsync().then(setIsAvailable);
-    }
+    AppleAuthentication.isAvailableAsync().then(setIsAvailable);
   }, []);
 
   const signInWithApple = async (): Promise<{ success: boolean; error?: string }> => {
