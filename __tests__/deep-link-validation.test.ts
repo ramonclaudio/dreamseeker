@@ -12,7 +12,7 @@ describe('Deep Link Validation', () => {
 
     it('accepts app scheme URLs to allowed routes', () => {
       expect(isValidDeepLink('dreamseeker://today')).toBe(true);
-      expect(isValidDeepLink('dreamseeker://profile')).toBe(true);
+      expect(isValidDeepLink('dreamseeker://dashboard')).toBe(true);
       expect(isValidDeepLink('dreamseeker://subscribe')).toBe(true);
       expect(isValidDeepLink('dreamseeker://journal')).toBe(true);
       expect(isValidDeepLink('dreamseeker://progress')).toBe(true);
@@ -84,7 +84,7 @@ describe('Deep Link Validation', () => {
     it('rejects bare strings without leading slash', () => {
       expect(isValidDeepLink('today')).toBe(false);
       expect(isValidDeepLink('dream')).toBe(false);
-      expect(isValidDeepLink('profile')).toBe(false);
+      expect(isValidDeepLink('dashboard')).toBe(false);
     });
 
     it('rejects wrong app schemes', () => {
@@ -97,7 +97,7 @@ describe('Deep Link Validation', () => {
       // '/dream-completer' should not match '/dream-complete'
       // but '/dream-complete/id' should match (subroute)
       expect(isValidDeepLink('/todayx')).toBe(false);
-      expect(isValidDeepLink('/profiler')).toBe(false);
+      expect(isValidDeepLink('/dashboardx')).toBe(false);
     });
   });
 
@@ -110,7 +110,7 @@ describe('Deep Link Validation', () => {
         '/dream',
         '/journal',
         '/progress',
-        '/profile',
+        '/dashboard',
         '/focus-timer',
         '/create-dream',
         '/subscribe',

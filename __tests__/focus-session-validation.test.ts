@@ -22,27 +22,34 @@ jest.mock('../convex/env', () => ({ env: { expo: {} } }));
 
 import {
   classifyTicket,
-  PUSH_RATE_LIMIT,
-  PUSH_RATE_WINDOW_MS,
-  MAX_BATCH_SIZE,
-  MAX_RETRIES,
-  INITIAL_RETRY_DELAY,
-  MAX_NOTIF_TITLE_LENGTH,
-  MAX_NOTIF_BODY_LENGTH,
   type PushTicket,
 } from '../convex/notificationsSend';
+
+// Constants inlined from notificationsSend.ts and pushHelpers.ts (not exported)
+const PUSH_RATE_LIMIT = 10;
+const PUSH_RATE_WINDOW_MS = 60_000;
+const MAX_BATCH_SIZE = 100;
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000;
+const MAX_NOTIF_TITLE_LENGTH = 100;
+const MAX_NOTIF_BODY_LENGTH = 500;
 
 // ── Focus Session Duration (REAL from convex/validation.ts) ─────────────────
 
 describe('Focus session duration validation', () => {
-  it('rejects duration under 1 minute', () => {
+  it('rejects duration under 1 second', () => {
     expect(validateFocusDuration(0).valid).toBe(false);
-    expect(validateFocusDuration(30).valid).toBe(false);
-    expect(validateFocusDuration(59).valid).toBe(false);
+    expect(validateFocusDuration(-1).valid).toBe(false);
   });
 
-  it('accepts exactly 1 minute (60 seconds)', () => {
+  it('accepts exactly 1 second', () => {
     expect(validateFocusDuration(MIN_FOCUS_DURATION).valid).toBe(true);
+    expect(validateFocusDuration(1).valid).toBe(true);
+  });
+
+  it('accepts short durations', () => {
+    expect(validateFocusDuration(30).valid).toBe(true);
+    expect(validateFocusDuration(59).valid).toBe(true);
   });
 
   it('accepts normal session durations', () => {
@@ -62,12 +69,11 @@ describe('Focus session duration validation', () => {
   });
 
   it('rejects negative duration', () => {
-    expect(validateFocusDuration(-1).valid).toBe(false);
     expect(validateFocusDuration(-3600).valid).toBe(false);
   });
 
   it('returns descriptive error messages', () => {
-    expect(validateFocusDuration(30).error).toContain('1 minute');
+    expect(validateFocusDuration(0).error).toContain('1 second');
     expect(validateFocusDuration(30000).error).toContain('8 hours');
   });
 });

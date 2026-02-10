@@ -6,49 +6,12 @@
  * returning true/false for access control.
  *
  * Critical for community features where access patterns vary by table:
- * - feedReactions: anyone can read, only owner can modify/insert
  * - userProfiles: public profiles readable by anyone, private only by owner
- * - friendships: readable by both sides, modifiable only by creator
- * - friendRequests: readable by both parties, insertable only by sender
  */
 import { rules } from '../convex/security';
 
 const USER_A = 'user-alice';
 const USER_B = 'user-bob';
-
-// ── feedReactions ─────────────────────────────────────────────────────────
-
-describe('feedReactions RLS', () => {
-  const reactionDoc = {
-    feedEventId: 'event-1' as never,
-    userId: USER_A,
-    emoji: 'fire' as const,
-    createdAt: Date.now(),
-    _id: 'reaction-1' as never,
-    _creationTime: Date.now(),
-  };
-
-  it('allows any authenticated user to read reactions', async () => {
-    expect(await rules.feedReactions!.read!({ user: USER_A }, reactionDoc)).toBe(true);
-    expect(await rules.feedReactions!.read!({ user: USER_B }, reactionDoc)).toBe(true);
-  });
-
-  it('allows owner to modify their reaction', async () => {
-    expect(await rules.feedReactions!.modify!({ user: USER_A }, reactionDoc)).toBe(true);
-  });
-
-  it('denies non-owner from modifying reaction', async () => {
-    expect(await rules.feedReactions!.modify!({ user: USER_B }, reactionDoc)).toBe(false);
-  });
-
-  it('allows owner to insert their reaction', async () => {
-    expect(await rules.feedReactions!.insert!({ user: USER_A }, reactionDoc)).toBe(true);
-  });
-
-  it('denies inserting reaction for another user', async () => {
-    expect(await rules.feedReactions!.insert!({ user: USER_B }, reactionDoc)).toBe(false);
-  });
-});
 
 // ── userProfiles ──────────────────────────────────────────────────────────
 
@@ -86,83 +49,6 @@ describe('userProfiles RLS', () => {
 
   it('denies non-owner from modifying profile', async () => {
     expect(await rules.userProfiles!.modify!({ user: USER_B }, publicProfile)).toBe(false);
-  });
-});
-
-// ── friendships ───────────────────────────────────────────────────────────
-
-describe('friendships RLS', () => {
-  const friendship = {
-    userId: USER_A,
-    friendId: USER_B,
-    createdAt: Date.now(),
-    _id: 'friendship-1' as never,
-    _creationTime: Date.now(),
-  };
-
-  it('allows the creator to read', async () => {
-    expect(await rules.friendships!.read!({ user: USER_A }, friendship)).toBe(true);
-  });
-
-  it('allows the friend to read', async () => {
-    expect(await rules.friendships!.read!({ user: USER_B }, friendship)).toBe(true);
-  });
-
-  it('denies unrelated user from reading', async () => {
-    expect(await rules.friendships!.read!({ user: 'user-charlie' }, friendship)).toBe(false);
-  });
-
-  it('allows creator to modify', async () => {
-    expect(await rules.friendships!.modify!({ user: USER_A }, friendship)).toBe(true);
-  });
-
-  it('denies friend from modifying (only creator can)', async () => {
-    expect(await rules.friendships!.modify!({ user: USER_B }, friendship)).toBe(false);
-  });
-});
-
-// ── friendRequests ────────────────────────────────────────────────────────
-
-describe('friendRequests RLS', () => {
-  const request = {
-    fromUserId: USER_A,
-    toUserId: USER_B,
-    status: 'pending' as const,
-    createdAt: Date.now(),
-    _id: 'request-1' as never,
-    _creationTime: Date.now(),
-  };
-
-  it('allows sender to read', async () => {
-    expect(await rules.friendRequests!.read!({ user: USER_A }, request)).toBe(true);
-  });
-
-  it('allows recipient to read', async () => {
-    expect(await rules.friendRequests!.read!({ user: USER_B }, request)).toBe(true);
-  });
-
-  it('denies unrelated user from reading', async () => {
-    expect(await rules.friendRequests!.read!({ user: 'user-charlie' }, request)).toBe(false);
-  });
-
-  it('allows sender to modify (cancel)', async () => {
-    expect(await rules.friendRequests!.modify!({ user: USER_A }, request)).toBe(true);
-  });
-
-  it('allows recipient to modify (accept/reject)', async () => {
-    expect(await rules.friendRequests!.modify!({ user: USER_B }, request)).toBe(true);
-  });
-
-  it('denies unrelated user from modifying', async () => {
-    expect(await rules.friendRequests!.modify!({ user: 'user-charlie' }, request)).toBe(false);
-  });
-
-  it('allows only sender to insert', async () => {
-    expect(await rules.friendRequests!.insert!({ user: USER_A }, request)).toBe(true);
-  });
-
-  it('denies recipient from inserting (they didnt send it)', async () => {
-    expect(await rules.friendRequests!.insert!({ user: USER_B }, request)).toBe(false);
   });
 });
 

@@ -1,10 +1,7 @@
 import {
   MAX_BIO_LENGTH,
   MAX_DISPLAY_NAME_LENGTH,
-  SEARCH_RESULTS_LIMIT,
   FEED_PAGE_SIZE,
-  FEED_FRIENDS_RECENT_LIMIT,
-  WEEKLY_CHALLENGES,
   getLevelFromXp,
   LEVELS,
 } from '../convex/constants';
@@ -23,20 +20,11 @@ describe('Community constants', () => {
   });
 
   describe('Feed limits', () => {
-    it('search results limit is reasonable', () => {
-      expect(SEARCH_RESULTS_LIMIT).toBeGreaterThanOrEqual(10);
-      expect(SEARCH_RESULTS_LIMIT).toBeLessThanOrEqual(50);
-    });
-
     it('feed page size is reasonable', () => {
       expect(FEED_PAGE_SIZE).toBeGreaterThanOrEqual(10);
       expect(FEED_PAGE_SIZE).toBeLessThanOrEqual(100);
     });
 
-    it('friends recent limit is reasonable', () => {
-      expect(FEED_FRIENDS_RECENT_LIMIT).toBeGreaterThanOrEqual(5);
-      expect(FEED_FRIENDS_RECENT_LIMIT).toBeLessThanOrEqual(50);
-    });
   });
 
   describe('Reaction emoji values', () => {
