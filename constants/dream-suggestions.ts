@@ -49,6 +49,38 @@ export const TITLE_SUGGESTIONS: Record<DreamCategory, string[]> = {
     'Be more vulnerable',
     'Plan weekly date nights',
   ],
+  health: [
+    'Run a half marathon',
+    'Build a consistent gym habit',
+    'Meal prep every Sunday',
+    'Sleep 8 hours consistently',
+    'Try a new sport',
+    'Complete a 30-day fitness challenge',
+  ],
+  education: [
+    'Complete a coding bootcamp',
+    'Get a professional certification',
+    'Learn a new language',
+    'Take an online course every month',
+    'Read 24 books this year',
+    'Earn a degree or diploma',
+  ],
+  creative: [
+    'Write a book or short story',
+    'Start a podcast or YouTube channel',
+    'Learn to paint or draw',
+    'Perform at an open mic',
+    'Build a portfolio of my work',
+    'Launch a creative side project',
+  ],
+  social: [
+    'Volunteer every month',
+    'Mentor someone in my field',
+    'Organize a community event',
+    'Start a fundraiser for a cause I love',
+    'Join a local nonprofit board',
+    'Donate to a cause monthly',
+  ],
   custom: [],
 };
 
@@ -59,6 +91,10 @@ export const ACTION_SUGGESTIONS: Record<DreamCategory, string[]> = {
   lifestyle: ['Start a morning routine', 'Declutter my space', 'Try a new hobby', 'Plan a self-care day'],
   growth: ['Read a book', 'Start journaling', 'Take an online course', 'Practice mindfulness'],
   relationships: ['Plan a date night', 'Call an old friend', 'Write a gratitude letter', 'Join a community'],
+  health: ['Schedule a workout', 'Prep healthy meals', 'Book a health checkup', 'Try a new fitness class'],
+  education: ['Enroll in a course', 'Read for 30 minutes', 'Practice a new skill', 'Research programs'],
+  creative: ['Sketch or write daily', 'Start a creative project', 'Share my work online', 'Take a class'],
+  social: ['Sign up to volunteer', 'Donate to a cause', 'Mentor someone', 'Attend a community event'],
   custom: [],
 };
 

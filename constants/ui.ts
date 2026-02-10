@@ -56,17 +56,176 @@ export const Responsive = {
   },
 } as const;
 
-// Confetti configuration
-export const Confetti = {
+// Confetti configuration — tiered presets (vibrant corals, golds, ocean blues)
+export const ConfettiTiny = {
+  count: 25,
+  originY: -20,
+  fallSpeed: 1500,
+  explosionSpeed: 250,
+  colors: ['#E07B4F', '#D06840', '#EDAF4A', '#F0CA60', '#2E86AB'],
+} as const;
+
+export const ConfettiSmall = {
+  count: 50,
+  originY: -20,
+  fallSpeed: 2000,
+  explosionSpeed: 300,
+  colors: ['#E07B4F', '#D06840', '#EDAF4A', '#F0CA60', '#2E86AB'],
+} as const;
+
+export const ConfettiMedium = {
   count: 150,
   originY: -20,
   fallSpeed: 3000,
   explosionSpeed: 400,
-  colors: ['#c7d1dd', '#a8b5c4', '#7b8d9e', '#c4a84c', '#6b9670'],
+  colors: ['#E07B4F', '#D06840', '#EDAF4A', '#F0CA60', '#2E86AB'],
 } as const;
+
+export const ConfettiEpic = {
+  count: 300,
+  originY: -20,
+  fallSpeed: 4500,
+  explosionSpeed: 500,
+  colors: [
+    '#E07B4F', '#D06840', '#C85A30',   // vibrant corals
+    '#EDAF4A', '#F0CA60', '#D4A030',   // rich golds
+    '#2E86AB', '#3A9BBF', '#1E6E8E',   // ocean blues
+    '#6B9670', '#88B88E',               // greens
+  ],
+} as const;
+
+/** @deprecated Use ConfettiMedium — kept for backwards compat */
+export const Confetti = ConfettiMedium;
+
+export type ConfettiTier = 'tiny' | 'small' | 'medium' | 'epic';
+
+export const ConfettiPresets: Record<ConfettiTier, { count: number; originY: number; fallSpeed: number; explosionSpeed: number; colors: readonly string[] }> = {
+  tiny: ConfettiTiny,
+  small: ConfettiSmall,
+  medium: ConfettiMedium,
+  epic: ConfettiEpic,
+} as const;
+
+// Hype copy — randomly pick from these for celebration moments
+// Infused with Gabby Beckford's philosophy and voice
+export const HypeCopy = {
+  achievement: [
+    'YOU CRUSHED IT',
+    'ABSOLUTE LEGEND',
+    'YOU DID THAT',
+    'UNSTOPPABLE',
+    'QUEEN BEHAVIOR',
+    'LITERALLY ICONIC',
+    'YOU SHOWED UP AND WON',
+    'DO IT BEFORE YOU FEEL IT',
+    'ONE DECISION AWAY FROM EVERYTHING',
+    'SEEK RISK. SEIZE OPPORTUNITY.',
+  ],
+  levelUp: [
+    "YOU'RE ON ANOTHER LEVEL",
+    "CAN'T BE STOPPED",
+    'LEVELED UP AND LOCKED IN',
+    'BUILT DIFFERENT',
+    'MAIN CHARACTER ENERGY',
+    'LIVING IN YOUR POSSIBILITIES',
+    "RETHINK WHAT'S POSSIBLE",
+    'THE PEOPLE WHO SHOW UP WIN',
+  ],
+  badge: [
+    "THAT'S MINE",
+    'EARNED IT',
+    'ANOTHER ONE FOR THE COLLECTION',
+    'ADDING TO THE TROPHY CASE',
+    'YOU LOVE TO SEE IT',
+    "PROOF YOU'RE BECOMING HER",
+    'YOUR STORY, YOUR TROPHIES',
+  ],
+  streak: [
+    'ON FIRE',
+    'LEGENDARY STREAK',
+    'UNSTOPPABLE QUEEN',
+    'CONSISTENCY IS YOUR SUPERPOWER',
+    "THEY CAN'T KEEP UP",
+    'YOUR FUTURE SELF IS CHEERING',
+    'DO IT BEFORE YOU FEEL IT',
+    'DONE IS BETTER THAN PERFECT',
+    'SHOW UP AND THE WINS FOLLOW',
+  ],
+  nextStep: [
+    "WHAT'S NEXT, QUEEN?",
+    "YOU DON'T STOP",
+    'KEEP THAT ENERGY',
+    'THE MOMENTUM IS REAL',
+    "WHY NOT YOU? WHAT'S THE WORST THAT COULD HAPPEN?",
+    'ONE DECISION AWAY FROM EVERYTHING',
+  ],
+  share: [
+    'FLEX YOUR WIN',
+    'SHOW THEM WHAT YOU BUILT',
+    'LET THEM KNOW',
+    'THIS DESERVES TO BE SEEN',
+    'THE MORE YOU SHARE, THE MORE YOU GET',
+    'OWN YOUR STORY',
+  ],
+  actionComplete: [
+    'DONE.', 'CHECKED.', 'ONE LESS THING.', 'MOMENTUM.', "THAT'S PROGRESS.", 'HANDLED.',
+    'ONE STEP CLOSER.', 'DO IT BEFORE YOU FEEL IT.', 'DONE IS BETTER THAN PERFECT.',
+    'BE CONFIDENT. BE DELUSIONAL.', 'THE FEELINGS CATCH UP.', 'SEEK RISK.', 'ONE DECISION AWAY.',
+  ],
+  allDone: [
+    'ALL DONE, QUEEN.', 'NOTHING LEFT BUT WINS.', 'YOU ATE THAT.', 'CLEAN SLATE.', 'FLAWLESS EXECUTION.',
+    'GO LIVE YOUR LIFE, QUEEN.', 'GABBY SAYS: YOU ATE.', 'PERMISSION GRANTED TO CHILL.',
+  ],
+  firstAction: [
+    'YOU JUST STARTED.', 'THE FIRST STEP IS EVERYTHING.', 'IT BEGINS NOW.', 'MOMENTUM: ACTIVATED.',
+    'GIVE YOURSELF PERMISSION.', 'BE CONFIDENT. BE DELUSIONAL.',
+    'DO IT BEFORE YOU FEEL IT.', 'GABBY BELIEVED IN YOU FIRST.', 'SEEK RISK. THIS IS IT.',
+  ],
+  visionBoard: [
+    'Give yourself permission to live in your possibilities.',
+    'This is just the beginning.',
+    'Dream big. Act bigger.',
+    'Be confident. Be delusional.',
+    'Seek risk. Seize opportunity. See the world.',
+    "I didn't have a dream job. I had a dream LIFE.",
+    'One decision away from adventure.',
+  ],
+  dream: [
+    'THIS IS YOUR DREAM.',
+    'DREAM IT. DO IT.',
+    'THE VISION IS CLEAR.',
+    'ONE DECISION AWAY.',
+    'SEEK RISK. SEIZE OPPORTUNITY.',
+    'BE CONFIDENT. BE DELUSIONAL.',
+    'GIVE YOURSELF PERMISSION.',
+  ],
+  action: [
+    'ACTION TAKEN.',
+    'ONE STEP CLOSER.',
+    'MOMENTUM IS EVERYTHING.',
+    'DO IT BEFORE YOU FEEL IT.',
+    'DONE IS BETTER THAN PERFECT.',
+    'THE FEELINGS CATCH UP.',
+    'SEEK RISK.',
+  ],
+  journal: [
+    'YOUR STORY MATTERS.',
+    'WORDS BECOME WORLDS.',
+    'REFLECT. RISE. REPEAT.',
+    'THE PEN IS YOUR POWER.',
+    'WRITE YOUR FUTURE.',
+    'FEELINGS ARE DATA.',
+    'OWN YOUR NARRATIVE.',
+  ],
+} as const;
+
+/** Pick a random hype line from a category */
+export function pickHype(category: keyof typeof HypeCopy): string {
+  const lines = HypeCopy[category];
+  return lines[Math.floor(Math.random() * lines.length)];
+}
 
 // Accessibility
 export const Accessibility = {
   maxFontSizeMultiplier: 2,
 } as const;
-
