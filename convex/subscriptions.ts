@@ -2,8 +2,8 @@ import { authQuery } from './functions';
 import { hasEntitlement } from './revenuecat';
 
 export const TIERS = {
-  free: { name: 'Free', limit: 3 }, // 3 free dreams
-  premium: { name: 'Premium', limit: null }, // Unlimited dreams
+  free: { name: 'Free', limit: null }, // Unlimited dreams — premium gates community only
+  premium: { name: 'Premium', limit: null }, // Unlimited dreams + community access
 } as const;
 
 export type TierKey = keyof typeof TIERS;

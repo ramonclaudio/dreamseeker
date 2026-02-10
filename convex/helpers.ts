@@ -1,7 +1,7 @@
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Id, Doc } from './_generated/dataModel';
 import { authComponent } from './auth';
-import { XP_REWARDS, getLevelFromXp } from './constants';
+import { XP_REWARDS, getLevelFromXp, FREE_MAX_DREAMS } from './constants';
 import { computeStreakUpdate } from './streak';
 import { TIERS, PREMIUM_ENTITLEMENT } from './subscriptions';
 import { hasEntitlement } from './revenuecat';
@@ -9,6 +9,7 @@ import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 import { getTodayString, getYesterdayString } from './dates';
 import { calculateArchiveXpDeduction, calculateRestoreXpGain } from './dreamGuards';
 import { createFeedEvent } from './feed';
+import { createDefaultProgress } from './progress';
 
 // ── Auth Guards ─────────────────────────────────────────────────────────────
 
@@ -22,13 +23,15 @@ export const requireAuth = async (ctx: QueryCtx | MutationCtx) => {
 };
 
 export const getOwnedDream = async (ctx: MutationCtx, id: Id<'dreams'>, userId: string) => {
-  const dream = await ctx.db.get('dreams', id);
+  const dream = await ctx.db.get(id);
   if (!dream) throw new Error('Dream not found');
   if (dream.userId !== userId) throw new Error('Forbidden');
   return dream;
 };
 
-// ── Progress Retrieval ──────────────────────────────────────────────────────
+// ── XP Award ────────────────────────────────────────────────────────────────
+
+const ON_FIRE_STREAK_THRESHOLD = 7;
 
 async function getOrCreateProgress(
   ctx: MutationCtx,
@@ -70,16 +73,9 @@ async function getOrCreateProgress(
   return { created: true, newStreak, xpAwarded: opts.xpReward };
 }
 
-// ── XP Award ────────────────────────────────────────────────────────────────
-
-const ON_FIRE_STREAK_THRESHOLD = 7;
-
 /**
  * Consolidated XP/streak/progress handler. All XP-granting mutations
  * should use this instead of duplicating get-or-create + streak + milestone logic.
- *
- * Handles streak milestones and the on_fire badge (7-day streak) in a single
- * db.patch call to avoid OCC double-patch issues.
  */
 export async function awardXp(
   ctx: MutationCtx,
@@ -161,58 +157,33 @@ export async function awardXp(
   };
 }
 
-// ── Progress Utilities ──────────────────────────────────────────────────────
-
-export function createDefaultProgress(
-  userId: string,
-  overrides?: {
-    totalXp?: number;
-    level?: number;
-    currentStreak?: number;
-    longestStreak?: number;
-    dreamsCompleted?: number;
-    actionsCompleted?: number;
-    timezone?: string;
-  }
-) {
-  return {
-    userId,
-    totalXp: overrides?.totalXp ?? 0,
-    level: overrides?.level ?? 1,
-    currentStreak: overrides?.currentStreak ?? 0,
-    longestStreak: overrides?.longestStreak ?? 0,
-    lastActiveDate: getTodayString(overrides?.timezone ?? 'UTC'),
-    dreamsCompleted: overrides?.dreamsCompleted ?? 0,
-    actionsCompleted: overrides?.actionsCompleted ?? 0,
-  };
-}
-
-// ── Dream Helpers ──────────────────────────────────────────────────────────
+// ── Dream Helpers ───────────────────────────────────────────────────────────
 
 /**
- * Check tier limits for active dreams. Throws 'LIMIT_REACHED' if limit exceeded.
+ * Check tier limits for active dreams. Free users: max 25 active dreams.
+ * Premium users: unlimited.
  */
 export async function assertDreamLimit(ctx: MutationCtx, userId: string) {
   const isPremium = await hasEntitlement(ctx, {
     appUserId: userId,
     entitlementId: PREMIUM_ENTITLEMENT,
   });
+  if (isPremium) return;
 
-  if (!isPremium) {
-    const limit = TIERS.free.limit;
-    const activeDreams = await ctx.db
-      .query('dreams')
-      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
-      .take(limit);
-    if (activeDreams.length >= limit) {
-      throw new Error('LIMIT_REACHED');
-    }
+  const activeDreams = await ctx.db
+    .query('dreams')
+    .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+    .take(FREE_MAX_DREAMS + 1);
+
+  if (activeDreams.length >= FREE_MAX_DREAMS) {
+    throw new Error('FREE_DREAM_LIMIT');
   }
 }
 
+// ── XP Deduction ────────────────────────────────────────────────────────────
+
 /**
  * Deduct XP from a user's progress. Clamps to 0.
- * Optionally decrements actionsCompleted / dreamsCompleted.
  */
 export async function deductXp(
   ctx: MutationCtx,
@@ -293,3 +264,6 @@ export async function restoreDreamXp(
 
   return xpToRestore;
 }
+
+// Re-export for backward compatibility with existing imports
+export { createDefaultProgress } from './progress';

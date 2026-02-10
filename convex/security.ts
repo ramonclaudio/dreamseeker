@@ -11,105 +11,56 @@ import type { DataModel } from './_generated/dataModel';
  */
 export type RLSCtx = { user: string };
 
-export const rules: Rules<RLSCtx, DataModel> = {
-  // ── User-owned tables ──────────────────────────────────────────────────────
-  dreams: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  actions: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  journalEntries: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  userProgress: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  userPreferences: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  userBadges: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  hiddenItems: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  uploadRateLimit: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  pushTokens: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  pushNotificationRateLimit: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  checkIns: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  focusSessions: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  challengeCompletions: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
+/** Factory for the standard owner-based RLS rule: read/modify/insert all check `doc[field] === user`. */
+function ownerRules(field = 'userId') {
+  return {
+    read: async ({ user }: RLSCtx, doc: Record<string, unknown>) => doc[field] === user,
+    modify: async ({ user }: RLSCtx, doc: Record<string, unknown>) => doc[field] === user,
+    insert: async ({ user }: RLSCtx, doc: Record<string, unknown>) => doc[field] === user,
+  };
+}
 
-  // ── Community tables ───────────────────────────────────────────────────────
+export const rules: Rules<RLSCtx, DataModel> = {
+  // ── User-owned tables (standard owner rules) ──────────────────────────────
+  dreams: ownerRules(),
+  actions: ownerRules(),
+  journalEntries: ownerRules(),
+  userProgress: ownerRules(),
+  userPreferences: ownerRules(),
+  userBadges: ownerRules(),
+  uploadRateLimit: ownerRules(),
+  pushTokens: ownerRules(),
+  pushNotificationRateLimit: ownerRules(),
+  checkIns: ownerRules(),
+  focusSessions: ownerRules(),
+  challengeCompletions: ownerRules(),
+  activityFeed: ownerRules(),
+  communityRateLimit: ownerRules(),
+
+  // ── Community tables (custom rules) ────────────────────────────────────────
   userProfiles: {
     read: async ({ user }, doc) => doc.userId === user || doc.isPublic,
     modify: async ({ user }, doc) => doc.userId === user,
     insert: async ({ user }, doc) => doc.userId === user,
   },
-  friendships: {
-    read: async ({ user }, doc) => doc.userId === user || doc.friendId === user,
+
+  // ── Vision Boards ──────────────────────────────────────────────────────────
+  visionBoards: ownerRules(),
+
+  // ── Pin tables ──────────────────────────────────────────────────────────────
+  pins: {
+    read: async () => true, // Visibility filtering done in query logic (blocked users, privacy, etc.)
     modify: async ({ user }, doc) => doc.userId === user,
     insert: async ({ user }, doc) => doc.userId === user,
   },
-  friendRequests: {
-    read: async ({ user }, doc) => doc.fromUserId === user || doc.toUserId === user,
-    modify: async ({ user }, doc) => doc.fromUserId === user || doc.toUserId === user,
-    insert: async ({ user }, doc) => doc.fromUserId === user,
-  },
-  activityFeed: {
-    read: async ({ user }, doc) => doc.userId === user,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
-  feedReactions: {
-    read: async () => true,
-    modify: async ({ user }, doc) => doc.userId === user,
-    insert: async ({ user }, doc) => doc.userId === user,
-  },
+  // ── Pin Reports ───────────────────────────────────────────────────────────
+  pinReports: ownerRules('reporterId'),
+  // ── Blocked Users ────────────────────────────────────────────────────────
+  blockedUsers: ownerRules('blockerId'),
 
   // ── System tables (read-only for authed users) ─────────────────────────────
   dailyChallenges: {
     read: async () => true,
-    // modify/insert: omitted → denied by default
   },
   mindsetMoments: {
     read: async () => true,

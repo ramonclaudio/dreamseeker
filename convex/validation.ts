@@ -46,11 +46,11 @@ export function sanitizeActions(actions: string[], maxCount: number, maxTextLeng
 
 // ── Focus Session Validation ────────────────────────────────────────────────
 
-export const MIN_FOCUS_DURATION = 60; // 1 minute in seconds
+export const MIN_FOCUS_DURATION = 1; // 1 second
 export const MAX_FOCUS_DURATION = 28800; // 8 hours in seconds
 
 export function validateFocusDuration(seconds: number): { valid: boolean; error?: string } {
-  if (seconds < MIN_FOCUS_DURATION) return { valid: false, error: 'Session must be at least 1 minute' };
+  if (seconds < MIN_FOCUS_DURATION) return { valid: false, error: 'Session must be at least 1 second' };
   if (seconds > MAX_FOCUS_DURATION) return { valid: false, error: 'Session cannot exceed 8 hours' };
   return { valid: true };
 }
@@ -84,4 +84,23 @@ export function validateUsername(username: string): { valid: boolean; error?: st
     return { valid: false, error: 'Username can only contain letters, numbers, underscores, and hyphens' };
   }
   return { valid: true };
+}
+
+/** Validate URL has a safe scheme (http/https only). Throws on invalid or non-http(s) URLs. */
+export function validateUrl(url: string, fieldName: string): void {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      throw new Error(`${fieldName} must use http or https`);
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('must use')) throw error;
+    throw new Error(`${fieldName} is not a valid URL`);
+  }
+}
+
+/** Strip control characters (except newlines/tabs) from text. */
+export function sanitizeDisplayText(text: string): string {
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u200B-\u200F\u2028-\u202F\uFEFF]/g, '');
 }

@@ -17,13 +17,13 @@ export const complete = authMutation({
 
     // Validate dream ownership if provided
     if (args.dreamId) {
-      const dream = await ctx.db.get('dreams', args.dreamId);
+      const dream = await ctx.db.get(args.dreamId);
       if (!dream || dream.userId !== ctx.user) throw new Error('Dream not found');
     }
 
     // Validate action ownership if provided
     if (args.actionId) {
-      const action = await ctx.db.get('actions', args.actionId);
+      const action = await ctx.db.get(args.actionId);
       if (!action || action.userId !== ctx.user) throw new Error('Action not found');
     }
 

@@ -1,7 +1,8 @@
 import { authQuery, authMutation } from './functions';
 import type { MutationCtx } from './_generated/server';
 import { v } from 'convex/values';
-import { awardXp, deductXp } from './helpers';
+import { awardXp } from './helpers';
+import { recalculateUserProgress } from './progress';
 import { getTodayString } from './dates';
 import { moodValidator, XP_REWARDS, MAX_INTENTION_LENGTH, MAX_REFLECTION_LENGTH } from './constants';
 import { checkLength } from './validation';
@@ -75,16 +76,16 @@ export const submitMorning = authMutation({
 });
 
 export const remove = authMutation({
-  args: { id: v.id('checkIns') },
+  args: { id: v.id('checkIns'), timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const checkIn = await ctx.db.get('checkIns', args.id);
+    const checkIn = await ctx.db.get(args.id);
     if (!checkIn) return;
     if (checkIn.userId !== ctx.user) throw new Error('Forbidden');
 
     await ctx.db.delete(args.id);
 
-    // Deduct XP
-    await deductXp(ctx, ctx.user, XP_REWARDS.checkIn);
+    // Recalculate progress from source data
+    await recalculateUserProgress(ctx, ctx.user, args.timezone ?? 'UTC');
   },
 });
 

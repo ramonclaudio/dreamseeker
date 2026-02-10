@@ -17,7 +17,10 @@ import {
   MAX_CUSTOM_CATEGORY_COLOR_LENGTH,
   MAX_REFLECTION_LENGTH,
   XP_REWARDS,
+  FREE_MAX_ACTIONS_PER_DREAM,
 } from './constants';
+import { hasEntitlement } from './revenuecat';
+import { PREMIUM_ENTITLEMENT } from './subscriptions';
 import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 import { requireText, checkLength, sanitizeActions } from './validation';
 import { canComplete } from './dreamGuards';
@@ -68,7 +71,7 @@ export const get = authQuery({
   handler: async (ctx, args) => {
     if (!ctx.user) return null;
 
-    const dream = await ctx.db.get('dreams', args.id);
+    const dream = await ctx.db.get(args.id);
     if (!dream || dream.userId !== ctx.user) return null;
 
     const allActions = await ctx.db
@@ -96,21 +99,69 @@ export const listWithActionCounts = authQuery({
       .order('desc')
       .collect();
 
-    return await Promise.all(
-      dreams.map(async (dream) => {
-        const allActions = await ctx.db
-          .query('actions')
-          .withIndex('by_dream', (q) => q.eq('dreamId', dream._id))
-          .collect();
-        const actions = allActions.filter((a) => a.status !== 'archived');
+    // Bulk-fetch all actions for this user in one query instead of N+1
+    const allActions = await ctx.db
+      .query('actions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
 
-        return {
-          ...dream,
-          completedActions: actions.filter((a) => a.isCompleted).length,
-          totalActions: actions.length,
-        };
-      })
-    );
+    const actionsByDream = new Map<string, typeof allActions>();
+    for (const a of allActions) {
+      if (a.status === 'archived') continue;
+      const key = String(a.dreamId);
+      const list = actionsByDream.get(key) ?? [];
+      list.push(a);
+      actionsByDream.set(key, list);
+    }
+
+    return dreams.map((dream) => {
+      const actions = actionsByDream.get(String(dream._id)) ?? [];
+      return {
+        ...dream,
+        completedActions: actions.filter((a) => a.isCompleted).length,
+        totalActions: actions.length,
+      };
+    });
+  },
+});
+
+// List all non-archived dreams with per-dream action progress (for vision board)
+export const listAllWithActionCounts = authQuery({
+  args: {},
+  handler: async (ctx) => {
+    if (!ctx.user) return [];
+    const userId = ctx.user;
+
+    const allDreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    const dreams = allDreams.filter((d) => d.status !== 'archived');
+
+    // Bulk-fetch all actions for this user in one query instead of N+1
+    const allActions = await ctx.db
+      .query('actions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    const actionsByDream = new Map<string, typeof allActions>();
+    for (const a of allActions) {
+      if (a.status === 'archived') continue;
+      const key = String(a.dreamId);
+      const list = actionsByDream.get(key) ?? [];
+      list.push(a);
+      actionsByDream.set(key, list);
+    }
+
+    return dreams.map((dream) => {
+      const actions = actionsByDream.get(String(dream._id)) ?? [];
+      return {
+        ...dream,
+        completedActions: actions.filter((a) => a.isCompleted).length,
+        totalActions: actions.length,
+      };
+    });
   },
 });
 
@@ -173,23 +224,14 @@ export const create = authMutation({
       customCategoryColor: args.customCategoryColor?.trim(),
     });
 
-    const profile = await ctx.db
-      .query('userProfiles')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
-
-    if (profile?.defaultHideDreams) {
-      await ctx.db.insert('hiddenItems', {
-        userId,
-        itemType: 'dream',
-        itemId: dreamId,
-        createdAt: Date.now(),
-      });
-    }
-
-    // Batch-insert initial actions if provided
+    // Batch-insert initial actions if provided (cap to free tier limit if not premium)
     if (args.initialActions && args.initialActions.length > 0) {
-      const cleanedActions = sanitizeActions(args.initialActions, 20, MAX_ACTION_TEXT_LENGTH);
+      const isPremium = await hasEntitlement(ctx, {
+        appUserId: userId,
+        entitlementId: PREMIUM_ENTITLEMENT,
+      });
+      const maxActions = isPremium ? 50 : FREE_MAX_ACTIONS_PER_DREAM;
+      const cleanedActions = sanitizeActions(args.initialActions, maxActions, MAX_ACTION_TEXT_LENGTH);
       const now = Date.now();
       const actionIds = await Promise.all(
         cleanedActions.map((text, index) =>
@@ -204,20 +246,6 @@ export const create = authMutation({
             })
           )
       );
-
-      if (profile?.defaultHideActions) {
-        const now2 = Date.now();
-        await Promise.all(
-          actionIds.map((actionId) =>
-            ctx.db.insert('hiddenItems', {
-              userId,
-              itemType: 'action',
-              itemId: actionId,
-              createdAt: now2,
-            })
-          )
-        );
-      }
     }
 
     await createFeedEvent(ctx, userId, 'dream_created', dreamId, {

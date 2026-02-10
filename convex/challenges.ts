@@ -3,7 +3,6 @@ import { authQuery, authMutation } from './functions';
 import { awardXp } from './helpers';
 import { getTodayString, getStartOfDay, dateToDailyIndex } from './dates';
 import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
-
 // Get a consistent daily challenge (based on date)
 export const getDaily = authQuery({
   args: { timezone: v.string() },
@@ -46,7 +45,7 @@ export const complete = authMutation({
   args: { challengeId: v.id('dailyChallenges'), timezone: v.string() },
   handler: async (ctx, args) => {
     // Verify challenge exists
-    const challenge = await ctx.db.get('dailyChallenges', args.challengeId);
+    const challenge = await ctx.db.get(args.challengeId);
     if (!challenge) throw new Error('Challenge not found');
     if (!challenge.isActive) throw new Error('Challenge is not active');
 
@@ -107,6 +106,42 @@ export const complete = authMutation({
     await applyBadgeXp(ctx, ctx.user, badgeXp);
 
     return { xpAwarded: challenge.xpReward + badgeXp, newBadge, streakMilestone };
+  },
+});
+
+// Get weekly challenge leaderboard (personal stats)
+export const getWeeklyLeaderboard = authQuery({
+  args: { timezone: v.string() },
+  handler: async (ctx, args) => {
+    if (!ctx.user) return [];
+    const userId = ctx.user;
+
+    // Compute start of current week (Monday 00:00 in user's timezone)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ...
+    const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const monday = new Date(now);
+    monday.setDate(monday.getDate() - mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    const weekStart = monday.getTime();
+
+    const completions = await ctx.db
+      .query('challengeCompletions')
+      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', weekStart))
+      .collect();
+
+    const profile = await ctx.unsafeDb
+      .query('userProfiles')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+
+    return [{
+      userId,
+      displayName: profile?.displayName ?? profile?.username ?? 'You',
+      completionsThisWeek: completions.length,
+      isCurrentUser: true,
+      rank: 1,
+    }];
   },
 });
 

@@ -9,7 +9,18 @@ export const dreamCategoryValidator = v.union(
   v.literal('lifestyle'),
   v.literal('growth'),
   v.literal('relationships'),
+  v.literal('health'),
+  v.literal('education'),
+  v.literal('creative'),
+  v.literal('social'),
   v.literal('custom')
+);
+
+export const pinTypeValidator = v.union(
+  v.literal('image'),
+  v.literal('link'),
+  v.literal('win'),
+  v.literal('resource')
 );
 
 export const dreamStatusValidator = v.union(
@@ -53,18 +64,6 @@ export const moodValidator = v.union(
   v.literal('tough')
 );
 
-export const friendRequestStatusValidator = v.union(
-  v.literal('pending'),
-  v.literal('accepted'),
-  v.literal('rejected')
-);
-
-export const hiddenItemTypeValidator = v.union(
-  v.literal('dream'),
-  v.literal('journal'),
-  v.literal('action')
-);
-
 export const feedEventTypeValidator = v.union(
   v.literal('dream_created'),
   v.literal('dream_completed'),
@@ -86,15 +85,13 @@ export const feedMetadataValidator = v.union(
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export type DreamCategory = 'travel' | 'money' | 'career' | 'lifestyle' | 'growth' | 'relationships' | 'custom';
-type DreamStatus = 'active' | 'completed' | 'archived';
+export type DreamCategory = 'travel' | 'money' | 'career' | 'lifestyle' | 'growth' | 'relationships' | 'health' | 'education' | 'creative' | 'social' | 'custom';
+export type PinType = 'image' | 'link' | 'win' | 'resource';
 export type Pace = 'gentle' | 'steady' | 'ambitious';
 export type Confidence = 'confident' | 'somewhat' | 'not-confident';
 export type Personality = 'dreamer' | 'planner' | 'doer' | 'explorer';
 export type Motivation = 'feel-better' | 'career-growth' | 'adventure' | 'financial-freedom' | 'relationships' | 'self-discipline';
 export type Mood = 'great' | 'good' | 'okay' | 'tough';
-export type FriendRequestStatus = 'pending' | 'accepted' | 'rejected';
-export type HiddenItemType = 'dream' | 'journal' | 'action';
 export type FeedEventType = 'dream_created' | 'dream_completed' | 'action_completed' | 'journal_entry' | 'badge_earned' | 'level_up' | 'streak_milestone';
 
 export type FeedMetadata =
@@ -105,8 +102,11 @@ export type FeedMetadata =
   | { streak: number }
   | { level: number; title: string };
 
+export type CommunityAction = keyof typeof COMMUNITY_RATE_LIMITS;
+
 export const DREAM_CATEGORY_LIST: DreamCategory[] = [
-  'travel', 'money', 'career', 'lifestyle', 'growth', 'relationships', 'custom',
+  'travel', 'money', 'career', 'lifestyle', 'growth', 'relationships',
+  'health', 'education', 'creative', 'social', 'custom',
 ];
 
 // ── XP Rewards ──────────────────────────────────────────────────────────────
@@ -177,22 +177,54 @@ export const MAX_TAGS_COUNT = 20;
 
 export const FREE_JOURNAL_DAILY_LIMIT = 1;
 
+// Free tier limits (premium = unlimited)
+export const FREE_TIER_LIMIT = 25;
+export const FREE_MAX_DREAMS = FREE_TIER_LIMIT;
+export const FREE_MAX_ACTIONS_PER_DREAM = FREE_TIER_LIMIT;
+export const FREE_MAX_JOURNALS_PER_DREAM = FREE_TIER_LIMIT;
+export const FREE_MAX_PINS = FREE_TIER_LIMIT;
+export const FREE_MAX_COMMUNITY_PINS = 5;
+
+export const MAX_WIN_TEXT = 500;
+export const MAX_RESOURCE_TITLE = 200;
+export const MAX_RESOURCE_DESC = 500;
+
+// Pin limits
+export const PIN_TITLE_MAX = 200;
+export const PIN_DESC_MAX = 500;
+export const PIN_URL_MAX = 2000;
+export const PIN_PAGE_SIZE = 20;
+export const PIN_TAGS_MAX = 5;
+export const PIN_TAG_LENGTH_MAX = 30;
+export const BOARD_NAME_MAX = 50;
+export const MAX_BOARDS = 10;
+
 export const MAX_BIO_LENGTH = 200;
 export const MAX_DISPLAY_NAME_LENGTH = 50;
-export const SEARCH_RESULTS_LIMIT = 20;
 export const FEED_PAGE_SIZE = 30;
-export const FEED_FRIENDS_RECENT_LIMIT = 10;
+export const MAX_FEED_PAGE_SIZE = 50;
+
+// Community rate limit windows
+export const COMMUNITY_RATE_LIMITS = {
+  profile_update: { max: 10, windowMs: 60 * 1000 },          // 10/min
+  pin_create: { max: 30, windowMs: 60 * 60 * 1000 },        // 30/hr
+  report_pin: { max: 10, windowMs: 60 * 60 * 1000 },        // 10/hr
+} as const;
 
 // ── Dream Categories (display metadata) ─────────────────────────────────────
 
 export const DREAM_CATEGORIES = {
-  travel: { label: 'Travel', icon: 'airplane', color: '#7b8d9e' },
-  money: { label: 'Money', icon: 'wallet', color: '#a3976b' },
-  career: { label: 'Career', icon: 'briefcase', color: '#b07d6e' },
-  lifestyle: { label: 'Lifestyle', icon: 'home', color: '#7a9e96' },
-  growth: { label: 'Growth', icon: 'leaf', color: '#6b9670' },
-  relationships: { label: 'Relationships', icon: 'heart', color: '#9e8ba3' },
-  custom: { label: 'Custom', icon: 'star.fill', color: '#8b8b8b' },
+  travel: { label: 'Travel', icon: 'airplane', color: '#2E86AB' },
+  money: { label: 'Money', icon: 'wallet', color: '#D4A030' },
+  career: { label: 'Career', icon: 'briefcase', color: '#C86838' },
+  lifestyle: { label: 'Lifestyle', icon: 'home', color: '#3A9E8B' },
+  growth: { label: 'Growth', icon: 'leaf', color: '#6B8E23' },
+  relationships: { label: 'Relationships', icon: 'heart', color: '#9B6EA8' },
+  health: { label: 'Health', icon: 'figure.walk', color: '#E05A6F' },
+  education: { label: 'Education', icon: 'book', color: '#5B6ABF' },
+  creative: { label: 'Creative', icon: 'paintpalette.fill', color: '#D46BA3' },
+  social: { label: 'Social Impact', icon: 'globe', color: '#E89040' },
+  custom: { label: 'Custom', icon: 'star.fill', color: '#7A8A9E' },
 } as const;
 
 export const CUSTOM_CATEGORY_ICONS = [
@@ -201,8 +233,8 @@ export const CUSTOM_CATEGORY_ICONS = [
 ] as const;
 
 export const CUSTOM_CATEGORY_COLORS = [
-  '#7b8d9e', '#a3976b', '#b07d6e', '#7a9e96', '#6b9670',
-  '#9e8ba3', '#c4786e', '#6b8a9e', '#9e956b', '#8b7ba3',
+  '#2E86AB', '#D4A030', '#C86838', '#3A9E8B', '#6B8E23',
+  '#9B6EA8', '#E07B4F', '#1E6E8E', '#B89830', '#8B6098',
 ] as const;
 
 // ── Streak Milestones ──────────────────────────────────────────────────────

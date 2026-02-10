@@ -3,6 +3,11 @@ import { authMutation } from './functions';
 import { getOwnedDream, assertDreamLimit, deductXp, deductDreamXp, restoreDreamXp } from './helpers';
 import { XP_REWARDS } from './constants';
 import { canArchive, canRestore, canReopen, getRestoreStatus } from './dreamGuards';
+import {
+  deleteFeedEventsForItems,
+  nullifyFocusSessionDream,
+} from './cascadeDelete';
+import { recalculateUserProgress } from './progress';
 
 // Archive a dream (soft delete) - reverses XP and stats
 // Note: Streaks are intentionally not affected by archive/restore.
@@ -97,10 +102,10 @@ export const reopen = authMutation({
 
 // Permanently delete a dream
 export const remove = authMutation({
-  args: { id: v.id('dreams') },
+  args: { id: v.id('dreams'), timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = ctx.user;
-    const dream = await ctx.db.get('dreams', args.id);
+    const dream = await ctx.db.get(args.id);
     if (!dream) return; // Idempotent: already deleted
     if (dream.userId !== userId) throw new Error('Forbidden');
 
@@ -110,13 +115,36 @@ export const remove = authMutation({
       .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
       .collect();
 
-    if (dream.status !== 'archived') {
-      await deductDreamXp(ctx, userId, dream, actions);
+    const db = ctx.unsafeDb;
+    const actionIds = new Set(actions.map((a) => String(a._id)));
+
+    // Cascade-delete linked journal entries
+    const journals = await db
+      .query('journalEntries')
+      .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
+      .collect();
+
+    for (const journal of journals) {
+      await db.delete(journal._id);
     }
+
+    // Nullify focus sessions referencing this dream or its actions
+    await nullifyFocusSessionDream(db, userId, args.id, actionIds);
+
+    // Batch-delete all feed events + hidden items for dream, its actions, and journals
+    const allRefIds = new Set<string>([
+      String(args.id),
+      ...actions.map((a) => String(a._id)),
+      ...journals.map((j) => String(j._id)),
+    ]);
+    await deleteFeedEventsForItems(db, userId, allRefIds);
 
     // Delete all associated actions
     await Promise.all(actions.map((action) => ctx.db.delete(action._id)));
 
     await ctx.db.delete(args.id);
+
+    // Recalculate progress from source data to catch streak milestone XP drift
+    await recalculateUserProgress(ctx, userId, args.timezone ?? 'UTC');
   },
 });

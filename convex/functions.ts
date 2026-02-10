@@ -1,6 +1,6 @@
-import { customQuery, customMutation, customAction } from 'convex-helpers/server/customFunctions';
+import { customQuery, customMutation } from 'convex-helpers/server/customFunctions';
 import { wrapDatabaseReader, wrapDatabaseWriter } from 'convex-helpers/server/rowLevelSecurity';
-import { query, mutation, action } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { authComponent } from './auth';
 import { rules, type RLSCtx } from './security';
 
@@ -20,9 +20,7 @@ export const authQuery = customQuery(query, {
     return {
       ctx: {
         user: userId,
-        db: userId
-          ? wrapDatabaseReader(rlsCtx, ctx.db, rules, { defaultPolicy: 'deny' })
-          : ctx.db,
+        db: wrapDatabaseReader(rlsCtx, ctx.db, rules, { defaultPolicy: 'deny' }),
         unsafeDb: ctx.db,
       },
       args: {},
@@ -55,19 +53,3 @@ export const authMutation = customMutation(mutation, {
   },
 });
 
-/**
- * Authenticated action wrapper.
- *
- * - `ctx.userId`: user ID (string). Throws if not authenticated.
- */
-export const authAction = customAction(action, {
-  args: {},
-  input: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error('Unauthorized');
-    return {
-      ctx: { userId: identity.subject },
-      args: {},
-    };
-  },
-});

@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { authQuery, authMutation } from './functions';
-import { awardXp, deductXp } from './helpers';
+import { awardXp } from './helpers';
+import { recalculateUserProgress } from './progress';
 import { getTodayString } from './dates';
 import { requireText, validateTags } from './validation';
 import {
@@ -11,10 +12,12 @@ import {
   MAX_TAGS_COUNT,
   MAX_TAG_LENGTH,
   FREE_JOURNAL_DAILY_LIMIT,
+  FREE_MAX_JOURNALS_PER_DREAM,
 } from './constants';
 import { hasEntitlement } from './revenuecat';
 import { PREMIUM_ENTITLEMENT } from './subscriptions';
 import { createFeedEvent } from './feed';
+import { deleteFeedEventsForItem } from './cascadeDelete';
 
 export const list = authQuery({
   args: {},
@@ -34,7 +37,7 @@ export const get = authQuery({
   handler: async (ctx, args) => {
     if (!ctx.user) return null;
 
-    const entry = await ctx.db.get('journalEntries', args.id);
+    const entry = await ctx.db.get(args.id);
     if (!entry || entry.userId !== ctx.user) return null;
 
     return entry;
@@ -83,20 +86,22 @@ export const create = authMutation({
     const userId = ctx.user;
     const today = getTodayString(args.timezone);
 
-    // Check daily limit for free users
-    const isPremium = await hasEntitlement(ctx, {
-      appUserId: userId,
-      entitlementId: PREMIUM_ENTITLEMENT,
-    });
+    // Free tier: max 10 journal entries per dream (when linked to a dream)
+    if (args.dreamId) {
+      const isPremium = await hasEntitlement(ctx, {
+        appUserId: userId,
+        entitlementId: PREMIUM_ENTITLEMENT,
+      });
+      if (!isPremium) {
+        const dreamJournals = await ctx.db
+          .query('journalEntries')
+          .withIndex('by_dream', (q) => q.eq('dreamId', args.dreamId!))
+          .filter((q) => q.eq(q.field('userId'), userId))
+          .take(FREE_MAX_JOURNALS_PER_DREAM + 1);
 
-    if (!isPremium) {
-      const todayEntries = await ctx.db
-        .query('journalEntries')
-        .withIndex('by_user_date', (q) => q.eq('userId', userId).eq('date', today))
-        .collect();
-
-      if (todayEntries.length >= FREE_JOURNAL_DAILY_LIMIT) {
-        throw new Error('JOURNAL_LIMIT_REACHED');
+        if (dreamJournals.length >= FREE_MAX_JOURNALS_PER_DREAM) {
+          throw new Error('FREE_JOURNAL_LIMIT');
+        }
       }
     }
 
@@ -115,20 +120,6 @@ export const create = authMutation({
       date: today,
       createdAt: Date.now(),
     });
-
-    const profile = await ctx.db
-      .query('userProfiles')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
-
-    if (profile?.defaultHideJournals) {
-      await ctx.db.insert('hiddenItems', {
-        userId,
-        itemType: 'journal',
-        itemId: entryId,
-        createdAt: Date.now(),
-      });
-    }
 
     // Award XP and update streak
     const xpReward = XP_REWARDS.journalEntry;
@@ -157,7 +148,7 @@ export const update = authMutation({
   handler: async (ctx, args) => {
     const userId = ctx.user;
 
-    const entry = await ctx.db.get('journalEntries', args.id);
+    const entry = await ctx.db.get(args.id);
     if (!entry) throw new Error('Entry not found');
     if (entry.userId !== userId) throw new Error('Forbidden');
 
@@ -182,17 +173,21 @@ export const update = authMutation({
 });
 
 export const remove = authMutation({
-  args: { id: v.id('journalEntries') },
+  args: { id: v.id('journalEntries'), timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = ctx.user;
 
-    const entry = await ctx.db.get('journalEntries', args.id);
+    const entry = await ctx.db.get(args.id);
     if (!entry) return;
     if (entry.userId !== userId) throw new Error('Forbidden');
 
+    // Cascade-delete feed events
+    const db = ctx.unsafeDb;
+    await deleteFeedEventsForItem(db, userId, args.id);
+
     await ctx.db.delete(args.id);
 
-    // Deduct XP
-    await deductXp(ctx, userId, XP_REWARDS.journalEntry);
+    // Recalculate progress from source data
+    await recalculateUserProgress(ctx, userId, args.timezone ?? 'UTC');
   },
 });

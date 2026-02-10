@@ -461,69 +461,267 @@ const DAILY_CHALLENGES = [
 const BADGE_DEFINITIONS = [
         {
           key: 'permission_granted',
-          title: 'Permission Granted',
-          description: 'Completed your first action within 24 hours of creating a dream',
+          title: 'Passport Stamped',
+          description: 'Took action within 24 hours of creating a dream.',
           icon: 'hand.thumbsup.fill',
           category: 'action',
           xpReward: 25,
         },
         {
           key: 'on_fire',
-          title: 'On Fire',
-          description: 'Maintained a 7-day streak',
+          title: 'Globe Trotter',
+          description: 'Maintained a 7-day streak.',
           icon: 'flame.fill',
           category: 'streak',
           xpReward: 25,
         },
         {
           key: 'dream_achiever',
-          title: 'Dream Achiever',
-          description: 'Completed your first dream',
+          title: 'Destination Reached',
+          description: 'Completed your first dream.',
           icon: 'trophy.fill',
           category: 'dream',
           xpReward: 25,
         },
         {
           key: 'laser_focused',
-          title: 'Laser Focused',
-          description: 'Completed 10 actions on one dream in 7 days',
+          title: 'Jet Setter',
+          description: 'Completed 10 actions on one dream in 7 days.',
           icon: 'scope',
           category: 'action',
           xpReward: 25,
         },
         {
           key: 'delusionally_confident',
-          title: 'Delusionally Confident',
-          description: 'Started your journey even when not confident',
+          title: 'Fearless Traveler',
+          description: 'Started a dream with low confidence.',
           icon: 'sparkles',
           category: 'mindset',
           xpReward: 25,
         },
         {
           key: 'risk_seeker',
-          title: 'Risk Seeker',
-          description: 'Completed 5 comfort zone challenges',
+          title: 'Solo Adventurer',
+          description: 'Completed 5 comfort zone challenges.',
           icon: 'figure.hiking',
           category: 'challenge',
           xpReward: 25,
         },
         {
           key: 'early_bird',
-          title: 'Early Bird',
-          description: 'Completed an action before 8am',
+          title: 'Sunrise Seeker',
+          description: 'Completed an action before 8am.',
           icon: 'sunrise.fill',
           category: 'time',
           xpReward: 25,
         },
         {
           key: 'night_owl',
-          title: 'Night Owl',
-          description: 'Completed an action after 10pm',
+          title: 'Midnight Explorer',
+          description: 'Completed an action after 10pm.',
           icon: 'moon.fill',
           category: 'time',
           xpReward: 25,
         },
 ] as const;
+
+// ── Community Seed Users ─────────────────────────────────────────────────────
+
+const SEED_USERS: {
+  id: string;
+  username: string;
+  displayName: string;
+  bio: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+}[] = [
+  {
+    id: 'seed_maya',
+    username: 'mayawanders',
+    displayName: 'Maya Chen',
+    bio: "Solo travel addict. 23 countries and counting. Proving you don't need a plus-one to see the world.",
+    avatarUrl: 'https://images.unsplash.com/photo-1457257495536-67f31bc9773d?w=200&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80',
+  },
+  {
+    id: 'seed_jade',
+    username: 'jadebuilds',
+    displayName: 'Jade Williams',
+    bio: "Building my dream career on my own terms. Remote work nomad. If you're not negotiating, you're leaving money on the table.",
+    avatarUrl: 'https://images.unsplash.com/photo-1569925444984-9e2e5fc3d1fb?w=200&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1515400276915-8aa3a8fd70f4?w=800&q=80',
+  },
+  {
+    id: 'seed_aria',
+    username: 'ariagrows',
+    displayName: 'Aria Morales',
+    bio: 'Growth junkie. Morning routines, mindset work, and uncomfortable conversations that change your life.',
+    avatarUrl: 'https://images.unsplash.com/photo-1567766089109-46314f8eddd8?w=200&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1568751302450-3d84e00f2348?w=800&q=80',
+  },
+  {
+    id: 'seed_nyla',
+    username: 'nylashines',
+    displayName: 'Nyla Brooks',
+    bio: "Designed a life I don't need a vacation from. Remote work + travel = freedom. Currently somewhere warm.",
+    avatarUrl: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1602002418679-43121356bf41?w=800&q=80',
+  },
+  {
+    id: 'seed_luna',
+    username: 'lunaleaps',
+    displayName: 'Luna Okafor',
+    bio: 'Taking the scenic route through life. One dream at a time.',
+    avatarUrl: 'https://images.unsplash.com/photo-1623035792727-61da15e1a383?w=200&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1485724417692-19b9fb72d5ce?w=800&q=80',
+  },
+  {
+    id: 'seed_zara',
+    username: 'zaradreams',
+    displayName: 'Zara Patel',
+    bio: 'Manifesting in real time. Watch this space.',
+    avatarUrl: 'https://images.unsplash.com/photo-1596787794038-be798d7248a0?w=200&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1551857704-ba9b620ad444?w=800&q=80',
+  },
+];
+
+// ── Community Pins ──────────────────────────────────────────────────────────
+
+const COMMUNITY_PINS: {
+  userIndex: number;
+  type: 'image' | 'win';
+  title: string;
+  description: string;
+  category: 'travel' | 'money' | 'career' | 'lifestyle' | 'growth' | 'relationships';
+  tags: string[];
+  linkImageUrl: string;
+  imageAspectRatio: number;
+}[] = [
+  // ── Travel-heavy feed (Gabby's audience is here for the wanderlust) ────────
+  {
+    userIndex: 0,
+    type: 'image',
+    title: 'She booked the one-way ticket to Bali',
+    description: 'Quit the job that drained me, booked a flight to Bali, and never looked back. This swing over the jungle? Worth every terrifying leap of faith.',
+    category: 'travel',
+    tags: ['bali', 'solotravel', 'leapoffaith'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1526309206584-51dc789367bd?w=800&q=80',
+    imageAspectRatio: 1.33,
+  },
+  {
+    userIndex: 2,
+    type: 'win',
+    title: 'Cappadocia was on my vision board for 3 years',
+    description: 'Woke up at 4am, wrapped in a blanket, and watched a hundred balloons rise over the fairy chimneys. Manifestation is real. Put it on the board.',
+    category: 'travel',
+    tags: ['cappadocia', 'visionboard', 'manifestation'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1568751302450-3d84e00f2348?w=800&q=80',
+    imageAspectRatio: 1.5,
+  },
+  {
+    userIndex: 1,
+    type: 'image',
+    title: 'Positano was worth every penny I saved',
+    description: 'Twelve months of the no-spend challenge. Today I am eating limoncello cake overlooking the Amalfi Coast. The money will follow the woman who bets on herself.',
+    category: 'travel',
+    tags: ['positano', 'amalficoast', 'worthit'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1515400276915-8aa3a8fd70f4?w=800&q=80',
+    imageAspectRatio: 0.67,
+  },
+  {
+    userIndex: 3,
+    type: 'image',
+    title: 'Maldives: vision board to reality',
+    description: 'Three years ago I pinned this exact view. Today I am standing in it. Your dream life is not some fantasy — it is a series of brave choices you have not made yet.',
+    category: 'travel',
+    tags: ['maldives', 'manifestation', 'dreamlife'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1602002418679-43121356bf41?w=800&q=80',
+    imageAspectRatio: 1.5,
+  },
+  {
+    userIndex: 4,
+    type: 'win',
+    title: 'Solo in Kyoto during cherry blossom season',
+    description: 'Everyone said "wait until you have someone to go with." I went alone. Watched the blossoms fall at golden hour. A woman who can navigate a foreign city alone can navigate anything.',
+    category: 'travel',
+    tags: ['kyoto', 'cherryblossoms', 'solotravel'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1742982533138-047c5d82ecb2?w=800&q=80',
+    imageAspectRatio: 0.75,
+  },
+  {
+    userIndex: 0,
+    type: 'image',
+    title: 'Santorini sunsets hit different',
+    description: 'Put this on my vision board 3 years ago. Today I watched the sun set over the caldera with tears in my eyes. Dream it. Do it.',
+    category: 'travel',
+    tags: ['santorini', 'greece', 'visionboard'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80',
+    imageAspectRatio: 1.5,
+  },
+  {
+    userIndex: 5,
+    type: 'image',
+    title: 'Paris at golden hour, journal in hand',
+    description: 'Sitting in a cafe watching the Eiffel Tower glow. Wrote three pages about how this version of me would have seemed impossible two years ago. She is not impossible. She is here.',
+    category: 'travel',
+    tags: ['paris', 'goldenhour', 'journaling'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1743065272150-5beced7090b3?w=800&q=80',
+    imageAspectRatio: 1.5,
+  },
+  // ── Lifestyle / Career / Growth mix ────────────────────────────────────────
+  {
+    userIndex: 3,
+    type: 'image',
+    title: 'Designed a life I do not need a vacation from',
+    description: 'Remote work, ocean view, morning yoga. This is not a holiday. This is Tuesday. Build the life you want — then live in it every single day.',
+    category: 'lifestyle',
+    tags: ['remotework', 'dreamlife', 'designyourlife'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+    imageAspectRatio: 1.5,
+  },
+  {
+    userIndex: 1,
+    type: 'win',
+    title: 'Negotiated remote, now the world is my office',
+    description: 'She said "I know my worth" and then she proved it. Negotiated a fully remote role so every city is home. If you are not negotiating, you are leaving your future self\'s money on the table.',
+    category: 'career',
+    tags: ['remotework', 'negotiation', 'knowyourworth'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1689457362806-af3a973a3c45?w=800&q=80',
+    imageAspectRatio: 0.67,
+  },
+  {
+    userIndex: 2,
+    type: 'image',
+    title: 'Started a travel fund — crossed six figures',
+    description: 'Two years ago I had $200 in my account. Today I crossed $100K in my travel fund. Small steps, big vision, relentless consistency. The money follows the woman who bets on herself.',
+    category: 'money',
+    tags: ['travelfund', 'financialfreedom', 'moneymoves'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1747484226164-81ae91411c1f?w=800&q=80',
+    imageAspectRatio: 1.33,
+  },
+  {
+    userIndex: 4,
+    type: 'win',
+    title: 'Mt. Fuji at sunrise was a spiritual experience',
+    description: 'Woke up before dawn, hiked in the dark, and watched the sun rise behind Fuji through a curtain of cherry blossoms. Some moments cannot be captured. They just change you.',
+    category: 'growth',
+    tags: ['mtfuji', 'japan', 'growthmindset'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1769538012116-b26a4cecbcf7?w=800&q=80',
+    imageAspectRatio: 0.75,
+  },
+  {
+    userIndex: 5,
+    type: 'image',
+    title: 'Found my people on the road',
+    description: 'Met these women at a hostel in Morocco. Five countries later we are still traveling together. The right people will not be intimidated by your ambition. They will match it.',
+    category: 'relationships',
+    tags: ['travelsisters', 'community', 'morocco'],
+    linkImageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+    imageAspectRatio: 0.67,
+  },
+];
+
+// ── Seed Functions ──────────────────────────────────────────────────────────
 
 async function seedMindsetMoments(ctx: MutationCtx) {
   for (const quote of MINDSET_MOMENTS) {
@@ -546,7 +744,82 @@ async function seedBadgeDefinitions(ctx: MutationCtx) {
   return BADGE_DEFINITIONS.length;
 }
 
-// Seed all data (mindset moments + daily challenges + badge definitions)
+async function seedCommunityPins(ctx: MutationCtx) {
+  const now = Date.now();
+
+  // Create seed user profiles with avatar/banner URLs and bios
+  for (const user of SEED_USERS) {
+    await ctx.db.insert('userProfiles', {
+      userId: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      bio: user.bio,
+      avatarUrl: user.avatarUrl,
+      bannerUrl: user.bannerUrl,
+      isPublic: true,
+      createdAt: now,
+    });
+  }
+
+  // Create community pins with staggered timestamps so they appear in order
+  for (let i = 0; i < COMMUNITY_PINS.length; i++) {
+    const pin = COMMUNITY_PINS[i];
+    const user = SEED_USERS[pin.userIndex];
+    await ctx.db.insert('pins', {
+      userId: user.id,
+      type: pin.type,
+      title: pin.title,
+      description: pin.description,
+      category: pin.category,
+      tags: pin.tags,
+      linkImageUrl: pin.linkImageUrl,
+      imageAspectRatio: pin.imageAspectRatio,
+      isPersonalOnly: false,
+      createdAt: now - (COMMUNITY_PINS.length - i) * 60_000,
+    });
+  }
+
+  return COMMUNITY_PINS.length;
+}
+
+async function clearTable(ctx: MutationCtx, table: 'mindsetMoments' | 'dailyChallenges' | 'badgeDefinitions' | 'pins' | 'userProfiles') {
+  let count = 0;
+  const docs = await ctx.db.query(table).collect();
+  for (const doc of docs) {
+    // For userProfiles, only delete seed users
+    if (table === 'userProfiles' && !(doc as { userId: string }).userId.startsWith('seed_')) continue;
+    // For pins, only delete community (non-personal) pins from seed users
+    if (table === 'pins' && !(doc as { userId: string }).userId.startsWith('seed_')) continue;
+    await ctx.db.delete(doc._id);
+    count++;
+  }
+  return count;
+}
+
+// Clear seeded tables and re-seed everything
+export const clearAndReseed = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cleared = {
+      mindsetMoments: await clearTable(ctx, 'mindsetMoments'),
+      dailyChallenges: await clearTable(ctx, 'dailyChallenges'),
+      badgeDefinitions: await clearTable(ctx, 'badgeDefinitions'),
+      pins: await clearTable(ctx, 'pins'),
+      userProfiles: await clearTable(ctx, 'userProfiles'),
+    };
+
+    const seeded = {
+      mindsetMoments: await seedMindsetMoments(ctx),
+      dailyChallenges: await seedDailyChallenges(ctx),
+      badgeDefinitions: await seedBadgeDefinitions(ctx),
+      communityPins: await seedCommunityPins(ctx),
+    };
+
+    return { cleared, seeded };
+  },
+});
+
+// Seed all data (mindset moments + daily challenges + badge definitions + community pins)
 export const seedAll = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -554,6 +827,7 @@ export const seedAll = internalMutation({
       mindsetMoments: { seeded: false, count: 0 },
       dailyChallenges: { seeded: false, count: 0 },
       badgeDefinitions: { seeded: false, count: 0 },
+      communityPins: { seeded: false, count: 0 },
     };
 
     // Seed mindset moments
@@ -575,6 +849,16 @@ export const seedAll = internalMutation({
     if (!existingBadge) {
       const count = await seedBadgeDefinitions(ctx);
       results.badgeDefinitions = { seeded: true, count };
+    }
+
+    // Seed community pins
+    const existingPin = await ctx.db
+      .query('pins')
+      .withIndex('by_community_created', (q) => q.eq('isPersonalOnly', false))
+      .first();
+    if (!existingPin) {
+      const count = await seedCommunityPins(ctx);
+      results.communityPins = { seeded: true, count };
     }
 
     return results;

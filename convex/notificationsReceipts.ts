@@ -1,61 +1,15 @@
 import { internalMutation, internalQuery, internalAction } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
+import { getAuthHeaders, fetchWithRetry } from './pushHelpers';
 
 const EXPO_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY = 1000;
 
 type PushReceipt = {
   status: 'ok' | 'error';
   message?: string;
   details?: { error?: string };
 };
-
-function getAuthHeaders(): Record<string, string> | null {
-  try {
-    // Import dynamically to avoid circular dependency issues
-    const { env } = require('./env');
-    const token = env.expo.accessToken;
-    if (!token) return null;
-    return {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function fetchWithRetry(url: string, options: RequestInit, retries = MAX_RETRIES): Promise<Response> {
-  let lastError: Error | null = null;
-  let delay = INITIAL_RETRY_DELAY;
-
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(url, options);
-      if (response.ok || (response.status < 500 && response.status !== 429)) {
-        return response;
-      }
-      if (response.status === 429 || response.status >= 500) {
-        lastError = new Error(`HTTP ${response.status}`);
-        const retryAfter = response.headers.get('Retry-After');
-        if (retryAfter) {
-          delay = parseInt(retryAfter, 10) * 1000;
-        }
-      } else {
-        return response;
-      }
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-    }
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    delay *= 2;
-  }
-  throw lastError ?? new Error('Fetch failed');
-}
 
 export const storePushReceipts = internalMutation({
   args: {
