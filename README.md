@@ -32,12 +32,13 @@ Mindset shifts + micro-actions + gamification. That's the whole thesis.
 
 - **Dreams** - 6 categories (travel, money, career, lifestyle, growth, relationships), micro-actions per dream, timelines, progress tracking
 - **Today** - daily challenges, morning check-ins, mindset moments, quick actions surfaced per day
+- **Boards** - vision boards with pins, link previews, masonry grid, save-to-board flow
 - **Journal** - mood tracking, reflection prompts, entries linked to specific dreams
 - **Progress** - XP levels (Dreamer → Seeker → Achiever → Go-Getter → Trailblazer), streaks, badges, activity heatmap
-- **Focus Timer** - Pomodoro sessions tied to dream actions
-- **Onboarding** - 13-slide guided flow: category selection, pace, confidence, personality
-- **Gamification** - confetti on completions, win cards on dream complete, streak milestones, badge gallery
-- **Profile** - avatar upload, theme picker (system/light/dark), notifications, account management
+- **Focus Timer** - Pomodoro sessions tied to dream actions with enhanced session tracking
+- **Onboarding** - streamlined guided flow: welcome, goals, dream title, notifications, celebration
+- **Gamification** - confetti, shareable win/badge/streak/level cards, first-action celebration, all-done overlay
+- **Dashboard** - avatar/banner upload, activity feed, theme picker, notifications, account management
 
 ## Monetization
 
@@ -69,18 +70,18 @@ Mindset shifts + micro-actions + gamification. That's the whole thesis.
   sign-in, sign-up, forgot-password, reset-password
 
 (app)/
-  onboarding, subscribe, create-dream, focus-timer, journal-entry
-  dream/[id], dream-complete/[id]
+  onboarding, subscribe, create-dream, create-action, focus-timer, journal-entry
+  dream/[id], dream-complete/[id], user-profile/[id]
 
   (tabs)/
     today
-    (dreams)/ → index, [category]
-    journal
+    (dreams)/ → index, [category], journal
+    boards
     progress
-    profile/ → index, notifications, privacy, help, about
+    dashboard/ → index, settings, notifications, privacy, help, about
 ```
 
-22 screens total.
+27 screens total.
 
 ## Architecture
 
@@ -104,7 +105,7 @@ User actions → Convex mutations → XP/streak/badge calculations → Real-time
 
 ### Backend
 
-37 Convex modules: auth, dreams, actions, progress, challenges, check-ins, journal, focus sessions, badges, notifications, subscriptions, email, storage. All data goes through Convex queries and mutations. No raw database calls.
+46 Convex modules: auth, dreams, actions, progress, challenges, check-ins, journal, focus sessions, badges, notifications, subscriptions, email, storage, pins, community, security, cascade delete, link preview. All data goes through Convex queries and mutations. No raw database calls.
 
 **Auth guards:** Queries return empty arrays for unauthenticated users. Mutations throw. Rate limiting: 10/min default, 5/15min sign-in, 3/hr sign-up.
 
@@ -115,12 +116,10 @@ User actions → Convex mutations → XP/streak/badge calculations → Real-time
 **Near-term**
 - Personalized action suggestions (micro-actions based on dream context)
 - Streak freezes and recovery mechanics
-- Shareable win cards with @packslight branding
 - Home screen widgets
 
 **Long-term**
 - Community features: dream groups, accountability partners
-- Gabby's exclusive content: video messages, monthly challenges
 - Deeper progress analytics (per-dream trends, weekly reports)
 
 ## Developer
