@@ -14,7 +14,7 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
   const colorScheme = useColorScheme();
   const { isAvailable, isLoading, signInWithApple } = useAppleAuth();
 
-  if (process.env.EXPO_OS !== "ios" || !isAvailable) {
+  if (!isAvailable) {
     return null;
   }
 

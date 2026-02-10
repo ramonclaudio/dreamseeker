@@ -15,11 +15,11 @@ export function UserAvatar({ size = 36 }: { size?: number }) {
 
   return (
     <Pressable
-      onPress={() => router.push("/(app)/(tabs)/profile")}
+      onPress={() => router.push("/(app)/(tabs)/dashboard")}
       style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1 })}
       accessibilityRole="button"
-      accessibilityLabel="Profile"
-      accessibilityHint="Opens your profile"
+      accessibilityLabel="Dashboard"
+      accessibilityHint="Opens your dashboard"
     >
       {user?.image ? (
         <Image

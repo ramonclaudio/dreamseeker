@@ -6,7 +6,7 @@ import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
 
 let _glassModule: typeof import("expo-glass-effect") | null = null;
 function getGlassModule() {
-  if (_glassModule === null && process.env.EXPO_OS === "ios") {
+  if (_glassModule === null) {
     try {
       // Dynamic require needed for conditional iOS-only loading
       _glassModule = require("expo-glass-effect"); // eslint-disable-line @typescript-eslint/no-require-imports
