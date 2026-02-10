@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native builds (EAS runs prebuild)
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.keystore
+*.mobileprovision
+
+# macOS
+.DS_Store
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Coverage & Tests
+coverage/
+__tests__/
+
+# Not needed for build
+.git/
+.github/
+.handoff/
