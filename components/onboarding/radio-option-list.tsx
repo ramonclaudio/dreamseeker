@@ -55,7 +55,7 @@ export function RadioOptionList<T extends string>({
                 gap: Spacing.md,
                 padding: Spacing.lg,
                 borderWidth: isSelected ? 2 : 1,
-                borderColor: isSelected ? colors.accentBlue : colors.border,
+                borderColor: isSelected ? colors.accent : colors.border,
               }}
             >
               <View
@@ -64,7 +64,7 @@ export function RadioOptionList<T extends string>({
                   height: 24,
                   borderRadius: 12,
                   borderWidth: 2,
-                  borderColor: isSelected ? colors.accentBlue : colors.border,
+                  borderColor: isSelected ? colors.accent : colors.border,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -75,7 +75,7 @@ export function RadioOptionList<T extends string>({
                       width: 12,
                       height: 12,
                       borderRadius: 6,
-                      backgroundColor: colors.accentBlue,
+                      backgroundColor: colors.accent,
                     }}
                   />
                 )}
@@ -84,7 +84,7 @@ export function RadioOptionList<T extends string>({
                 <IconSymbol
                   name={option.icon}
                   size={IconSize.xl}
-                  color={isSelected ? colors.accentBlue : colors.mutedForeground}
+                  color={isSelected ? colors.accent : colors.mutedForeground}
                 />
               )}
               {hasDetails ? (

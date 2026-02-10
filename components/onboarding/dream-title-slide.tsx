@@ -13,12 +13,16 @@ export function DreamTitleSlide({
   onChangeTitle,
   selectedCategory,
   selectedCategories,
+  whyItMatters,
+  onChangeWhyItMatters,
 }: {
   colors: SlideColors;
   title: string;
   onChangeTitle: (text: string) => void;
   selectedCategory: DreamCategory;
   selectedCategories: DreamCategory[];
+  whyItMatters?: string;
+  onChangeWhyItMatters?: (text: string) => void;
 }) {
   const categoryToUse = selectedCategories.includes(selectedCategory)
     ? selectedCategory
@@ -86,6 +90,28 @@ export function DreamTitleSlide({
           accessibilityLabel="Enter your dream title"
           accessibilityHint="Type the title of your first dream"
         />
+
+        {onChangeWhyItMatters && (
+          <TextInput
+            style={{
+              backgroundColor: colors.secondary,
+              borderRadius: Radius.md,
+              padding: Spacing.lg,
+              fontSize: FontSize.base,
+              color: colors.foreground,
+              borderWidth: 1,
+              borderColor: colors.border,
+              minHeight: 80,
+              marginTop: Spacing.md,
+            }}
+            placeholder="Why does this matter to you? (optional)"
+            placeholderTextColor={colors.mutedForeground}
+            value={whyItMatters}
+            onChangeText={onChangeWhyItMatters}
+            multiline
+            accessibilityLabel="Why does this dream matter to you"
+          />
+        )}
       </View>
     </View>
   );

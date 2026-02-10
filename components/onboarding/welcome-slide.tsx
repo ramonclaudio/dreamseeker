@@ -2,28 +2,37 @@ import { View } from 'react-native';
 import { Image } from 'expo-image';
 
 import { ThemedText } from '@/components/ui/themed-text';
-import { Spacing, FontSize } from '@/constants/layout';
+import { MaterialCard } from '@/components/ui/material-card';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import type { SlideColors } from './shared';
 
 export function WelcomeSlide({ colors }: { colors: SlideColors }) {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing['2xl'] }}>
-      <View style={{
-        padding: 4,
-        borderRadius: Radius['3xl'],
-        backgroundColor: `${colors.accentBlue}20`,
-        shadowColor: colors.accentBlue,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.25,
-        shadowRadius: 20,
-      }}>
+      <View
+        style={{
+          width: 140,
+          height: 140,
+          borderRadius: Radius.full,
+          backgroundColor: colors.surfaceTinted,
+          borderWidth: 1,
+          borderColor: colors.borderAccent,
+          justifyContent: 'center',
+          alignItems: 'center',
+          shadowColor: colors.glowShadow,
+          shadowOpacity: 1,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 4 },
+        }}
+      >
         <Image
-          source={require('@/assets/image-0.webp')}
-          style={{ width: 200, height: 200, borderRadius: Radius['2xl'] }}
-          contentFit="cover"
+          source={require('@/assets/images/icon.png')}
+          style={{ width: 120, height: 120 }}
+          contentFit="contain"
           accessible={true}
-          accessibilityLabel="Woman looking towards the horizon, representing new beginnings"
+          accessibilityLabel="DreamSeeker cloud icon"
         />
       </View>
       <View style={{ gap: Spacing.md, alignItems: 'center' }}>
@@ -36,12 +45,26 @@ export function WelcomeSlide({ colors }: { colors: SlideColors }) {
         >
           DreamSeeker helps ambitious women turn big dreams into daily actions.
         </ThemedText>
-        <ThemedText
-          style={{ textAlign: 'center', fontSize: FontSize.lg, fontWeight: '600' }}
-          color={colors.accentBlue}
+        <MaterialCard
+          variant="tinted"
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: Spacing.sm,
+            paddingVertical: Spacing.md,
+            paddingHorizontal: Spacing.lg,
+            marginTop: Spacing.sm,
+          }}
         >
-          Join 2,000+ women already chasing their dreams
-        </ThemedText>
+          <IconSymbol name="sparkles" size={IconSize.lg} color={colors.accent} />
+          <ThemedText
+            style={{ fontSize: FontSize.lg, fontWeight: '600' }}
+            color={colors.accent}
+          >
+            Join 2,000+ women already chasing their dreams
+          </ThemedText>
+        </MaterialCard>
       </View>
     </View>
   );
