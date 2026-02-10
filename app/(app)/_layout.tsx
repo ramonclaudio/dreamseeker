@@ -1,129 +1,24 @@
-import { Stack, Redirect, useSegments, router, type ErrorBoundaryProps } from 'expo-router';
-import { View, ActivityIndicator, Pressable, Text } from 'react-native';
+import { Stack, Redirect, useSegments } from 'expo-router';
+import { View, ActivityIndicator } from 'react-native';
 import { useQuery } from 'convex/react';
 
 import { api } from '@/convex/_generated/api';
-import { useColors, useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/use-color-scheme';
 import { useLevelUp } from '@/hooks/use-level-up';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LevelUpModal } from '@/components/engagement/level-up-modal';
-import { Spacing, TouchTarget } from '@/constants/layout';
-import { Radius } from '@/constants/theme';
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
   anchor: '(tabs)',
 };
 
-export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
-  // Don't use useColors() — the provider might have crashed
-  // Use hardcoded fallback colors instead
-  const isDark = useColorScheme() === "dark";
-  const fallbackColors = {
-    background: isDark ? "#191d19" : "#f3f6ef",
-    foreground: isDark ? "#f0f3ed" : "#2c3a2e",
-    mutedForeground: isDark ? "#8a9a8a" : "#6b7a6d",
-    primary: "#c7d1dd",
-    primaryForeground: "#1e2d3a",
-  };
-
-  // Log error for debugging but don't show it to the user
-  console.error("[App ErrorBoundary]", error);
-
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: fallbackColors.background,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: Spacing["3xl"],
-        gap: Spacing.xl,
-      }}
-    >
-      <IconSymbol
-        name="exclamationmark.triangle"
-        size={64}
-        color={fallbackColors.mutedForeground}
-        style={{ marginBottom: Spacing.md }}
-      />
-      <Text
-        style={{
-          fontSize: 28,
-          lineHeight: 36,
-          fontWeight: "700",
-          textAlign: "center",
-          color: fallbackColors.foreground,
-          letterSpacing: -0.5,
-        }}
-      >
-        Oops! Something broke, girl.
-      </Text>
-      <Text
-        style={{
-          fontSize: 16,
-          lineHeight: 24,
-          textAlign: "center",
-          color: fallbackColors.mutedForeground,
-          marginBottom: Spacing.sm,
-        }}
-      >
-        But we don&apos;t quit — let&apos;s try again.
-      </Text>
-      <Pressable
-        style={{
-          backgroundColor: fallbackColors.primary,
-          paddingHorizontal: Spacing["2xl"],
-          paddingVertical: Spacing.md,
-          minHeight: TouchTarget.min,
-          justifyContent: "center",
-          borderRadius: Radius.full,
-          borderCurve: "continuous",
-          shadowColor: fallbackColors.primary,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 12,
-          elevation: 6,
-          marginBottom: Spacing.md,
-        }}
-        onPress={retry}
-        accessibilityRole="button"
-        accessibilityLabel="Try again"
-      >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "600",
-            color: fallbackColors.primaryForeground,
-          }}
-        >
-          Try Again
-        </Text>
-      </Pressable>
-      <Pressable
-        onPress={() => router.push("/(app)/(tabs)/today")}
-        accessibilityRole="button"
-        accessibilityLabel="Go home"
-        style={{ padding: Spacing.md }}
-      >
-        <Text
-          style={{
-            fontSize: 14,
-            color: fallbackColors.mutedForeground,
-            textDecorationLine: "underline",
-          }}
-        >
-          Go Home
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
+export { AppErrorBoundary as ErrorBoundary } from '@/components/ui/error-boundary';
 
 export default function AppLayout() {
   const colors = useColors();
   const segments = useSegments();
   const onboardingStatus = useQuery(api.userPreferences.getOnboardingStatus);
+  const user = useQuery(api.auth.getCurrentUser);
   const { showLevelUpModal, level, levelTitle, dismissLevelUpModal } = useLevelUp();
 
   // Check if we're already on the onboarding route
@@ -178,6 +73,7 @@ export default function AppLayout() {
         <Stack.Screen name="focus-timer" options={{ presentation: 'modal', headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="subscribe" options={{ presentation: 'modal', title: 'Upgrade to Premium', headerShown: true, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="dream-complete/[id]" options={{ presentation: 'fullScreenModal', headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="create-action" options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="user-profile/[id]" options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }} />
       </Stack>
 
@@ -186,6 +82,7 @@ export default function AppLayout() {
         visible={showLevelUpModal}
         level={level}
         levelTitle={levelTitle}
+        handle={user?.displayName ?? user?.name}
         onDismiss={dismissLevelUpModal}
       />
     </View>

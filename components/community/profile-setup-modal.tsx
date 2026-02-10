@@ -6,7 +6,6 @@ import {
   TextInput,
   KeyboardAvoidingView,
   StyleSheet,
-  Switch,
 } from 'react-native';
 import { useMutation } from 'convex/react';
 
@@ -26,8 +25,6 @@ type ProfileSetupModalProps = {
 export function ProfileSetupModal({ visible, onComplete }: ProfileSetupModalProps) {
   const colors = useColors();
   const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +42,7 @@ export function ProfileSetupModal({ visible, onComplete }: ProfileSetupModalProp
     setError(null);
     try {
       await getOrCreateProfile({});
-      await updateProfile({
-        displayName: trimmed,
-        bio: bio.trim() || undefined,
-        isPublic,
-      });
+      await updateProfile({ displayName: trimmed });
       onComplete();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save');
@@ -66,14 +59,14 @@ export function ProfileSetupModal({ visible, onComplete }: ProfileSetupModalProp
       onRequestClose={() => {}}
     >
       <KeyboardAvoidingView
-        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         style={{ flex: 1, backgroundColor: colors.background }}
       >
         <View style={styles.header}>
-          <IconSymbol name="person.crop.circle" size={IconSize['4xl']} color={colors.primary} />
-          <ThemedText style={styles.title}>Set Up Your Profile</ThemedText>
+          <IconSymbol name="sparkles" size={IconSize['4xl']} color={colors.primary} />
+          <ThemedText style={styles.title}>Pick a Display Name</ThemedText>
           <ThemedText style={styles.subtitle} color={colors.mutedForeground}>
-            Let your friends know who you are.
+            {"This is how you'll appear when sharing wins and resources."}
           </ThemedText>
         </View>
 
@@ -95,36 +88,6 @@ export function ProfileSetupModal({ visible, onComplete }: ProfileSetupModalProp
               maxLength={50}
               autoFocus
               autoCapitalize="words"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <View style={styles.labelRow}>
-              <ThemedText style={styles.label}>Bio</ThemedText>
-              <ThemedText style={styles.charCount} color={colors.mutedForeground}>{bio.length}/200</ThemedText>
-            </View>
-            <TextInput
-              value={bio}
-              onChangeText={setBio}
-              placeholder="Tell us about yourself..."
-              placeholderTextColor={colors.mutedForeground}
-              style={[styles.input, styles.bioInput, { backgroundColor: colors.secondary, color: colors.foreground, borderColor: colors.border }]}
-              maxLength={200}
-              multiline
-            />
-          </View>
-
-          <View style={styles.toggleRow}>
-            <View style={{ flex: 1 }}>
-              <ThemedText style={styles.label}>Public Profile</ThemedText>
-              <ThemedText style={styles.toggleHint} color={colors.mutedForeground}>
-                Let others find and add you as a friend.
-              </ThemedText>
-            </View>
-            <Switch
-              value={isPublic}
-              onValueChange={setIsPublic}
-              trackColor={{ false: colors.muted, true: colors.primary }}
             />
           </View>
         </View>
@@ -176,32 +139,11 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: '500',
   },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  charCount: {
-    fontSize: FontSize.sm,
-  },
   input: {
     borderRadius: Radius.md,
     borderWidth: 1,
     padding: Spacing.lg,
     fontSize: FontSize.xl,
-  },
-  bioInput: {
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  toggleHint: {
-    fontSize: FontSize.sm,
-    marginTop: Spacing.xxs,
   },
   errorBox: {
     borderWidth: 1,

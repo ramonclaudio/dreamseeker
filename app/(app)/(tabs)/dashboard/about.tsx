@@ -7,7 +7,7 @@ import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, type ColorPalette } from '@/constants/theme';
-import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { FontSize, IconSize, MaxWidth, Spacing, TouchTarget, TAB_BAR_CLEARANCE } from '@/constants/layout';
 import { Opacity, Size } from '@/constants/ui';
 import { useColors } from '@/hooks/use-color-scheme';
 import { haptics } from '@/lib/haptics';
@@ -83,11 +83,11 @@ export default function AboutScreen() {
 
   const deviceInfo = Device.modelName
     ? `${Device.manufacturer ?? ''} ${Device.modelName}`.trim()
-    : process.env.EXPO_OS;
+    : 'iOS';
 
   const osVersion = Device.osVersion
-    ? `${process.env.EXPO_OS === 'ios' ? 'iOS' : 'Android'} ${Device.osVersion}`
-    : process.env.EXPO_OS;
+    ? `iOS ${Device.osVersion}`
+    : 'iOS';
 
   const handleOpenGitHub = () => {
     Linking.openURL('https://github.com/ramonclaudio/dreamseeker');
@@ -104,7 +104,7 @@ export default function AboutScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT, maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_CLEARANCE, maxWidth: MaxWidth.content, alignSelf: 'center', width: '100%' }}
       contentInsetAdjustmentBehavior="automatic">
       <View style={sectionStyle}>
         <ThemedText style={sectionTitleStyle} color={colors.mutedForeground}>

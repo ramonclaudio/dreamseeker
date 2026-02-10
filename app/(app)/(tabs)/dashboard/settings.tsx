@@ -28,7 +28,7 @@ import {
   FontSize,
   IconSize,
   MaxWidth,
-  TAB_BAR_HEIGHT,
+  TAB_BAR_CLEARANCE,
 } from "@/constants/layout";
 import { Size } from "@/constants/ui";
 import { useColors, useThemeMode } from "@/hooks/use-color-scheme";
@@ -85,11 +85,7 @@ export default function SettingsScreen() {
       setIsDeleting(false);
       const message =
         error instanceof Error ? error.message : "Unable to delete account. Please try again.";
-      if (process.env.EXPO_OS === "web") {
-        window.alert(message);
-      } else {
-        Alert.alert("Deletion Failed", message);
-      }
+      Alert.alert("Deletion Failed", message);
     }
   };
 
@@ -99,14 +95,10 @@ export default function SettingsScreen() {
     const message =
       "Are you sure you want to delete your account? This will permanently delete all your data including dreams, sessions, and profile information. This action cannot be undone.";
 
-    if (process.env.EXPO_OS === "web") {
-      if (window.confirm(message)) performDeleteAccount();
-    } else {
-      Alert.alert("Delete Account", message, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: performDeleteAccount },
-      ]);
-    }
+    Alert.alert("Delete Account", message, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: performDeleteAccount },
+    ]);
   };
 
   if (!user) {
@@ -130,7 +122,7 @@ export default function SettingsScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingBottom: TAB_BAR_HEIGHT,
+          paddingBottom: TAB_BAR_CLEARANCE,
           maxWidth: MaxWidth.content,
           alignSelf: "center",
           width: "100%",
@@ -194,15 +186,15 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         <SettingsSection title="Preferences" colors={colors}>
-          <SettingsLinkItem href="/profile/notifications" icon="bell.fill" label="Notifications" colors={colors} />
+          <SettingsLinkItem href="/dashboard/notifications" icon="bell.fill" label="Notifications" colors={colors} />
           <View style={[settingsDividerStyle, { backgroundColor: colors.border }]} />
-          <SettingsLinkItem href="/profile/privacy" icon="hand.raised.fill" label="Privacy" colors={colors} />
+          <SettingsLinkItem href="/dashboard/privacy" icon="hand.raised.fill" label="Privacy" colors={colors} />
         </SettingsSection>
 
         <SettingsSection title="Support" colors={colors}>
-          <SettingsLinkItem href="/profile/help" icon="questionmark.circle.fill" label="Help" colors={colors} />
+          <SettingsLinkItem href="/dashboard/help" icon="questionmark.circle.fill" label="Help" colors={colors} />
           <View style={[settingsDividerStyle, { backgroundColor: colors.border }]} />
-          <SettingsLinkItem href="/profile/about" icon="info.circle.fill" label="About" colors={colors} />
+          <SettingsLinkItem href="/dashboard/about" icon="info.circle.fill" label="About" colors={colors} />
         </SettingsSection>
 
         <SettingsSection title="Account" colors={colors}>
