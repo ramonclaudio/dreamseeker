@@ -13,11 +13,7 @@
       "bundleIdentifier": "com.ramonclaudio.dreamseeker",
       "appleTeamId": "SWH9LXWCC3",
       "buildNumber": "1",
-      "icon": {
-        "light": "./assets/images/icon.png",
-        "dark": "./assets/images/icon-dark.png",
-        "tinted": "./assets/images/icon-tinted.png"
-      },
+      "icon": "./assets/images/dreamseeker-app-icon.icon",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app uses the camera to take profile photos.",
@@ -31,44 +27,39 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-            "NSPrivacyAccessedAPITypeReasons": ["0A2A.1", "3B52.1", "C617.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "0A2A.1",
+              "3B52.1",
+              "C617.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
-            "NSPrivacyAccessedAPITypeReasons": ["E174.1", "85F4.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1",
+              "85F4.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
           }
         ]
       }
-    },
-    "android": {
-      "package": "com.ramonclaudio.dreamseeker",
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      },
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "single",
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       [
         "expo-router",
         {
           "asyncRoutes": {
-            "web": true,
             "default": "development"
           }
         }
@@ -79,10 +70,10 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 300,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#E07B4F",
           "dark": {
             "image": "./assets/images/splash-icon-dark.png",
-            "backgroundColor": "#000000"
+            "backgroundColor": "#1A1614"
           }
         }
       ],
@@ -96,7 +87,9 @@
           "enableBackgroundRemoteNotifications": true
         }
       ],
-      "./plugins/with-auto-signing"
+      "./plugins/with-auto-signing",
+      "expo-sharing",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -105,7 +98,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "25943fb2-b13d-44f0-958a-c941bd37a7a0"
+        "projectId": "27495040-f0ab-4f2f-b207-72a0dbc118b6"
       },
       "privacyPolicyUrl": "https://usable-sardine-855.convex.site/privacy",
       "termsOfServiceUrl": "https://usable-sardine-855.convex.site/terms"
@@ -115,7 +108,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/25943fb2-b13d-44f0-958a-c941bd37a7a0"
+      "url": "https://u.expo.dev/27495040-f0ab-4f2f-b207-72a0dbc118b6"
     }
   }
 }
