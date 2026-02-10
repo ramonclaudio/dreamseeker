@@ -116,13 +116,12 @@ User actions → Convex mutations → XP/streak/badge calculations → Real-time
 - Personalized action suggestions (micro-actions based on dream context)
 - Streak freezes and recovery mechanics
 - Shareable win cards with @packslight branding
-- Home screen widgets (iOS/Android)
+- Home screen widgets
 
 **Long-term**
 - Community features: dream groups, accountability partners
 - Gabby's exclusive content: video messages, monthly challenges
 - Deeper progress analytics (per-dream trends, weekly reports)
-- Web companion app
 
 ## Developer
 
@@ -146,7 +145,7 @@ Senior software engineer, 13+ years, CS degree. 4,300+ GitHub contributions acro
 | [Resend](https://resend.com) | Transactional email | Free tier (3k/month) |
 | [Expo](https://expo.dev) | Build service | Free tier available |
 
-**Local requirements:** Node 18+, Xcode 16+ (iOS) or Android Studio (Android)
+**Local requirements:** Node 18+, Xcode 16+
 
 > [!IMPORTANT]
 > Expo Go is not supported — SDK 55 requires development builds.
@@ -198,7 +197,6 @@ Update the RevenueCat client keys in `.env.local`:
 ```bash
 # Get these from dashboard.revenuecat.com → API Keys
 EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY=appl_xxxxxxxxxxxx
-EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxxxxxxxxxxx
 ```
 
 Then re-run `npx convex dev` — it will push successfully.
@@ -226,7 +224,6 @@ npm run convex
 
 ```bash
 npm run ios        # iOS Simulator
-npm run android    # Android Emulator
 ```
 
 </details>
@@ -237,11 +234,9 @@ npm run android    # Android Emulator
 ### RevenueCat Setup
 
 1. Go to [revenuecat.com](https://revenuecat.com) and sign up
-2. Create a project and add your app (iOS/Android)
-3. Go to **API Keys** → copy Public SDK Keys:
-   - iOS: starts with `appl_`
-   - Android: starts with `goog_`
-4. Create products in App Store Connect / Google Play Console
+2. Create a project and add your iOS app
+3. Go to **API Keys** → copy Public SDK Key (starts with `appl_`)
+4. Create products in App Store Connect
 5. In RevenueCat: **Products** → add product IDs, **Entitlements** → create `premium`, attach products
 6. **Integrations** → **Webhooks** → URL: `https://your-deployment.convex.site/revenuecat/webhook`, add bearer token
 
@@ -300,9 +295,6 @@ npm run android    # Android Emulator
 # Development
 npm run ios                 # Clean build + simulator
 npm run ios:device          # Clean build + physical device
-npm run android             # Android emulator
-npm run android:device      # Android physical device
-npm run web                 # Web dev server
 npm run convex              # Convex backend with hot reload
 
 # Environment
@@ -333,7 +325,6 @@ EXPO_PUBLIC_CONVEX_URL=https://your-prod-slug.convex.cloud
 EXPO_PUBLIC_CONVEX_SITE_URL=https://your-prod-slug.convex.site
 EXPO_PUBLIC_SITE_URL=dreamseeker://
 EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY=appl_xxxxxxxxxxxx
-EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY=goog_xxxxxxxxxxxx
 ```
 
 Then build:
@@ -370,8 +361,8 @@ eas build --platform ios --profile production    # App Store
 - [ ] Set up email DNS records for Resend
 - [ ] Configure EAS production env vars
 - [ ] Create production webhook in RevenueCat pointing to prod Convex URL
-- [ ] Submit in-app purchases for review (App Store / Play Store)
-- [ ] Test full signup and purchase flow in TestFlight / Internal Testing
+- [ ] Submit in-app purchases for review (App Store)
+- [ ] Test full signup and purchase flow in TestFlight
 
 </details>
 
