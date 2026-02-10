@@ -89,7 +89,6 @@
         }
       ],
       "./plugins/with-auto-signing",
-      "expo-sharing",
       "expo-web-browser"
     ],
     "experiments": {
@@ -99,20 +98,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "27495040-f0ab-4f2f-b207-72a0dbc118b6",
-        "build": {
-          "experimental": {
-            "ios": {
-              "appExtensions": [
-                {
-                  "targetName": "expo-sharing-extension",
-                  "bundleIdentifier": "com.rmncldyo.dreamseeker.expo-sharing-extension",
-                  "entitlements": {}
-                }
-              ]
-            }
-          }
-        }
+        "projectId": "27495040-f0ab-4f2f-b207-72a0dbc118b6"
       },
       "privacyPolicyUrl": "https://usable-sardine-855.convex.site/privacy",
       "termsOfServiceUrl": "https://usable-sardine-855.convex.site/terms"
