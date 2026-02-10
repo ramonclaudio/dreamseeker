@@ -5,7 +5,7 @@ export const ALLOWED_DEEP_LINK_PATHS = [
   '/dream',
   '/journal',
   '/progress',
-  '/profile',
+  '/dashboard',
   '/focus-timer',
   '/create-dream',
   '/subscribe',

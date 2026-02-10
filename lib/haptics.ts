@@ -1,12 +1,10 @@
 import * as Haptics from "expo-haptics";
 
-const supported = process.env.EXPO_OS === "ios";
-
 export const haptics = {
-  selection: () => supported && Haptics.selectionAsync(),
-  light: () => supported && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-  medium: () => supported && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
-  success: () => supported && Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
-  warning: () => supported && Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning),
-  error: () => supported && Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error),
+  selection: () => Haptics.selectionAsync(),
+  light: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
+  medium: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
+  success: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
+  warning: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning),
+  error: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error),
 };
