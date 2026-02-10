@@ -34,7 +34,7 @@ export function BadgeGallery() {
                 haptics.selection();
                 Alert.alert(
                   badge.title,
-                  `${badge.description}${badge.earned ? "\n\nYou earned this!" : "\n\nKeep pushing — this one's waiting for you"}`
+                  badge.description
                 );
               }}
               style={styles.badgeItem}
@@ -42,47 +42,75 @@ export function BadgeGallery() {
             >
               <View
                 style={[
-                  styles.badgeIcon,
-                  {
-                    backgroundColor: badge.earned
-                      ? `${colors.primary}20`
-                      : colors.secondary,
-                    opacity: badge.earned ? 1 : 0.3,
+                  styles.badgeIconOuter,
+                  badge.earned && {
+                    borderColor: `${colors.primary}40`,
+                    shadowColor: colors.primary,
+                    shadowOpacity: 0.25,
+                    shadowRadius: 8,
+                    shadowOffset: { width: 0, height: 2 },
                   },
                 ]}
               >
-                <IconSymbol
-                  name={(badge.icon as IconSymbolName) ?? "star.fill"}
-                  size={IconSize["3xl"]}
-                  color={badge.earned ? colors.primary : colors.mutedForeground}
-                />
-                {badge.earned && (
-                  <View
-                    style={[
-                      styles.checkmark,
-                      { backgroundColor: colors.success },
-                    ]}
-                  >
-                    <IconSymbol name="checkmark" size={10} color={colors.onColor} weight="bold" />
-                  </View>
-                )}
-                {!badge.earned && (
-                  <View
-                    style={[
-                      styles.lock,
-                      { backgroundColor: colors.mutedForeground },
-                    ]}
-                  >
-                    <IconSymbol name="lock.fill" size={8} color={colors.onColor} />
-                  </View>
-                )}
+                <View
+                  style={[
+                    styles.badgeIcon,
+                    {
+                      backgroundColor: badge.earned
+                        ? `${colors.primary}18`
+                        : `${colors.mutedForeground}10`,
+                    },
+                  ]}
+                >
+                  <IconSymbol
+                    name={(badge.icon as IconSymbolName) ?? "star.fill"}
+                    size={IconSize["3xl"]}
+                    color={
+                      badge.earned ? colors.primary : `${colors.mutedForeground}60`
+                    }
+                  />
+                </View>
               </View>
+              {badge.earned && (
+                <View
+                  style={[
+                    styles.checkmark,
+                    {
+                      backgroundColor: colors.success,
+                      borderColor: colors.surfaceTinted,
+                    },
+                  ]}
+                >
+                  <IconSymbol
+                    name="checkmark"
+                    size={10}
+                    color={colors.onColor}
+                    weight="bold"
+                  />
+                </View>
+              )}
+              {!badge.earned && (
+                <View
+                  style={[
+                    styles.lock,
+                    {
+                      backgroundColor: `${colors.mutedForeground}90`,
+                      borderColor: colors.surfaceTinted,
+                    },
+                  ]}
+                >
+                  <IconSymbol
+                    name="lock.fill"
+                    size={8}
+                    color={colors.onColor}
+                  />
+                </View>
+              )}
               <ThemedText
-                style={[
-                  styles.badgeLabel,
-                  { opacity: badge.earned ? 1 : 0.4 },
-                ]}
-                color={badge.earned ? colors.foreground : colors.mutedForeground}
+                style={styles.badgeLabel}
+                color={
+                  badge.earned ? colors.foreground : `${colors.mutedForeground}80`
+                }
                 numberOfLines={2}
               >
                 {badge.title}
@@ -97,6 +125,7 @@ export function BadgeGallery() {
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
   },
   sectionHeader: {
@@ -108,41 +137,52 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: Spacing.lg,
+    paddingVertical: Spacing.xl,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.md,
+    justifyContent: "space-evenly",
+    rowGap: Spacing.xl,
+    columnGap: Spacing.sm,
   },
   badgeItem: {
-    width: "22%",
+    width: "23%",
     alignItems: "center",
-    gap: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  badgeIconOuter: {
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: "transparent",
+    padding: 2,
   },
   badgeIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
   checkmark: {
     position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: 0,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
   lock: {
     position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    top: 0,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -150,5 +190,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     fontWeight: "500",
     textAlign: "center",
+    lineHeight: 14,
   },
 });
