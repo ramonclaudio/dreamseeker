@@ -77,7 +77,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <ScrollView

@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,26 +15,7 @@ import { haptics } from '@/lib/haptics';
 
 export default function SubscribeScreen() {
   const colors = useColors();
-  const { isPremium, isLoading, showUpgrade } = useSubscription();
-  const hasPresented = useRef(false);
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isLoading || hasPresented.current) return;
-    hasPresented.current = true;
-
-    showUpgrade().finally(() => {
-      if (mountedRef.current) {
-        router.back();
-      }
-    });
-  }, [isLoading, showUpgrade]);
+  const { isPremium, showUpgrade } = useSubscription();
 
   if (isPremium) {
     return (
@@ -86,13 +66,13 @@ export default function SubscribeScreen() {
                 style={styles.headerTitle}
                 color={colors.foreground}
               >
-                Ready to stop playing small?
+                Join women crushing their goals
               </ThemedText>
               <ThemedText
                 style={styles.headerSubtitle}
                 color={colors.mutedForeground}
               >
-                Unlock unlimited dreams and personalized insights to achieve everything you&apos;ve been putting off.
+                Get inspired. Share your wins. Be part of a community that lifts each other up every single day.
               </ThemedText>
             </View>
 
@@ -105,12 +85,12 @@ export default function SubscribeScreen() {
                   </ThemedText>
                 </View>
                 <View style={styles.tierFeatures}>
-                  <FeatureRow icon="checkmark.circle.fill" text="3 active dreams" colors={colors} />
-                  <FeatureRow icon="checkmark.circle.fill" text="1 journal entry per day" colors={colors} />
-                  <FeatureRow icon="checkmark.circle.fill" text="Basic challenges" colors={colors} />
-                  <FeatureRow icon="xmark.circle.fill" text="Personalized insights" colors={colors} isDisabled />
-                  <FeatureRow icon="xmark.circle.fill" text="Unlimited dreams" colors={colors} isDisabled />
-                  <FeatureRow icon="xmark.circle.fill" text="Priority support" colors={colors} isDisabled />
+                  <FeatureRow icon="checkmark.circle.fill" text="Up to 25 dreams" colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text="25 actions & journals per dream" colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text="25 pins, 5 shared to community" colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text="Unlimited focus sessions" colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text="Streaks & badges" colors={colors} />
+                  <FeatureRow icon="xmark.circle.fill" text="Community & social features" colors={colors} isDisabled />
                 </View>
               </MaterialCard>
 
@@ -137,11 +117,10 @@ export default function SubscribeScreen() {
                   </ThemedText>
                 </View>
                 <View style={styles.tierFeatures}>
-                  <FeatureRow icon="checkmark.circle.fill" text="Unlimited active dreams" colors={colors} isPremium showBadge />
-                  <FeatureRow icon="checkmark.circle.fill" text="Unlimited journal entries" colors={colors} isPremium showBadge />
-                  <FeatureRow icon="checkmark.circle.fill" text="Personalized insights" colors={colors} isPremium showBadge />
-                  <FeatureRow icon="checkmark.circle.fill" text="Advanced challenges" colors={colors} isPremium />
-                  <FeatureRow icon="checkmark.circle.fill" text="Priority support" colors={colors} isPremium />
+                  <FeatureRow icon="checkmark.circle.fill" text="Community of women chasing big dreams" colors={colors} isPremium showBadge />
+                  <FeatureRow icon="checkmark.circle.fill" text="Inspiration feed, wins & reactions" colors={colors} isPremium showBadge />
+                  <FeatureRow icon="checkmark.circle.fill" text="Unlimited dreams, actions & journals" colors={colors} isPremium showBadge />
+                  <FeatureRow icon="checkmark.circle.fill" text="Vision board & community sharing" colors={colors} isPremium showBadge />
                   <FeatureRow icon="checkmark.circle.fill" text="Early access to new features" colors={colors} isPremium />
                 </View>
                 <Pressable
@@ -180,7 +159,7 @@ export default function SubscribeScreen() {
                 style={styles.footerText}
                 color={colors.mutedForeground}
               >
-                Join thousands of women who stopped waiting and started achieving their biggest dreams.
+                You belong here. Your dreams deserve the spotlight.
               </ThemedText>
             </View>
           </View>

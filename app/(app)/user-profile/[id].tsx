@@ -1,11 +1,14 @@
-import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/convex/_generated/api';
 import { MaterialCard } from '@/components/ui/material-card';
+import { PinCard } from '@/components/pins/pin-card';
+import { PinDetailModal } from '@/components/pins/pin-detail-modal';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { useColors } from '@/hooks/use-color-scheme';
@@ -37,7 +40,7 @@ function ProfileAvatar({ name, image, size, colors }: { name: string; image?: st
   return (
     <View style={{ width: size + AVATAR_BORDER * 2, height: size + AVATAR_BORDER * 2, borderRadius: (size + AVATAR_BORDER * 2) / 2, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-        <ThemedText style={{ fontSize: size * 0.4, fontWeight: '700' }} color={colors.primaryForeground}>
+        <ThemedText style={{ fontSize: size * 0.36, fontWeight: '700', lineHeight: size * 0.42 }} color={colors.primaryForeground}>
           {initial}
         </ThemedText>
       </View>
@@ -45,86 +48,21 @@ function ProfileAvatar({ name, image, size, colors }: { name: string; image?: st
   );
 }
 
-function StatItem({ label, value, colors }: { label: string; value: string | number; colors: ReturnType<typeof useColors> }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', gap: Spacing.xs }}>
-      <ThemedText style={{ fontSize: FontSize['3xl'], fontWeight: '700' }}>{String(value)}</ThemedText>
-      <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>{label}</ThemedText>
-    </View>
-  );
-}
-
-function DreamRow({ dream, colors }: { dream: { title: string; category: string; status: string }; colors: ReturnType<typeof useColors> }) {
-  const statusColor = dream.status === 'completed' ? colors.success : colors.primary;
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md }}>
-      <IconSymbol
-        name={dream.status === 'completed' ? 'checkmark.circle.fill' : 'star.fill'}
-        size={IconSize.xl}
-        color={statusColor}
-      />
-      <View style={{ flex: 1, gap: Spacing.xxs }}>
-        <ThemedText style={{ fontSize: FontSize.xl }}>{dream.title}</ThemedText>
-        <ThemedText style={{ fontSize: FontSize.sm, textTransform: 'capitalize' }} color={colors.mutedForeground}>
-          {dream.category}
-        </ThemedText>
-      </View>
-      <View
-        style={{
-          paddingHorizontal: Spacing.sm,
-          paddingVertical: Spacing.xxs,
-          borderRadius: Radius.full,
-          backgroundColor: dream.status === 'completed' ? colors.successBackground : colors.secondary,
-        }}
-      >
-        <ThemedText style={{ fontSize: FontSize.xs, fontWeight: '600', textTransform: 'capitalize' }} color={statusColor}>
-          {dream.status}
-        </ThemedText>
-      </View>
-    </View>
-  );
-}
-
-function JournalRow({ entry, colors }: { entry: { title: string; date: string }; colors: ReturnType<typeof useColors> }) {
-  const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md }}>
-      <IconSymbol name="book.fill" size={IconSize.xl} color={colors.mutedForeground} />
-      <View style={{ flex: 1 }}>
-        <ThemedText style={{ fontSize: FontSize.xl }}>{entry.title}</ThemedText>
-      </View>
-      <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>{formattedDate}</ThemedText>
-    </View>
-  );
-}
-
-function Divider({ colors }: { colors: ReturnType<typeof useColors> }) {
-  return <View style={{ height: 0.5, marginLeft: 50, backgroundColor: colors.border }} />;
-}
-
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const bannerHeight = BANNER_BASE_HEIGHT + insets.top;
 
   const currentUser = useQuery(api.auth.getCurrentUser);
   const isSelf = currentUser?._id === id;
   const publicProfile = useQuery(api.community.getPublicProfile, id ? { userId: id } : 'skip');
-  const friendProfile = useQuery(api.community.getFriendProfile, !isSelf && id ? { friendId: id } : 'skip');
-  const unfriend = useMutation(api.friends.unfriend);
+  const userPins = useQuery(api.pins.getUserPins, id ? { userId: id } : 'skip');
+  const [selectedPin, setSelectedPin] = useState<NonNullable<typeof userPins>[number] | null>(null);
 
-  const isFriend = !isSelf && friendProfile !== null && friendProfile !== undefined;
-  const profile = isFriend ? friendProfile.profile : publicProfile;
-  const stats = isFriend ? friendProfile.stats : publicProfile?.stats;
-  const bannerUrl = isFriend ? friendProfile.profile.bannerUrl : publicProfile?.bannerUrl;
-
-  // For self-view, use the current user's image
-  const avatarImage = isSelf ? currentUser?.image : null;
+  const profile = publicProfile;
+  const bannerUrl = publicProfile?.bannerUrl;
 
   if (publicProfile === undefined) {
     return (
@@ -147,27 +85,14 @@ export default function UserProfileScreen() {
     );
   }
 
+  const isPrivate = !isSelf && profile.isPrivate;
   const displayName = profile.displayName ?? profile.username;
-  const friendCount = 'friendCount' in profile ? (profile as { friendCount?: number }).friendCount ?? 0 : null;
-
-  const handleUnfriend = () => {
-    Alert.alert(
-      'Unfriend',
-      `Are you sure you want to remove ${displayName} as a friend?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Unfriend',
-          style: 'destructive',
-          onPress: async () => {
-            haptics.warning();
-            await unfriend({ friendId: id });
-            router.back();
-          },
-        },
-      ],
-    );
-  };
+  // Use backend-resolved avatar for all users, fallback to current user's image for self
+  const avatarImage = (!profile.isPrivate && 'avatarUrl' in profile ? profile.avatarUrl : null)
+    ?? (isSelf ? currentUser?.image : null);
+  const dreamingSince = !profile.isPrivate && 'createdAt' in profile
+    ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : '';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -213,7 +138,7 @@ export default function UserProfileScreen() {
         </View>
 
         {/* Avatar — overlapping the banner */}
-        <View style={{ paddingHorizontal: Spacing.xl, marginTop: -(AVATAR_SIZE / 2) }}>
+        <View style={{ paddingHorizontal: Spacing.xl, marginTop: -((AVATAR_SIZE + AVATAR_BORDER * 2) / 2) }}>
           <ProfileAvatar
             name={displayName}
             image={avatarImage}
@@ -222,7 +147,7 @@ export default function UserProfileScreen() {
           />
         </View>
 
-        {/* Name + Username + Bio */}
+        {/* Name + Username */}
         <View style={{ paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, gap: Spacing.xxs }}>
           <ThemedText style={{ fontSize: FontSize['5xl'], fontWeight: '700' }}>
             {displayName}
@@ -230,101 +155,86 @@ export default function UserProfileScreen() {
           <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>
             @{profile.username}
           </ThemedText>
-          {profile.bio ? (
+          {!isPrivate && profile.bio ? (
             <ThemedText style={{ fontSize: FontSize.base, marginTop: Spacing.sm, lineHeight: 20 }}>
               {profile.bio}
             </ThemedText>
           ) : null}
         </View>
 
-        {/* Friend count — Twitter-style inline */}
-        {friendCount !== null && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.xl, marginTop: Spacing.md, gap: Spacing.xs }}>
-            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '700' }}>
-              {friendCount}
-            </ThemedText>
-            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-              Friends
-            </ThemedText>
-          </View>
-        )}
-
-        {/* Stats row */}
-        {stats && (
+        {/* Private profile notice — nothing else shown */}
+        {isPrivate && (
           <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing.xl }}>
             <MaterialCard style={{ borderRadius: Radius.lg, overflow: 'hidden' as const, borderCurve: 'continuous' as const }}>
-              <View style={{ flexDirection: 'row', padding: Spacing.lg }}>
-                <StatItem label="Level" value={stats.level} colors={colors} />
-                <StatItem label="XP" value={stats.totalXp} colors={colors} />
-                <StatItem label="Streak" value={stats.currentStreak} colors={colors} />
-                <StatItem label="Dreams" value={stats.dreamsCompleted} colors={colors} />
+              <View style={{ padding: Spacing.xl, alignItems: 'center', gap: Spacing.sm }}>
+                <IconSymbol name="lock.fill" size={IconSize['3xl']} color={colors.mutedForeground} />
+                <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }}>
+                  Private Profile
+                </ThemedText>
+                <ThemedText style={{ fontSize: FontSize.base, textAlign: 'center' }} color={colors.mutedForeground}>
+                  This dreamer prefers to keep their profile private.
+                </ThemedText>
               </View>
             </MaterialCard>
           </View>
         )}
 
-        {/* Friend-only sections */}
-        {isFriend && friendProfile.dreams.length > 0 && (
-          <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing['2xl'], gap: Spacing.sm }}>
-            <ThemedText
-              style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.xs }}
-              color={colors.mutedForeground}
-            >
-              Dreams
+        {/* Dreaming since — only for public */}
+        {!isPrivate && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.xl, marginTop: Spacing.md, gap: Spacing.xs }}>
+            <IconSymbol name="sparkles" size={IconSize.md} color={colors.mutedForeground} />
+            <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
+              Dreaming since {dreamingSince}
             </ThemedText>
-            <MaterialCard style={{ borderRadius: Radius.lg, overflow: 'hidden' as const, borderCurve: 'continuous' as const }}>
-              {friendProfile.dreams.map((dream, i) => (
-                <View key={dream._id}>
-                  {i > 0 && <Divider colors={colors} />}
-                  <DreamRow dream={dream} colors={colors} />
-                </View>
-              ))}
-            </MaterialCard>
           </View>
         )}
 
-        {isFriend && friendProfile.journals.length > 0 && (
-          <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing['2xl'], gap: Spacing.sm }}>
-            <ThemedText
-              style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.xs }}
-              color={colors.mutedForeground}
-            >
-              Recent Journal
-            </ThemedText>
-            <MaterialCard style={{ borderRadius: Radius.lg, overflow: 'hidden' as const, borderCurve: 'continuous' as const }}>
-              {friendProfile.journals.map((entry, i) => (
-                <View key={entry._id}>
-                  {i > 0 && <Divider colors={colors} />}
-                  <JournalRow entry={entry} colors={colors} />
-                </View>
-              ))}
-            </MaterialCard>
-          </View>
-        )}
-
-        {/* Unfriend button */}
-        {isFriend && !isSelf && (
-          <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing['2xl'] }}>
-            <Pressable
-              onPress={handleUnfriend}
-              style={({ pressed }) => ({
-                opacity: pressed ? Opacity.pressed : 1,
-                backgroundColor: colors.destructiveBackground,
-                borderRadius: Radius.lg,
-                borderCurve: 'continuous' as const,
-                padding: Spacing.lg,
-                alignItems: 'center',
-              })}
-              accessibilityRole="button"
-              accessibilityLabel="Unfriend"
-            >
-              <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }} color={colors.destructive}>
-                Unfriend
+        {/* Community Pins — only for public profiles */}
+        {!isPrivate && userPins && userPins.length > 0 && (() => {
+          const gap = Spacing.sm;
+          const contentWidth = Math.min(screenWidth, MaxWidth.content);
+          const colWidth = (contentWidth - Spacing.xl * 2 - gap) / 2;
+          const left: NonNullable<typeof userPins> = [];
+          const right: NonNullable<typeof userPins> = [];
+          let lh = 0;
+          let rh = 0;
+          for (const pin of userPins) {
+            const h = (pin.imageAspectRatio ?? 1) * colWidth + (pin.title ? 40 : 0);
+            if (lh <= rh) { left.push(pin); lh += h + gap; }
+            else { right.push(pin); rh += h + gap; }
+          }
+          return (
+            <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing['2xl'], gap: Spacing.sm }}>
+              <ThemedText
+                style={{ fontSize: FontSize.md, fontWeight: '600', textTransform: 'uppercase', marginLeft: Spacing.xs }}
+                color={colors.mutedForeground}
+              >
+                Community Pins
               </ThemedText>
-            </Pressable>
-          </View>
-        )}
+              <View style={{ flexDirection: 'row', gap }}>
+                <View style={{ width: colWidth }}>
+                  {left.map((pin) => (
+                    <PinCard key={pin._id} pin={pin} columnWidth={colWidth} onPress={() => setSelectedPin(pin)} />
+                  ))}
+                </View>
+                <View style={{ width: colWidth }}>
+                  {right.map((pin) => (
+                    <PinCard key={pin._id} pin={pin} columnWidth={colWidth} onPress={() => setSelectedPin(pin)} />
+                  ))}
+                </View>
+              </View>
+            </View>
+          );
+        })()}
+
       </ScrollView>
+
+      <PinDetailModal
+        pin={selectedPin}
+        visible={!!selectedPin}
+        onClose={() => setSelectedPin(null)}
+        currentUserId={currentUser?._id}
+      />
     </View>
   );
 }

@@ -95,7 +95,7 @@ export function SettingsLinkItem({
   label,
   colors,
 }: {
-  href: "/profile/notifications" | "/profile/privacy" | "/profile/help" | "/profile/about";
+  href: "/dashboard/notifications" | "/dashboard/privacy" | "/dashboard/help" | "/dashboard/about";
   icon: Parameters<typeof IconSymbol>[0]["name"];
   label: string;
   colors: ColorPalette;
@@ -104,24 +104,6 @@ export function SettingsLinkItem({
     await Clipboard.setStringAsync(href);
     haptics.light();
   };
-
-  if (process.env.EXPO_OS !== "ios") {
-    return (
-      <Link href={href} asChild>
-        <Pressable
-          style={({ pressed }) => [settingsItemStyle, { opacity: pressed ? Opacity.pressed : 1 }]}
-          accessibilityRole="link"
-          accessibilityLabel={label}
-        >
-          <View style={settingsItemLeftStyle}>
-            <IconSymbol name={icon} size={IconSize["2xl"]} color={colors.mutedForeground} />
-            <ThemedText style={{ fontSize: FontSize.xl }}>{label}</ThemedText>
-          </View>
-          <IconSymbol name="chevron.right" size={IconSize.md} color={colors.mutedForeground} />
-        </Pressable>
-      </Link>
-    );
-  }
 
   return (
     <Link href={href} style={settingsItemStyle}>

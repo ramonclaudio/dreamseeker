@@ -1,35 +1,55 @@
-import { View, ScrollView, RefreshControl } from "react-native";
+import { View, ScrollView, RefreshControl, Pressable, Animated as RNAnimated } from "react-native";
 import { useQuery, useConvexAuth } from "convex/react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useIsFocused } from "@react-navigation/native";
+import ViewShot from "react-native-view-shot";
 
 import { api } from "@/convex/_generated/api";
 import { SkeletonStatsCard, SkeletonListItem } from "@/components/ui/skeleton";
-import { MaterialCard } from "@/components/ui/material-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
-import { UserAvatar } from "@/components/ui/user-avatar";
+import { TabHeader } from "@/components/ui/tab-header";
+import { ProgressShareCard } from "@/components/share-cards/progress-share-card";
+import { ConsistencyShareCard } from "@/components/share-cards/consistency-share-card";
 import { BadgeGallery } from "@/components/engagement/badge-gallery";
 import { StatsOverview } from "@/components/progress/stats-overview";
 import { LevelProgressCard } from "@/components/progress/level-progress-card";
-import { StreakCards } from "@/components/progress/streak-cards";
 import { StreakHeatmap } from "@/components/progress/streak-heatmap";
 import { LevelJourney } from "@/components/progress/level-journey";
 import { DreamsList } from "@/components/progress/dreams-list";
-import { useColors } from "@/hooks/use-color-scheme";
-import { Spacing, FontSize, MaxWidth, IconSize, TAB_BAR_HEIGHT } from "@/constants/layout";
+import { useColors, useColorScheme } from "@/hooks/use-color-scheme";
+import { useShareCapture } from "@/hooks/use-share-capture";
+import { Spacing, FontSize, MaxWidth, IconSize, TAB_BAR_CLEARANCE } from "@/constants/layout";
+import { Radius } from "@/constants/theme";
 import { getLevelFromXp, getXpToNextLevel } from "@/constants/dreams";
+import { Opacity } from "@/constants/ui";
 import { timezone } from "@/lib/timezone";
+
+const MINDSET_COLORS = {
+  light: { bg: "#EAE0F8", text: "#2D2019", sub: "#5A4B3D" },
+  dark: { bg: "#262030", text: "#F5EDE6", sub: "#C4B5A5" },
+} as const;
 
 export default function ProgressScreen() {
   const colors = useColors();
+  const scheme = useColorScheme();
   const [refreshing, setRefreshing] = useState(false);
   const { isLoading: authLoading } = useConvexAuth();
+  const isFocused = useIsFocused();
 
+  const { viewShotRef: progressShotRef, capture: captureProgress, isSharing: isSharingProgress } = useShareCapture();
+  const { viewShotRef: heatmapShotRef, capture: captureHeatmap, isSharing: isSharingHeatmap } = useShareCapture();
+
+  // Cheap queries — always active
+  const user = useQuery(api.auth.getCurrentUser);
   const progress = useQuery(api.progress.getProgress, { timezone });
-  const activityHeatmap = useQuery(api.progress.getActivityHeatmap, { timezone });
-  const mindsetMoments = useQuery(api.mindset.list, {});
-  const completedDreams = useQuery(api.dreams.listByStatus, { status: 'completed' as const });
-  const archivedDreams = useQuery(api.dreams.listByStatus, { status: 'archived' as const });
+
+  // Expensive queries — skip when tab is not focused
+  const activityHeatmap = useQuery(api.progress.getActivityHeatmap, isFocused ? { timezone } : "skip");
+  const mindsetMoments = useQuery(api.mindset.list, isFocused ? {} : "skip");
+  const completedDreams = useQuery(api.dreams.listByStatus, isFocused ? { status: 'completed' as const } : "skip");
+  const archivedDreams = useQuery(api.dreams.listByStatus, isFocused ? { status: 'archived' as const } : "skip");
+  const badges = useQuery(api.badges.getUserBadges, isFocused ? {} : "skip");
 
   const isLoading = authLoading || progress === undefined;
 
@@ -47,7 +67,7 @@ export default function ProgressScreen() {
     <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={{
-        paddingBottom: TAB_BAR_HEIGHT,
+        paddingBottom: TAB_BAR_CLEARANCE,
         paddingHorizontal: Spacing.lg,
         maxWidth: MaxWidth.content,
         alignSelf: "center",
@@ -63,20 +83,12 @@ export default function ProgressScreen() {
       }
     >
       {/* Header */}
-      <View style={{ paddingTop: Spacing.lg, paddingBottom: Spacing.md, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <View>
-          <ThemedText
-            variant="title"
-            accessibilityRole="header"
-          >
-            Progress
-          </ThemedText>
-          <ThemedText color={colors.mutedForeground}>
-            Every step counts. Own how far you&apos;ve come.
-          </ThemedText>
-        </View>
-        <UserAvatar />
-      </View>
+      <TabHeader
+        title="Progress"
+        subtitle="Your stats, streaks, and milestones."
+        onShare={!isLoading ? captureProgress : undefined}
+        shareDisabled={isSharingProgress}
+      />
 
       {isLoading ? (
         <>
@@ -91,7 +103,8 @@ export default function ProgressScreen() {
           <StatsOverview
             dreamsCompleted={progress.dreamsCompleted}
             actionsCompleted={progress.actionsCompleted}
-            colors={colors}
+            totalXp={progress.totalXp}
+            scheme={scheme}
           />
 
           <LevelProgressCard
@@ -99,23 +112,17 @@ export default function ProgressScreen() {
             totalXp={progress.totalXp}
             xpProgress={xpProgress}
             colors={colors}
-          />
-
-          <StreakCards
-            currentStreak={progress.currentStreak}
-            longestStreak={progress.longestStreak}
-            colors={colors}
+            scheme={scheme}
           />
 
           {/* Activity Heatmap */}
-          {activityHeatmap && (
-            <View>
+          <View>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: Spacing.sm }}>
               <ThemedText
                 style={{
                   fontSize: FontSize.base,
                   fontWeight: "600",
                   textTransform: "uppercase",
-                  marginBottom: Spacing.sm,
                   marginLeft: Spacing.xs,
                 }}
                 color={colors.mutedForeground}
@@ -123,12 +130,26 @@ export default function ProgressScreen() {
               >
                 Consistency Map
               </ThemedText>
-              <MaterialCard
-                variant="tinted"
-                style={{
-                  padding: Spacing.lg,
-                }}
-              >
+              {activityHeatmap && (
+                <Pressable
+                  onPress={captureHeatmap}
+                  disabled={isSharingHeatmap}
+                  hitSlop={8}
+                  style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1 })}
+                  accessibilityLabel="Share consistency map"
+                >
+                  <IconSymbol name="square.and.arrow.up" size={IconSize.lg} color={colors.primary} />
+                </Pressable>
+              )}
+            </View>
+            <View
+              style={{
+                backgroundColor: colors.surfaceTinted,
+                borderRadius: Radius["2xl"],
+                padding: Spacing.lg,
+              }}
+            >
+              {activityHeatmap ? (
                 <StreakHeatmap
                   activityData={activityHeatmap.activityData}
                   currentStreak={activityHeatmap.currentStreak}
@@ -136,9 +157,11 @@ export default function ProgressScreen() {
                   colors={colors}
                   timezone={timezone}
                 />
-              </MaterialCard>
+              ) : (
+                <HeatmapSkeleton colors={colors} timezone={timezone} />
+              )}
             </View>
-          )}
+          </View>
 
           <BadgeGallery />
 
@@ -179,18 +202,17 @@ export default function ProgressScreen() {
           >
             Mindset Moment
           </ThemedText>
-          <MaterialCard
+          <View
             style={{
               padding: Spacing.xl,
-              backgroundColor: colors.surfaceTinted,
-              borderLeftWidth: 3,
-              borderLeftColor: colors.accentBlue,
+              backgroundColor: MINDSET_COLORS[scheme].bg,
+              borderRadius: Radius["2xl"],
             }}
           >
             <IconSymbol
               name="quote.bubble.fill"
               size={IconSize["2xl"]}
-              color={colors.mutedForeground}
+              color={MINDSET_COLORS[scheme].sub}
               style={{ marginBottom: Spacing.sm }}
             />
             <ThemedText
@@ -199,19 +221,79 @@ export default function ProgressScreen() {
                 fontStyle: "italic",
                 lineHeight: 24,
               }}
+              color={MINDSET_COLORS[scheme].text}
             >
               {`"${mindsetMoments[0].quote}"`}
             </ThemedText>
             <ThemedText
               style={{ fontSize: FontSize.sm, marginTop: Spacing.sm }}
-              color={colors.mutedForeground}
+              color={MINDSET_COLORS[scheme].sub}
             >
               — {mindsetMoments[0].author}
             </ThemedText>
-          </MaterialCard>
+          </View>
         </View>
       )}
     </ScrollView>
+
+      {/* Offscreen share card for full progress */}
+      {!isLoading && activityHeatmap && (
+        <ViewShot ref={progressShotRef} options={{ format: 'png', quality: 1 }} style={{ position: 'absolute', left: -9999 }}>
+          <ProgressShareCard
+            handle={user?.displayName ?? user?.name ?? undefined}
+            dreamsCompleted={progress.dreamsCompleted}
+            actionsCompleted={progress.actionsCompleted}
+            totalXp={progress.totalXp}
+            level={currentLevel.level}
+            levelTitle={currentLevel.title}
+            currentStreak={progress.currentStreak}
+            longestStreak={progress.longestStreak}
+            badgeCount={badges?.length ?? 0}
+            activityData={activityHeatmap?.activityData}
+          />
+        </ViewShot>
+      )}
+
+      {/* Offscreen share card for consistency map */}
+      {activityHeatmap && (
+        <ViewShot ref={heatmapShotRef} options={{ format: 'png', quality: 1 }} style={{ position: 'absolute', left: -9999 }}>
+          <ConsistencyShareCard
+            handle={user?.displayName ?? user?.name ?? undefined}
+            currentStreak={activityHeatmap.currentStreak}
+            longestStreak={activityHeatmap.longestStreak}
+            activityData={activityHeatmap.activityData}
+          />
+        </ViewShot>
+      )}
     </View>
+  );
+}
+
+// ── Heatmap Skeleton ──────────────────────────────────────────────────────────
+
+function HeatmapSkeleton({ colors, timezone }: { colors: ReturnType<typeof useColors>; timezone: string }) {
+  const opacity = useRef(new RNAnimated.Value(0.4)).current;
+
+  useEffect(() => {
+    const anim = RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        RNAnimated.timing(opacity, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  return (
+    <RNAnimated.View style={{ opacity }}>
+      <StreakHeatmap
+        activityData={{}}
+        currentStreak={0}
+        longestStreak={0}
+        colors={colors}
+        timezone={timezone}
+      />
+    </RNAnimated.View>
   );
 }

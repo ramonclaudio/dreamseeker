@@ -1,8 +1,6 @@
 import { View, Pressable, TextInput } from "react-native";
 import { router } from "expo-router";
-import { useQuery, useMutation } from "convex/react";
 
-import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import type { DreamWithActions } from "@/hooks/use-dream-detail";
 import { MaterialCard } from "@/components/ui/material-card";
@@ -38,26 +36,6 @@ export function DreamActionsSection({
   categoryColor: string;
   colors: ColorPalette;
 }) {
-  const hiddenItems = useQuery(api.hiddenItems.listHiddenItems);
-  const hiddenActionIds = new Set(
-    hiddenItems?.filter((i) => i.itemType === 'action').map((i) => i.itemId) ?? []
-  );
-  const hideItemMutation = useMutation(api.hiddenItems.hideItem);
-  const unhideItemMutation = useMutation(api.hiddenItems.unhideItem);
-
-  const handleToggleActionVisibility = async (actionId: string) => {
-    haptics.selection();
-    try {
-      if (hiddenActionIds.has(actionId)) {
-        await unhideItemMutation({ itemId: actionId });
-      } else {
-        await hideItemMutation({ itemType: 'action', itemId: actionId });
-      }
-    } catch {
-      haptics.error();
-    }
-  };
-
   return (
     <View>
       <ThemedText
@@ -115,39 +93,25 @@ export function DreamActionsSection({
 
       {dream.actions && dream.actions.length > 0 ? (
         dream.actions.map((action: Action) => (
-          <View key={action._id} style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
-              <DreamActionItem
-                action={action}
-                colors={colors}
-                categoryColor={categoryColor}
-                onToggle={() => onToggle(action._id)}
-                onEdit={() => onEdit(action)}
-                onDelete={() => onDelete(action._id)}
-                onFocus={() =>
-                  router.push({
-                    pathname: "/(app)/focus-timer" as const,
-                    params: {
-                      dreamId: dream._id,
-                      actionId: action._id,
-                      actionText: action.text,
-                    },
-                  } as never)
-                }
-              />
-            </View>
-            <Pressable
-              onPress={() => handleToggleActionVisibility(action._id)}
-              hitSlop={8}
-              style={{ padding: Spacing.xs }}
-            >
-              <IconSymbol
-                name={hiddenActionIds.has(action._id) ? "lock.fill" : "lock.open.fill"}
-                size={IconSize.md}
-                color={hiddenActionIds.has(action._id) ? colors.mutedForeground : `${categoryColor}60`}
-              />
-            </Pressable>
-          </View>
+          <DreamActionItem
+            key={action._id}
+            action={action}
+            colors={colors}
+            categoryColor={categoryColor}
+            onToggle={() => onToggle(action._id)}
+            onEdit={() => onEdit(action)}
+            onDelete={() => onDelete(action._id)}
+            onFocus={() =>
+              router.push({
+                pathname: "/(app)/focus-timer" as const,
+                params: {
+                  dreamId: dream._id,
+                  actionId: action._id,
+                  actionText: action.text,
+                },
+              } as never)
+            }
+          />
         ))
       ) : (
         <MaterialCard style={{ padding: Spacing.xl, alignItems: "center" }}>

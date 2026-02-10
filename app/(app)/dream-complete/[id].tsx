@@ -10,20 +10,24 @@ import {
 import { useQuery, useMutation } from "convex/react";
 import { useLocalSearchParams, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ViewShot from "react-native-view-shot";
-import * as Sharing from "expo-sharing";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import ViewShot from "react-native-view-shot";
 import { GradientButton } from "@/components/ui/gradient-button";
+import { GlassControl } from "@/components/ui/glass-control";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
+import { DreamShareCard } from "@/components/share-cards/dream-share-card";
 import { AchievementStep } from "@/components/dream-complete/achievement-step";
 import { ReflectionStep } from "@/components/dream-complete/reflection-step";
 import { ShareStep } from "@/components/dream-complete/share-step";
 import { NextStep } from "@/components/dream-complete/next-step";
+import { BadgeEarnedModal } from "@/components/engagement/badge-earned-modal";
 import { useColors } from "@/hooks/use-color-scheme";
+import { useShareCapture } from "@/hooks/use-share-capture";
 import { Spacing, FontSize, IconSize } from "@/constants/layout";
+import { Radius } from "@/constants/theme";
 import { Opacity } from "@/constants/ui";
 import { haptics } from "@/lib/haptics";
 import { shootConfetti } from "@/lib/confetti";
@@ -31,29 +35,52 @@ import { getCategoryConfig, type DreamCategory } from "@/constants/dreams";
 
 const STEPS = ["achievement", "reflection", "share", "next"] as const;
 
+type BadgeInfo = { key: string; title: string; description?: string; icon?: string };
+
 export default function DreamCompleteScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, badge: badgeParam } = useLocalSearchParams<{ id: string; badge?: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const user = useQuery(api.auth.getCurrentUser);
   const [step, setStep] = useState(0);
   const [reflection, setReflection] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const viewShotRef = useRef<ViewShot>(null);
+  const { viewShotRef, capture } = useShareCapture();
   const hasConfettied = useRef(false);
+  const [showBadge, setShowBadge] = useState(false);
+
+  // Parse badge from search params (passed by dream detail when completing)
+  const earnedBadge = useRef<BadgeInfo | null>(null);
+  if (earnedBadge.current === null && badgeParam) {
+    try { earnedBadge.current = JSON.parse(decodeURIComponent(badgeParam)); } catch { /* ignore */ }
+  }
 
   const dream = useQuery(api.dreams.get, { id: id as Id<"dreams"> });
   const saveReflection = useMutation(api.dreams.saveReflection);
 
-  // Shoot confetti on first render
+  // Shoot confetti on first render — make it EXPLODE
   useEffect(() => {
     if (dream && !hasConfettied.current) {
       hasConfettied.current = true;
-      const timer = setTimeout(() => {
+      // First burst: epic confetti
+      const timer1 = setTimeout(() => {
         haptics.success();
-        shootConfetti();
+        shootConfetti('epic');
       }, 300);
-      return () => clearTimeout(timer);
+      // Second burst: encore medium burst for sustained celebration
+      const timer2 = setTimeout(() => {
+        haptics.light();
+        shootConfetti('medium');
+      }, 1200);
+      // Show badge modal after celebration settles
+      const timer3 = earnedBadge.current
+        ? setTimeout(() => setShowBadge(true), 2200)
+        : undefined;
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        if (timer3) clearTimeout(timer3);
+      };
     }
   }, [dream]);
 
@@ -75,19 +102,9 @@ export default function DreamCompleteScreen() {
   }, [dream, reflection, saveReflection]);
 
   const handleShare = useCallback(async () => {
-    try {
-      const uri = await viewShotRef.current?.capture?.();
-      if (uri) {
-        await Sharing.shareAsync(uri, {
-          mimeType: "image/png",
-          dialogTitle: "Share your achievement",
-        });
-      }
-    } catch {
-      // Sharing cancelled or failed, no action needed
-    }
+    await capture();
     setStep(3);
-  }, []);
+  }, [capture]);
 
   if (dream === undefined) {
     return (
@@ -103,7 +120,7 @@ export default function DreamCompleteScreen() {
         <ThemedText style={{ fontSize: FontSize.xl, textAlign: "center" }} color={colors.mutedForeground}>
           Dream not found
         </ThemedText>
-        <Pressable onPress={() => router.replace("/(app)/(tabs)")} style={{ marginTop: Spacing.xl }}>
+        <Pressable onPress={() => { if (router.canGoBack()) router.back(); }} style={{ marginTop: Spacing.xl }}>
           <ThemedText style={{ fontWeight: "600" }} color={colors.primary}>Go Back</ThemedText>
         </Pressable>
       </View>
@@ -116,7 +133,9 @@ export default function DreamCompleteScreen() {
       "Don't skip your victory lap! You can always see this in Progress.",
       [
         { text: "Stay", style: "cancel" },
-        { text: "Leave", style: "destructive", onPress: () => router.replace("/(app)/(tabs)") },
+        { text: "Leave", style: "destructive", onPress: () => {
+          if (router.canGoBack()) router.back();
+        } },
       ]
     );
   };
@@ -125,6 +144,74 @@ export default function DreamCompleteScreen() {
   const categoryColor = categoryConfig.color;
   const completedActions = dream.actions?.filter((a) => a.isCompleted).length ?? 0;
   const totalActions = dream.actions?.length ?? 0;
+
+  if (step === 2) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* Card preview — fills remaining space, centers vertically */}
+        <ShareStep
+          viewShotRef={viewShotRef}
+          dreamTitle={dream.title}
+          category={dream.category as DreamCategory}
+          actions={(dream.actions ?? []).map((a) => ({ text: a.text, isCompleted: a.isCompleted }))}
+          createdAt={dream.createdAt}
+          completedAt={dream.completedAt ?? Date.now()}
+          handle={user?.displayName ?? user?.name ?? undefined}
+        />
+
+        {/* Glass bottom controls */}
+        <View style={[styles.shareBottom, { paddingBottom: insets.bottom + Spacing.md }]}>
+          <View style={styles.dots}>
+            {STEPS.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: i === step ? colors.primary : colors.border,
+                    width: i === step ? 24 : 8,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+          <View style={styles.shareActions}>
+            <GlassControl isInteractive style={styles.shareSkipGlass}>
+              <Pressable
+                onPress={() => {
+                  haptics.light();
+                  setStep(3);
+                }}
+                style={({ pressed }) => [styles.shareSkipInner, { opacity: pressed ? Opacity.pressed : 1 }]}
+              >
+                <ThemedText style={styles.shareSkipText} color={colors.mutedForeground}>
+                  Skip
+                </ThemedText>
+              </Pressable>
+            </GlassControl>
+            <GlassControl tint={colors.primary} isInteractive style={styles.shareShareGlass}>
+              <Pressable
+                onPress={handleShare}
+                style={({ pressed }) => [styles.shareShareInner, { opacity: pressed ? Opacity.pressed : 1 }]}
+              >
+                <IconSymbol name="square.and.arrow.up" size={IconSize.lg} color={colors.onColor} />
+                <ThemedText style={styles.shareShareText} color={colors.onColor}>
+                  Share
+                </ThemedText>
+              </Pressable>
+            </GlassControl>
+          </View>
+        </View>
+
+        <BadgeEarnedModal
+          visible={showBadge && earnedBadge.current !== null}
+          badge={earnedBadge.current}
+          handle={user?.displayName ?? user?.name}
+          onDismiss={() => setShowBadge(false)}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -162,104 +249,83 @@ export default function DreamCompleteScreen() {
           />
         )}
 
-        {step === 2 && (
-          <ShareStep
-            viewShotRef={viewShotRef}
-            dreamTitle={dream.title}
-            category={dream.category as DreamCategory}
-            completedActions={completedActions}
-            totalActions={totalActions}
-            completedAt={dream.completedAt ?? Date.now()}
-            handle={user?.displayName ?? user?.name ?? undefined}
-            colors={colors}
-          />
-        )}
-
-        {step === 3 && <NextStep colors={colors} dreamTitle={dream.title} />}
+        {step === 3 && <NextStep colors={colors} onShare={capture} />}
       </ScrollView>
 
-      {/* Bottom navigation */}
-      <View style={[styles.bottomNav, { borderTopColor: colors.separator }]}>
-        {/* Progress dots */}
-        <View style={styles.dots}>
-          {STEPS.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: i === step ? colors.primary : colors.border,
-                  width: i === step ? 24 : 8,
-                },
-              ]}
-            />
-          ))}
-        </View>
+      {/* Offscreen share card for step 3 capture */}
+      {step === 3 && (
+        <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1 }} style={styles.offscreen}>
+          <DreamShareCard
+            title={dream.title}
+            category={dream.category as DreamCategory}
+            status="completed"
+            completedActions={completedActions}
+            totalActions={totalActions}
+            actions={(dream.actions ?? []).map((a) => ({ text: a.text, isCompleted: a.isCompleted }))}
+            createdAt={dream.createdAt}
+            completedAt={dream.completedAt ?? Date.now()}
+            handle={user?.displayName ?? user?.name ?? undefined}
+          />
+        </ViewShot>
+      )}
 
-        {/* Navigation buttons */}
-        {step === 0 && (
-          <GradientButton
-            onPress={() => {
-              haptics.light();
-              setStep(1);
-            }}
-            label="Continue"
-          />
-        )}
-        {step === 1 && (
-          <View style={styles.navRow}>
-            <Pressable
+      {/* Bottom navigation (steps 0–1 only; step 3 is self-contained via NextStep) */}
+      {step !== 3 && (
+        <View style={[styles.bottomNav, { paddingBottom: insets.bottom + Spacing.sm }]}>
+          <View style={styles.dots}>
+            {STEPS.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: i === step ? colors.primary : colors.border,
+                    width: i === step ? 24 : 8,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+          {step === 0 && (
+            <GradientButton
               onPress={() => {
                 haptics.light();
-                setStep(2);
+                setStep(1);
               }}
-              style={({ pressed }) => ({
-                opacity: pressed ? Opacity.pressed : 1,
-                paddingVertical: Spacing.md,
-              })}
-            >
-              <ThemedText color={colors.mutedForeground}>Skip</ThemedText>
-            </Pressable>
-            <GradientButton
-              onPress={handleSaveReflection}
-              label={isSaving ? "Saving..." : "Save & Continue"}
-              disabled={isSaving}
-              style={{ flex: 1, marginLeft: Spacing.lg }}
+              label="Continue"
             />
-          </View>
-        )}
-        {step === 2 && (
-          <View style={styles.navRow}>
-            <Pressable
-              onPress={() => {
-                haptics.light();
-                setStep(3);
-              }}
-              style={({ pressed }) => ({
-                opacity: pressed ? Opacity.pressed : 1,
-                paddingVertical: Spacing.md,
-              })}
-            >
-              <ThemedText color={colors.mutedForeground}>Skip</ThemedText>
-            </Pressable>
-            <GradientButton
-              onPress={handleShare}
-              label="Share"
-              icon={
-                <IconSymbol name="square.and.arrow.up" size={IconSize.xl} color={colors.onColor} />
-              }
-              style={{ flex: 1, marginLeft: Spacing.lg }}
-            />
-          </View>
-        )}
-        {step === 3 && (
-          <GradientButton
-            onPress={() => router.replace("/(app)/(tabs)")}
-            label="Back to Dreams"
-            icon={<IconSymbol name="sparkles" size={IconSize.xl} color={colors.onColor} />}
-          />
-        )}
-      </View>
+          )}
+          {step === 1 && (
+            <View style={styles.navRow}>
+              <Pressable
+                onPress={() => {
+                  haptics.light();
+                  setStep(2);
+                }}
+                style={({ pressed }) => ({
+                  opacity: pressed ? Opacity.pressed : 1,
+                  paddingVertical: Spacing.md,
+                })}
+              >
+                <ThemedText color={colors.mutedForeground}>Skip</ThemedText>
+              </Pressable>
+              <GradientButton
+                onPress={handleSaveReflection}
+                label={isSaving ? "Saving..." : "Save & Continue"}
+                disabled={isSaving}
+                style={{ flex: 1, marginLeft: Spacing.lg }}
+              />
+            </View>
+          )}
+        </View>
+      )}
+
+      <BadgeEarnedModal
+        visible={showBadge && earnedBadge.current !== null}
+        badge={earnedBadge.current}
+        handle={user?.displayName ?? user?.name}
+        onDismiss={() => setShowBadge(false)}
+      />
     </View>
   );
 }
@@ -287,10 +353,8 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
-    paddingBottom: Spacing["2xl"],
-    borderTopWidth: 0.5,
-    gap: Spacing.lg,
+    paddingTop: Spacing.lg,
+    gap: Spacing.md,
   },
   dots: {
     flexDirection: "row",
@@ -305,5 +369,47 @@ const styles = StyleSheet.create({
   navRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+
+  offscreen: {
+    position: "absolute",
+    left: -9999,
+  },
+  // Share step — glass bottom controls
+  shareBottom: {
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.lg,
+  },
+  shareActions: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  shareSkipGlass: {
+    borderRadius: Radius.full,
+  },
+  shareSkipInner: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shareSkipText: {
+    fontSize: FontSize.xl,
+    fontWeight: "600",
+  },
+  shareShareGlass: {
+    flex: 1,
+    borderRadius: Radius.full,
+  },
+  shareShareInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.lg,
+  },
+  shareShareText: {
+    fontSize: FontSize.xl,
+    fontWeight: "700",
   },
 });

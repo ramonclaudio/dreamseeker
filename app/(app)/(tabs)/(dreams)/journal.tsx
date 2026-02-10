@@ -2,20 +2,15 @@ import { View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native
 import { router } from 'expo-router';
 import { useState } from 'react';
 
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { SkeletonJournalEntry } from '@/components/ui/skeleton';
 import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
-import { ProBadge } from '@/components/ui/pro-badge';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useJournal } from '@/hooks/use-journal';
-import { useSubscription } from '@/hooks/use-subscription';
-import { Spacing, FontSize, IconSize, MaxWidth, TAB_BAR_HEIGHT, HitSlop } from '@/constants/layout';
+import { Spacing, FontSize, IconSize, MaxWidth, TAB_BAR_CLEARANCE, HitSlop } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
-import { FREE_JOURNAL_DAILY_LIMIT } from '@/convex/constants';
 import { haptics } from '@/lib/haptics';
 
 const MOOD_LABELS: Record<string, string> = {
@@ -38,20 +33,9 @@ function formatDate(dateString: string): string {
 export default function JournalListScreen() {
   const colors = useColors();
   const [refreshing, setRefreshing] = useState(false);
-  const { entries, todayCount, isLoading, remove } = useJournal();
-  const { isPremium, showUpgrade } = useSubscription();
-  const hiddenItems = useQuery(api.hiddenItems.listHiddenItems);
-  const hiddenIds = new Set(hiddenItems?.filter((i) => !i.itemId.startsWith('category:')).map((i) => i.itemId) ?? []);
-
-  const canCreateEntry = isPremium || todayCount < FREE_JOURNAL_DAILY_LIMIT;
-  const isAtLimit = !isPremium && todayCount >= FREE_JOURNAL_DAILY_LIMIT;
+  const { entries, isLoading, remove } = useJournal();
 
   const handleNewEntry = () => {
-    if (!canCreateEntry) {
-      haptics.warning();
-      showUpgrade();
-      return;
-    }
     haptics.light();
     router.push('/(app)/journal-entry');
   };
@@ -95,7 +79,7 @@ export default function JournalListScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,
-          paddingBottom: TAB_BAR_HEIGHT,
+          paddingBottom: TAB_BAR_CLEARANCE,
           maxWidth: MaxWidth.content,
           alignSelf: 'center',
           width: '100%',
@@ -121,67 +105,28 @@ export default function JournalListScreen() {
             marginTop: Spacing.lg,
             marginBottom: Spacing.lg,
             borderRadius: Radius.lg,
-            backgroundColor: isAtLimit ? colors.surfaceTinted : colors.accentBlue,
-            borderWidth: isAtLimit ? 1.5 : 0,
-            borderColor: isAtLimit ? colors.borderAccent : 'transparent',
+            backgroundColor: colors.accent,
+            borderWidth: 0,
+            borderColor: 'transparent',
             opacity: pressed ? 0.8 : 1,
           })}
           accessibilityRole="button"
-          accessibilityLabel={isAtLimit ? 'Upgrade to create more journal entries' : 'Create new journal entry'}
+          accessibilityLabel="Create new journal entry"
         >
           <IconSymbol
-            name={isAtLimit ? 'lock.fill' : 'plus'}
+            name="plus"
             size={IconSize.xl}
-            color={isAtLimit ? colors.mutedForeground : colors.onColor}
+            color={colors.onColor}
             weight="bold"
           />
           <ThemedText
             style={{ fontSize: FontSize.xl, fontWeight: '600' }}
-            color={isAtLimit ? colors.mutedForeground : colors.onColor}
+            color={colors.onColor}
           >
-            {isAtLimit ? 'Unlock More Entries' : 'New Entry'}
+            New Entry
           </ThemedText>
-          {isAtLimit && <ProBadge />}
         </Pressable>
 
-        {isAtLimit && (
-          <Pressable
-            onPress={() => {
-              haptics.light();
-              showUpgrade();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Upgrade to Premium for unlimited journal entries"
-            accessibilityHint="Opens subscription screen"
-            style={({ pressed }) => ({
-              alignSelf: 'center',
-              marginBottom: Spacing.lg,
-              paddingHorizontal: Spacing.lg,
-              paddingVertical: Spacing.sm,
-              borderRadius: Radius.lg,
-              backgroundColor: colors.surfaceTinted,
-              borderWidth: 1,
-              borderColor: colors.borderAccent,
-              opacity: pressed ? 0.8 : 1,
-            })}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-              <IconSymbol name="sparkles" size={IconSize.md} color={colors.accentBlue} />
-              <ThemedText
-                style={{ fontSize: FontSize.base, fontWeight: '600' }}
-                color={colors.foreground}
-              >
-                Ready to journal unlimited?
-              </ThemedText>
-            </View>
-            <ThemedText
-              style={{ fontSize: FontSize.sm, marginTop: Spacing.xxs }}
-              color={colors.mutedForeground}
-            >
-              Premium unlocks unlimited entries. Your thoughts deserve space.
-            </ThemedText>
-          </Pressable>
-        )}
 
         {/* Entries */}
         {isLoading ? (
@@ -237,9 +182,6 @@ export default function JournalListScreen() {
                           </ThemedText>
                         </View>
                       )}
-                      {hiddenIds.has(entry._id) && (
-                        <IconSymbol name="lock.fill" size={IconSize.sm} color={colors.mutedForeground} />
-                      )}
                     </View>
                   </View>
                   <Pressable
@@ -271,7 +213,7 @@ export default function JournalListScreen() {
             <IconSymbol
               name="book.fill"
               size={IconSize['4xl']}
-              color={colors.accentBlue}
+              color={colors.accent}
             />
             <ThemedText
               style={{

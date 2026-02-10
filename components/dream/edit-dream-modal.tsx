@@ -108,7 +108,7 @@ export function EditDreamModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         style={{ flex: 1, backgroundColor: colors.background }}
       >
         <View
@@ -233,16 +233,29 @@ export function EditDreamModal({
               )}
             </Pressable>
             {showDatePicker && (
-              <DateTimePicker
-                value={targetDate ?? new Date()}
-                mode="date"
-                display="spinner"
-                minimumDate={new Date()}
-                onChange={(_, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) setTargetDate(selectedDate);
-                }}
-              />
+              <>
+                <DateTimePicker
+                  value={targetDate ?? new Date()}
+                  mode="date"
+                  display="spinner"
+                  minimumDate={new Date()}
+                  onChange={(_, selectedDate) => {
+                    if (selectedDate) setTargetDate(selectedDate);
+                  }}
+                />
+                <Pressable
+                  onPress={() => setShowDatePicker(false)}
+                  style={{
+                    alignSelf: "center",
+                    paddingVertical: Spacing.sm,
+                    paddingHorizontal: Spacing.xl,
+                  }}
+                >
+                  <ThemedText style={{ fontSize: FontSize.base, fontWeight: "600" }} color={colors.primary}>
+                    Done
+                  </ThemedText>
+                </Pressable>
+              </>
             )}
           </View>
 

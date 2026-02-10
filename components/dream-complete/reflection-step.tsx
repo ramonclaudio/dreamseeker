@@ -23,13 +23,13 @@ export function ReflectionStep({
         style={{ marginBottom: Spacing.lg }}
       />
       <ThemedText variant="title" style={styles.title}>
-        How does it feel?
+        How does winning feel?
       </ThemedText>
       <ThemedText
         style={styles.subtitle}
         color={colors.mutedForeground}
       >
-        Real talk. How does winning feel?
+        Real talk — you just did something most people only dream about.
       </ThemedText>
       <TextInput
         style={[

@@ -61,25 +61,36 @@ export function GetStartedCards({ cards, onDismiss, onPress }: GetStartedCardsPr
             disabled={!card.action}
           >
             <MaterialCard style={{ padding: Spacing.lg }}>
-              {/* Dismiss button */}
+              {/* Dismiss circle */}
               <Pressable
                 onPress={() => {
                   haptics.light();
                   onDismiss(card.id);
                 }}
                 hitSlop={HitSlop.md}
-                style={{ position: 'absolute', top: Spacing.sm, right: Spacing.sm, zIndex: 1 }}
+                style={({ pressed }) => ({
+                  position: 'absolute',
+                  top: Spacing.sm,
+                  right: Spacing.sm,
+                  zIndex: 1,
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  backgroundColor: pressed ? colors.border : colors.muted,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
                 accessibilityLabel={`Dismiss ${card.title}`}
               >
-                <IconSymbol name="xmark" size={IconSize.sm} color={colors.mutedForeground} />
+                <IconSymbol name="xmark" size={9} color={colors.mutedForeground} />
               </Pressable>
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flex: 1, marginRight: Spacing.lg }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.lg }}>
+                <View style={{ flex: 1, marginRight: Spacing.md }}>
                   <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600', marginBottom: Spacing.xs }}>
                     {card.title}
                   </ThemedText>
-                  <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
+                  <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground} numberOfLines={1}>
                     {card.description}
                   </ThemedText>
                 </View>

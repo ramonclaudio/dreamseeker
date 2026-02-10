@@ -1,15 +1,19 @@
 import { memo, useState } from "react";
 import { View, Pressable } from "react-native";
+import ViewShot from "react-native-view-shot";
 
 import type { Doc } from "@/convex/_generated/dataModel";
 import { MaterialCard } from "@/components/ui/material-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { XpCelebration } from "@/components/ui/xp-celebration";
+import { ActionShareCard } from "@/components/share-cards/action-share-card";
+import type { DreamCategory } from "@/constants/dreams";
 import type { ColorPalette } from "@/constants/theme";
 import { Radius } from "@/constants/theme";
 import { Spacing, TouchTarget, FontSize, IconSize, HitSlop } from "@/constants/layout";
-import { Size } from "@/constants/ui";
+import { Size, Opacity } from "@/constants/ui";
+import { useShareCapture } from "@/hooks/use-share-capture";
 
 type Action = Doc<"actions">;
 
@@ -21,6 +25,11 @@ export const DreamActionItem = memo(function DreamActionItem({
   onFocus,
   colors,
   categoryColor,
+  dreamTitle,
+  dreamCategory,
+  completedActions,
+  totalActions,
+  handle,
 }: {
   action: Action;
   onToggle: () => void;
@@ -29,8 +38,14 @@ export const DreamActionItem = memo(function DreamActionItem({
   onFocus: () => void;
   colors: ColorPalette;
   categoryColor: string;
+  dreamTitle?: string;
+  dreamCategory?: string;
+  completedActions?: number;
+  totalActions?: number;
+  handle?: string;
 }) {
   const [showCelebration, setShowCelebration] = useState(false);
+  const { viewShotRef, capture, isSharing } = useShareCapture();
 
   const handleToggle = () => {
     // Show celebration only when completing (not when uncompleting)
@@ -103,6 +118,25 @@ export const DreamActionItem = memo(function DreamActionItem({
             {action.text}
           </ThemedText>
         </Pressable>
+        {action.isCompleted && dreamTitle && (
+          <Pressable
+            onPress={capture}
+            disabled={isSharing}
+            style={{
+              padding: Spacing.sm,
+              minWidth: TouchTarget.min,
+              minHeight: TouchTarget.min,
+              justifyContent: "center",
+              alignItems: "center",
+              opacity: isSharing ? Opacity.pressed : 1,
+            }}
+            hitSlop={HitSlop.md}
+            accessibilityRole="button"
+            accessibilityLabel="Share completed action"
+          >
+            <IconSymbol name="square.and.arrow.up" size={IconSize.lg} color={colors.accent} />
+          </Pressable>
+        )}
         {!action.isCompleted && (
           <Pressable
             onPress={onFocus}
@@ -118,7 +152,7 @@ export const DreamActionItem = memo(function DreamActionItem({
             accessibilityLabel={`Start focus timer for ${action.text}`}
             accessibilityHint="Opens focus timer screen"
           >
-            <IconSymbol name="timer" size={IconSize.lg} color={colors.accentBlue} />
+            <IconSymbol name="timer" size={IconSize.lg} color={colors.accent} />
           </Pressable>
         )}
         <Pressable
@@ -142,6 +176,18 @@ export const DreamActionItem = memo(function DreamActionItem({
           </ThemedText>
         </Pressable>
       </View>
+      {action.isCompleted && dreamTitle && dreamCategory && (
+        <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1 }} style={{ position: "absolute", left: -9999 }}>
+          <ActionShareCard
+            actionText={action.text}
+            dreamTitle={dreamTitle}
+            dreamCategory={dreamCategory as DreamCategory}
+            completedActions={completedActions ?? 0}
+            totalActions={totalActions ?? 0}
+            handle={handle}
+          />
+        </ViewShot>
+      )}
       <XpCelebration
         visible={showCelebration}
         xpAmount={10}

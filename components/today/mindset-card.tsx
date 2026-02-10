@@ -21,7 +21,7 @@ export function MindsetCard({
         marginBottom: Spacing.lg,
         backgroundColor: colors.secondary,
         borderLeftWidth: 4,
-        borderLeftColor: colors.accentBlue,
+        borderLeftColor: colors.accent,
       }}
     >
       <View

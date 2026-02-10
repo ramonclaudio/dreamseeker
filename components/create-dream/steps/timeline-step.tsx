@@ -111,9 +111,9 @@ export function TimelineStep({
                 paddingHorizontal: Spacing.lg,
                 paddingVertical: Spacing.sm,
                 borderRadius: Radius.full,
-                backgroundColor: active ? colors.accentBlue : colors.secondary,
+                backgroundColor: active ? colors.accent : colors.secondary,
                 borderWidth: 1,
-                borderColor: active ? colors.accentBlue : colors.border,
+                borderColor: active ? colors.accent : colors.border,
               })}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
@@ -137,9 +137,9 @@ export function TimelineStep({
             paddingHorizontal: Spacing.lg,
             paddingVertical: Spacing.sm,
             borderRadius: Radius.full,
-            backgroundColor: isCustomSelected ? colors.accentBlue : colors.secondary,
+            backgroundColor: isCustomSelected ? colors.accent : colors.secondary,
             borderWidth: 1,
-            borderColor: isCustomSelected ? colors.accentBlue : colors.border,
+            borderColor: isCustomSelected ? colors.accent : colors.border,
           })}
           accessibilityRole="button"
           accessibilityState={{ selected: isCustomSelected }}
@@ -189,9 +189,9 @@ export function TimelineStep({
                     paddingHorizontal: Spacing.md,
                     paddingVertical: Spacing.sm,
                     borderRadius: Radius.full,
-                    backgroundColor: active ? colors.accentBlue : colors.secondary,
+                    backgroundColor: active ? colors.accent : colors.secondary,
                     borderWidth: 1,
-                    borderColor: active ? colors.accentBlue : colors.border,
+                    borderColor: active ? colors.accent : colors.border,
                   })}
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
@@ -224,7 +224,7 @@ export function TimelineStep({
       >
         <ThemedText
           style={{ fontSize: FontSize.base, fontWeight: '500' }}
-          color={!selected ? colors.accentBlue : colors.mutedForeground}
+          color={!selected ? colors.accent : colors.mutedForeground}
         >
           No deadline
         </ThemedText>

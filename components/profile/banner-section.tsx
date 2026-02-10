@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import type { ColorPalette } from "@/constants/theme";
-import { IconSize, Spacing } from "@/constants/layout";
+import { IconSize } from "@/constants/layout";
 import { Opacity, Duration } from "@/constants/ui";
 
 const BANNER_VISIBLE_HEIGHT = 160;
@@ -14,26 +14,28 @@ export function BannerSection({
   onPress,
   colors,
   topInset = 0,
+  editable = true,
 }: {
   bannerUrl: string | null;
   isUploading: boolean;
   onPress: () => void;
   colors: ColorPalette;
   topInset?: number;
+  editable?: boolean;
 }) {
   const totalHeight = BANNER_VISIBLE_HEIGHT + topInset;
 
   return (
     <Pressable
-      onPress={onPress}
-      disabled={isUploading}
+      onPress={editable ? onPress : undefined}
+      disabled={!editable || isUploading}
       style={({ pressed }) => ({
-        opacity: pressed ? Opacity.pressed : 1,
+        opacity: editable && pressed ? Opacity.pressed : 1,
         height: totalHeight,
         backgroundColor: colors.primary,
       })}
-      accessibilityRole="button"
-      accessibilityLabel="Change profile banner"
+      accessibilityRole={editable ? "button" : undefined}
+      accessibilityLabel={editable ? "Change profile banner" : "Profile banner"}
     >
       {bannerUrl ? (
         <Image
@@ -44,26 +46,36 @@ export function BannerSection({
         />
       ) : null}
 
-      {/* Edit badge — top left, inside safe area */}
-      <View
-        style={{
-          position: "absolute",
-          top: topInset + Spacing.xs,
-          left: Spacing.lg,
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          backgroundColor: "rgba(0,0,0,0.35)",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {isUploading ? (
-          <ActivityIndicator color="#fff" size="small" />
-        ) : (
-          <IconSymbol name={bannerUrl ? "pencil" : "camera.fill"} size={IconSize.xl} color="#fff" />
-        )}
-      </View>
+      {editable && (
+        <View
+          style={{
+            position: "absolute",
+            top: topInset,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: "rgba(0,0,0,0.35)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isUploading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <IconSymbol name="camera.fill" size={IconSize.xl} color="#fff" />
+            )}
+          </View>
+        </View>
+      )}
     </Pressable>
   );
 }

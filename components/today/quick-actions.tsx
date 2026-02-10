@@ -79,10 +79,10 @@ export function QuickActions({ colors }: { colors: ColorPalette }) {
     <>
       <QuickActionCard
         icon="timer"
-        iconColor={colors.accentBlue}
+        iconColor={colors.accent}
         title="Lock In & Focus"
         subtitle="Deep work earns +15 XP"
-        borderColor={colors.accentBlue}
+        borderColor={colors.accent}
         onPress={() => router.push("/(app)/focus-timer")}
         colors={colors}
       />
@@ -93,6 +93,15 @@ export function QuickActions({ colors }: { colors: ColorPalette }) {
         subtitle="Process your wins — earn +10 XP"
         borderColor={colors.gold}
         onPress={() => router.push("/(app)/journal-entry")}
+        colors={colors}
+      />
+      <QuickActionCard
+        icon="square.grid.2x2"
+        iconColor={colors.primary}
+        title="Vision Board"
+        subtitle="Visualize your dream life"
+        borderColor={colors.primary}
+        onPress={() => router.push("/(app)/(tabs)/boards")}
         colors={colors}
       />
     </>

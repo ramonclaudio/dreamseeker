@@ -1,6 +1,9 @@
 import { View, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, router, Stack } from "expo-router";
+import { useQuery } from "convex/react";
+import ViewShot from "react-native-view-shot";
 
+import { api } from "@/convex/_generated/api";
 import { getCategoryConfig } from "@/constants/dreams";
 import { GradientProgressBar } from "@/components/ui/gradient-progress-bar";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -15,15 +18,21 @@ import {
 } from "@/components/dream/dream-status-actions";
 import { EditActionModal } from "@/components/dream/edit-action-modal";
 import { EditDreamModal } from "@/components/dream/edit-dream-modal";
+import { BadgeEarnedModal } from "@/components/engagement/badge-earned-modal";
+import { DreamShareCard } from "@/components/share-cards/dream-share-card";
 import { useColors } from "@/hooks/use-color-scheme";
 import { useDreamDetail } from "@/hooks/use-dream-detail";
+import { useShareCapture } from "@/hooks/use-share-capture";
 import { Spacing, FontSize, IconSize, HitSlop, MaxWidth } from "@/constants/layout";
+import { Opacity } from "@/constants/ui";
 import { haptics } from "@/lib/haptics";
 
 export default function DreamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const detail = useDreamDetail(id);
+  const user = useQuery(api.auth.getCurrentUser);
+  const { viewShotRef, capture, isSharing } = useShareCapture();
 
   const { dream, authLoading } = detail;
 
@@ -67,17 +76,14 @@ export default function DreamDetailScreen() {
           headerRight: () => (
             <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xl }}>
               <Pressable
-                onPress={detail.handleToggleVisibility}
+                onPress={capture}
+                disabled={isSharing}
                 hitSlop={HitSlop.md}
                 accessibilityRole="button"
-                accessibilityLabel={detail.isHidden ? "Make visible to friends" : "Hide from friends"}
-                style={{ padding: Spacing.xs }}
+                accessibilityLabel="Share dream"
+                style={{ padding: Spacing.xs, opacity: isSharing ? Opacity.pressed : 1 }}
               >
-                <IconSymbol
-                  name={detail.isHidden ? "lock.fill" : "lock.open.fill"}
-                  size={IconSize.xl}
-                  color={detail.isHidden ? colors.mutedForeground : colors.primary}
-                />
+                <IconSymbol name="square.and.arrow.up" size={IconSize.xl} color={colors.primary} />
               </Pressable>
               <Pressable
                 onPress={() => { haptics.selection(); detail.setShowEditDream(true); }}
@@ -204,6 +210,29 @@ export default function DreamDetailScreen() {
         onSave={detail.handleSaveAction}
         colors={colors}
       />
+
+      <BadgeEarnedModal
+        visible={detail.newBadge !== null}
+        badge={detail.newBadge}
+        handle={user?.displayName ?? user?.name}
+        onDismiss={() => detail.setNewBadge(null)}
+      />
+
+      <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1 }} style={{ position: "absolute", left: -9999 }}>
+        <DreamShareCard
+          title={dream.title}
+          category={dream.category}
+          status={dream.status}
+          whyItMatters={dream.whyItMatters}
+          completedActions={completedActions}
+          totalActions={totalActions}
+          actions={(dream.actions ?? []).map((a) => ({ text: a.text, isCompleted: a.isCompleted }))}
+          targetDate={dream.targetDate}
+          createdAt={dream._creationTime}
+          completedAt={dream.completedAt}
+          handle={user?.displayName ?? user?.name ?? undefined}
+        />
+      </ViewShot>
     </>
   );
 }

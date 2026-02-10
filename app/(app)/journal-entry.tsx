@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/convex/_generated/api';
@@ -21,12 +21,16 @@ import { MoodSelector } from '@/components/journal/mood-selector';
 import { JournalPromptCard } from '@/components/journal/journal-prompt-card';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useJournal } from '@/hooks/use-journal';
-import { useSubscription } from '@/hooks/use-subscription';
 import { Spacing, FontSize, TouchTarget, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import type { Mood } from '@/constants/dreams';
 import { haptics } from '@/lib/haptics';
 import { timezone } from '@/lib/timezone';
+import { shootConfetti } from '@/lib/confetti';
+import { Opacity } from '@/constants/ui';
+import { useShareCapture } from '@/hooks/use-share-capture';
+import ViewShot from 'react-native-view-shot';
+import { JournalShareCard } from '@/components/share-cards/journal-share-card';
 
 export default function JournalNewScreen() {
   const { id, dreamId: dreamIdParam } = useLocalSearchParams<{ id?: string; dreamId?: string }>();
@@ -34,18 +38,12 @@ export default function JournalNewScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { create, update, remove } = useJournal();
-  const { showUpgrade } = useSubscription();
+  const { viewShotRef, capture, isSharing } = useShareCapture();
+  const user = useQuery(api.auth.getCurrentUser);
   const existingEntry = useQuery(
     api.journal.get,
     isEditing ? { id: id as Id<'journalEntries'> } : 'skip'
   );
-
-  const isHidden = useQuery(
-    api.hiddenItems.isHidden,
-    isEditing ? { itemId: id as string } : 'skip'
-  );
-  const hideItemMutation = useMutation(api.hiddenItems.hideItem);
-  const unhideItemMutation = useMutation(api.hiddenItems.unhideItem);
 
   const dreams = useQuery(api.dreams.listWithActionCounts);
   const dailyPrompt = useQuery(api.journalPrompts.getDailyPrompt, { timezone });
@@ -72,20 +70,6 @@ export default function JournalNewScreen() {
       setDreamId(dreamIdParam as Id<'dreams'>);
     }
   }, [isEditing, dreamIdParam]);
-
-  const handleToggleVisibility = async () => {
-    if (!isEditing) return;
-    haptics.selection();
-    try {
-      if (isHidden) {
-        await unhideItemMutation({ itemId: id as string });
-      } else {
-        await hideItemMutation({ itemType: 'journal', itemId: id as string });
-      }
-    } catch {
-      haptics.error();
-    }
-  };
 
   const handleDelete = () => {
     if (!isEditing) return;
@@ -127,20 +111,19 @@ export default function JournalNewScreen() {
           mood,
           dreamId,
         });
+        haptics.success();
+        router.back();
       } else {
         await create({ title, body, mood, dreamId });
+        shootConfetti('small');
+        haptics.success();
+        setTimeout(() => {
+          router.back();
+        }, 600);
       }
-      haptics.success();
-      router.back();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      if (message === 'JOURNAL_LIMIT_REACHED') {
-        haptics.warning();
-        showUpgrade();
-      } else {
-        haptics.error();
-        Alert.alert('Save Failed', 'Could not save your entry. Please try again.');
-      }
+    } catch {
+      haptics.error();
+      Alert.alert('Save Failed', 'Could not save your entry. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -154,7 +137,7 @@ export default function JournalNewScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
     >
       {/* Header */}
       <View
@@ -163,9 +146,9 @@ export default function JournalNewScreen() {
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: Spacing.lg,
-          paddingHorizontal: Spacing.lg,
-          paddingBottom: Spacing.sm,
-          borderBottomWidth: 1,
+          paddingHorizontal: Spacing.xl,
+          paddingBottom: Spacing.lg,
+          borderBottomWidth: 0.5,
           borderBottomColor: colors.separator,
         }}
       >
@@ -174,11 +157,11 @@ export default function JournalNewScreen() {
           hitSlop={12}
           style={{ minHeight: TouchTarget.min, justifyContent: 'center' }}
         >
-          <ThemedText style={{ fontSize: FontSize.xl }} color={colors.accentBlue}>
+          <ThemedText color={colors.mutedForeground}>
             Cancel
           </ThemedText>
         </Pressable>
-        <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '600' }}>
+        <ThemedText style={{ fontSize: FontSize.xl, fontWeight: '700' }}>
           {isEditing ? 'Edit Entry' : 'New Entry'}
         </ThemedText>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.lg }}>
@@ -191,17 +174,14 @@ export default function JournalNewScreen() {
               <IconSymbol name="trash.fill" size={IconSize.xl} color={colors.destructive} />
             </Pressable>
           )}
-          {isEditing && (
+          {isEditing && existingEntry && (
             <Pressable
-              onPress={handleToggleVisibility}
+              onPress={capture}
+              disabled={isSharing}
               hitSlop={12}
-              style={{ minHeight: TouchTarget.min, justifyContent: 'center' }}
+              style={{ minHeight: TouchTarget.min, justifyContent: 'center', opacity: isSharing ? Opacity.pressed : 1 }}
             >
-              <IconSymbol
-                name={isHidden ? "lock.fill" : "lock.open.fill"}
-                size={IconSize.xl}
-                color={isHidden ? colors.mutedForeground : colors.accentBlue}
-              />
+              <IconSymbol name="square.and.arrow.up" size={IconSize.xl} color={colors.accent} />
             </Pressable>
           )}
           <Pressable
@@ -211,11 +191,11 @@ export default function JournalNewScreen() {
             style={{ minHeight: TouchTarget.min, justifyContent: 'center' }}
           >
             {saving ? (
-              <ActivityIndicator size="small" color={colors.accentBlue} />
+              <ActivityIndicator size="small" color={colors.accent} />
             ) : (
               <ThemedText
                 style={{ fontSize: FontSize.xl, fontWeight: '600' }}
-                color={canSave ? colors.accentBlue : colors.mutedForeground}
+                color={canSave ? colors.accent : colors.mutedForeground}
               >
                 Save
               </ThemedText>
@@ -323,8 +303,8 @@ export default function JournalNewScreen() {
                       paddingHorizontal: Spacing.lg,
                       borderRadius: Radius.full,
                       borderWidth: 1.5,
-                      borderColor: isSelected ? colors.accentBlue : colors.border,
-                      backgroundColor: isSelected ? `${colors.accentBlue}15` : colors.card,
+                      borderColor: isSelected ? colors.accent : colors.border,
+                      backgroundColor: isSelected ? `${colors.accent}15` : colors.card,
                       opacity: pressed ? 0.7 : 1,
                     })}
                   >
@@ -345,6 +325,18 @@ export default function JournalNewScreen() {
           </View>
         )}
       </ScrollView>
+
+      {isEditing && existingEntry && (
+        <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1 }} style={{ position: "absolute", left: -9999 }}>
+          <JournalShareCard
+            title={title}
+            body={body}
+            mood={mood}
+            date={existingEntry._creationTime}
+            handle={user?.displayName ?? user?.name ?? undefined}
+          />
+        </ViewShot>
+      )}
     </KeyboardAvoidingView>
   );
 }

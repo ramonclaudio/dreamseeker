@@ -38,8 +38,8 @@ export function MoodSelector({ selected, onSelect }: MoodSelectorProps) {
               paddingHorizontal: Spacing.sm,
               borderRadius: Radius.lg,
               borderWidth: 1.5,
-              borderColor: isSelected ? colors.accentBlue : colors.border,
-              backgroundColor: isSelected ? `${colors.accentBlue}15` : colors.card,
+              borderColor: isSelected ? colors.accent : colors.border,
+              backgroundColor: isSelected ? `${colors.accent}15` : colors.card,
               alignItems: 'center',
               opacity: pressed ? 0.7 : 1,
             })}

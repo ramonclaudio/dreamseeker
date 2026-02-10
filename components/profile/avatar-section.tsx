@@ -5,7 +5,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { ColorPalette } from "@/constants/theme";
 import { Breakpoint, Spacing, TouchTarget, IconSize } from "@/constants/layout";
-import { Opacity, Size, Duration, Responsive } from "@/constants/ui";
+import { Opacity, Duration, Responsive } from "@/constants/ui";
 
 function useAvatarSize() {
   const { width } = useWindowDimensions();
@@ -20,12 +20,14 @@ export function AvatarSection({
   isUploading,
   onPress,
   colors,
+  editable = true,
 }: {
   image: string | null | undefined;
   avatarInitial: string;
   isUploading: boolean;
   onPress: () => void;
   colors: ColorPalette;
+  editable?: boolean;
 }) {
   const avatarSize = useAvatarSize();
   const borderWidth = 4;
@@ -33,16 +35,16 @@ export function AvatarSection({
   return (
     <View style={{ paddingHorizontal: Spacing.xl, marginTop: -(avatarSize / 2) }}>
       <Pressable
-        onPress={onPress}
-        disabled={isUploading}
+        onPress={editable ? onPress : undefined}
+        disabled={!editable || isUploading}
         style={({ pressed }) => ({
-          opacity: pressed ? Opacity.pressed : 1,
+          opacity: editable && pressed ? Opacity.pressed : 1,
           minHeight: TouchTarget.min,
           alignSelf: "flex-start",
         })}
-        accessibilityRole="button"
-        accessibilityLabel="Change profile photo"
-        accessibilityState={{ disabled: isUploading }}
+        accessibilityRole={editable ? "button" : undefined}
+        accessibilityLabel={editable ? "Change profile photo" : "Profile photo"}
+        accessibilityState={editable ? { disabled: isUploading } : undefined}
       >
         <View style={{ position: "relative" }}>
           {/* White ring around avatar */}
@@ -95,7 +97,7 @@ export function AvatarSection({
               </View>
             )}
           </View>
-          {isUploading ? (
+          {editable && (isUploading ? (
             <View
               style={{
                 position: "absolute",
@@ -115,25 +117,23 @@ export function AvatarSection({
             <View
               style={{
                 position: "absolute",
-                bottom: 0,
-                right: 0,
-                width: Size.badge,
-                height: Size.badge,
-                borderRadius: Size.badge / 2,
+                top: borderWidth,
+                left: borderWidth,
+                width: avatarSize,
+                height: avatarSize,
+                borderRadius: avatarSize / 2,
                 alignItems: "center",
                 justifyContent: "center",
-                borderWidth: 3,
-                backgroundColor: colors.primary,
-                borderColor: colors.background,
+                backgroundColor: "rgba(0,0,0,0.35)",
               }}
             >
               <IconSymbol
-                name={image ? "pencil" : "camera.fill"}
-                size={IconSize.sm}
-                color={colors.primaryForeground}
+                name="camera.fill"
+                size={IconSize.xl}
+                color="#fff"
               />
             </View>
-          )}
+          ))}
         </View>
       </Pressable>
     </View>

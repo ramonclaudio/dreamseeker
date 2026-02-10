@@ -1,4 +1,4 @@
-import { View, Pressable, StyleSheet, Share } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -10,10 +10,10 @@ import type { ColorPalette } from "@/constants/theme";
 
 interface NextStepProps {
   colors: ColorPalette;
-  dreamTitle: string;
+  onShare: () => void;
 }
 
-export function NextStep({ colors, dreamTitle }: NextStepProps) {
+export function NextStep({ colors, onShare }: NextStepProps) {
   return (
     <View style={styles.container}>
       <IconSymbol
@@ -23,13 +23,13 @@ export function NextStep({ colors, dreamTitle }: NextStepProps) {
         style={{ marginBottom: Spacing.lg }}
       />
       <ThemedText variant="title" style={styles.title}>
-        {"What's next?"}
+        {"WHAT'S NEXT, QUEEN?"}
       </ThemedText>
       <ThemedText
         style={styles.subtitle}
         color={colors.mutedForeground}
       >
-        Winners keep moving. What&apos;s your next play?
+        {"You don't stop. What's the next dream?"}
       </ThemedText>
 
       <View style={styles.buttons}>
@@ -38,33 +38,25 @@ export function NextStep({ colors, dreamTitle }: NextStepProps) {
             haptics.medium();
             router.replace("/(app)/create-dream" as never);
           }}
-          label="Dream Bigger"
+          label="DREAM BIGGER"
           icon={
             <IconSymbol name="plus" size={IconSize.xl} color={colors.onColor} weight="bold" />
           }
         />
         <GradientButton
           variant="secondary"
-          onPress={async () => {
-            haptics.light();
-            try {
-              await Share.share({
-                message: `I just achieved my dream: '${dreamTitle}' on DreamSeeker! 🎯✨ #DreamSeeker #GoalCrusher`,
-              });
-              haptics.success();
-            } catch {
-              // Sharing cancelled or failed, no action needed
-            }
-          }}
-          label="Share Your Win"
+          onPress={onShare}
+          label="FLEX YOUR WIN"
           icon={
-            <IconSymbol name="square.and.arrow.up" size={IconSize.xl} color={colors.accentBlue} />
+            <IconSymbol name="square.and.arrow.up" size={IconSize.xl} color={colors.accent} />
           }
         />
         <Pressable
           onPress={() => {
             haptics.light();
-            router.replace("/(app)/(tabs)" as never);
+            if (router.canGoBack()) {
+              router.back();
+            }
           }}
           style={({ pressed }) => ({
             opacity: pressed ? Opacity.pressed : 1,
@@ -76,7 +68,7 @@ export function NextStep({ colors, dreamTitle }: NextStepProps) {
             style={{ fontSize: FontSize.xl, fontWeight: "600" }}
             color={colors.mutedForeground}
           >
-            Done
+            {"I'm done flexing"}
           </ThemedText>
         </Pressable>
       </View>

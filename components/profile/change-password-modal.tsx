@@ -129,7 +129,7 @@ export function ChangePasswordModal({
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
-        behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         style={{ flex: 1, backgroundColor: colors.background }}
       >
         <View
