@@ -3,7 +3,7 @@ import { View, Pressable } from "react-native";
 
 import { CustomCategoryPicker } from "@/components/ui/custom-category-picker";
 import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
-import { MaterialCard } from "@/components/ui/material-card";
+import { CloudShape } from "@/components/ui/cloud-shape";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/hooks/use-color-scheme";
 import { haptics } from "@/lib/haptics";
@@ -21,6 +21,25 @@ import type { CustomCategoryConfig } from "@/hooks/use-create-dream";
 
 const PRESET_CATEGORIES = DREAM_CATEGORY_LIST.filter((c) => c !== 'custom');
 const MAX_CUSTOM_NAME_LENGTH = 30;
+const CLOUD_HEIGHT = 78;
+
+// Staggered flex ratios per row for organic feel (keep ratio ≤ 1.3:1 to avoid text clipping)
+const ROW_FLEX: [number, number][] = [
+  [4, 5],
+  [5, 4],
+  [4, 5],
+  [5, 4],
+];
+
+type CategoryItem = { key: DreamCategory; label: string; icon: IconSymbolName; color: string };
+
+function getRows(items: CategoryItem[]): CategoryItem[][] {
+  const rows: CategoryItem[][] = [];
+  for (let i = 0; i < items.length; i += 2) {
+    rows.push(items.slice(i, i + 2));
+  }
+  return rows;
+}
 
 export function CategoryStep({
   selected,
@@ -70,6 +89,23 @@ export function CategoryStep({
     onSelectCustom({ name: customName, icon: customIcon, color });
   };
 
+  const presetItems: CategoryItem[] = PRESET_CATEGORIES.map((category) => ({
+    key: category,
+    label: DREAM_CATEGORIES[category].label,
+    icon: CATEGORY_ICONS[category],
+    color: DREAM_CATEGORIES[category].color,
+  }));
+
+  const customItem: CategoryItem = {
+    key: 'custom',
+    label: customName.trim() || 'Custom',
+    icon: customIcon as IconSymbolName,
+    color: customColor,
+  };
+
+  const allItems = [...presetItems, customItem];
+  const rows = getRows(allItems);
+
   return (
     <View style={{ gap: Spacing.lg }}>
       <View style={{ gap: Spacing.sm }}>
@@ -79,100 +115,109 @@ export function CategoryStep({
         </ThemedText>
       </View>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md }}>
-        {PRESET_CATEGORIES.map((category) => {
-          const config = DREAM_CATEGORIES[category];
-          const isSelected = selected === category;
+      <View style={{ gap: Spacing.sm }}>
+        {rows.map((row, rowIdx) => {
+          const [flexL, flexR] = ROW_FLEX[rowIdx % ROW_FLEX.length];
 
           return (
-            <Pressable
-              key={category}
-              onPress={() => handleSelectPreset(category)}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: '45%',
-                opacity: pressed ? Opacity.pressed : 1,
-              })}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={config.label}
-            >
-              <MaterialCard
-                style={{
-                  padding: Spacing.lg,
-                  alignItems: 'center',
-                  gap: Spacing.sm,
-                  borderWidth: isSelected ? 2 : 1,
-                  borderColor: isSelected ? config.color : colors.border,
-                }}
-              >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: isSelected ? config.color : `${config.color}20`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <IconSymbol
-                    name={CATEGORY_ICONS[category]}
-                    size={IconSize['3xl']}
-                    color={isSelected ? colors.onColor : config.color}
-                  />
-                </View>
-                <ThemedText style={{ fontSize: FontSize.lg, fontWeight: '600' }}>
-                  {config.label}
-                </ThemedText>
-              </MaterialCard>
-            </Pressable>
-          );
-        })}
-
-        {/* Custom card */}
-        <Pressable
-          onPress={handleSelectCustom}
-          style={({ pressed }) => ({
-            flex: 1,
-            minWidth: '45%',
-            opacity: pressed ? Opacity.pressed : 1,
-          })}
-          accessibilityRole="radio"
-          accessibilityState={{ selected: isCustomSelected }}
-          accessibilityLabel="Custom category"
-        >
-          <MaterialCard
-            style={{
-              padding: Spacing.lg,
-              alignItems: 'center',
-              gap: Spacing.sm,
-              borderWidth: isCustomSelected ? 2 : 1,
-              borderColor: isCustomSelected ? customColor : colors.border,
-              borderStyle: isCustomSelected ? 'solid' : 'dashed',
-            }}
-          >
             <View
+              key={`row-${rowIdx}`}
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                backgroundColor: isCustomSelected ? customColor : `${customColor}20`,
+                flexDirection: 'row',
+                gap: Spacing.xs,
                 alignItems: 'center',
-                justifyContent: 'center',
               }}
             >
-              <IconSymbol
-                name={customIcon as IconSymbolName}
-                size={IconSize['3xl']}
-                color={isCustomSelected ? colors.onColor : customColor}
-              />
+              {row.map((item, colIdx) => {
+                const isSelected = selected === item.key;
+                const isCustom = item.key === 'custom';
+                const flex = row.length === 2 ? (colIdx === 0 ? flexL : flexR) : 1;
+                const variant = rowIdx * 2 + colIdx;
+
+                return (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => isCustom ? handleSelectCustom() : handleSelectPreset(item.key)}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? Opacity.pressed : 1,
+                      flex,
+                    })}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={item.label}
+                  >
+                    <View style={{ height: CLOUD_HEIGHT }}>
+                      {/* Cloud SVG background */}
+                      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+                        <CloudShape
+                          fill={isSelected ? item.color : `${item.color}28`}
+                          variant={variant}
+                        />
+                      </View>
+
+                      {/* Content overlay */}
+                      <View
+                        style={{
+                          flex: 1,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: Spacing.xs,
+                          paddingHorizontal: Spacing.md,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            backgroundColor: isSelected ? `${colors.onColor}25` : `${item.color}20`,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <IconSymbol
+                            name={item.icon}
+                            size={IconSize.lg}
+                            color={isSelected ? colors.onColor : item.color}
+                          />
+                        </View>
+                        <ThemedText
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.8}
+                          style={{
+                            fontSize: FontSize.md,
+                            fontWeight: '600',
+                            flexShrink: 1,
+                          }}
+                          color={isSelected ? colors.onColor : colors.foreground}
+                        >
+                          {item.label}
+                        </ThemedText>
+                        {isSelected && (
+                          <View
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: 10,
+                              backgroundColor: `${colors.onColor}30`,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginLeft: 'auto',
+                            }}
+                          >
+                            <IconSymbol name="checkmark" size={11} color={colors.onColor} />
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
-            <ThemedText style={{ fontSize: FontSize.lg, fontWeight: '600' }}>
-              {customName.trim() || 'Custom'}
-            </ThemedText>
-          </MaterialCard>
-        </Pressable>
+          );
+        })}
       </View>
 
       {/* Custom config inline inputs */}

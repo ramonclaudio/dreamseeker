@@ -1,11 +1,10 @@
-import { query } from './_generated/server';
-import { getAuthUserId } from './helpers';
+import { authQuery } from './functions';
 
-export const getUserBadges = query({
+export const getUserBadges = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
+    const userId = ctx.user;
 
     const userBadges = await ctx.db
       .query('userBadges')
@@ -24,11 +23,11 @@ export const getUserBadges = query({
   },
 });
 
-export const getBadgeProgress = query({
+export const getBadgeProgress = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
+    const userId = ctx.user;
 
     const allDefinitions = await ctx.db.query('badgeDefinitions').collect();
     const userBadges = await ctx.db

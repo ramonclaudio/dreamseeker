@@ -15,6 +15,10 @@ jest.mock('../convex/_generated/server', () => ({
   internalAction: (opts: unknown) => opts,
 }));
 jest.mock('../convex/_generated/api', () => ({ internal: {} }));
+jest.mock('../convex/functions', () => ({
+  authQuery: (opts: unknown) => opts,
+  authMutation: (opts: unknown) => opts,
+}));
 jest.mock('../convex/auth', () => ({
   authComponent: { safeGetAuthUser: () => null },
 }));

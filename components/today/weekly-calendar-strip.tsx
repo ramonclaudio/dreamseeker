@@ -49,7 +49,7 @@ export function WeeklyCalendarStrip({ weeklyActivity }: WeeklyCalendarStripProps
             >
               <ThemedText
                 style={{ fontSize: FontSize.xs, fontWeight: '500' }}
-                color={isToday ? colors.accentBlue : colors.mutedForeground}
+                color={isToday ? colors.accent : colors.mutedForeground}
               >
                 {DAY_LABELS[dayIndex]}
               </ThemedText>
@@ -58,7 +58,7 @@ export function WeeklyCalendarStrip({ weeklyActivity }: WeeklyCalendarStripProps
                   width: 32,
                   height: 32,
                   borderRadius: Radius.full,
-                  backgroundColor: isToday ? colors.accentBlue : 'transparent',
+                  backgroundColor: isToday ? colors.accent : 'transparent',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -68,7 +68,7 @@ export function WeeklyCalendarStrip({ weeklyActivity }: WeeklyCalendarStripProps
                     fontSize: FontSize.base,
                     fontWeight: isToday ? '700' : '400',
                   }}
-                  color={isToday ? colors.accentBlueForeground : colors.foreground}
+                  color={isToday ? colors.accentForeground : colors.foreground}
                 >
                   {new Date(date + 'T12:00:00').getDate()}
                 </ThemedText>
@@ -78,7 +78,7 @@ export function WeeklyCalendarStrip({ weeklyActivity }: WeeklyCalendarStripProps
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: hasActivity ? colors.accentBlue : 'transparent',
+                  backgroundColor: hasActivity ? colors.accent : 'transparent',
                 }}
               />
             </View>

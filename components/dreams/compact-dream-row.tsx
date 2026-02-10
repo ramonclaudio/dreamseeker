@@ -1,16 +1,14 @@
 import { memo } from "react";
 import { View, Pressable } from "react-native";
 import { Link } from "expo-router";
-import Svg, { Circle as SvgCircle } from "react-native-svg";
 import type { Doc } from "@/convex/_generated/dataModel";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MaterialCard } from "@/components/ui/material-card";
 import { ThemedText } from "@/components/ui/themed-text";
 import { type ColorPalette, Radius } from "@/constants/theme";
 import { Spacing, FontSize, IconSize } from "@/constants/layout";
 import { Opacity } from "@/constants/ui";
-import { getCategoryConfig } from "@/constants/dreams";
+import { getCategoryConfig, CATEGORY_ICONS, type DreamCategory } from "@/constants/dreams";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,64 +17,59 @@ export type DreamWithCounts = Doc<"dreams"> & {
   totalActions: number;
 };
 
-// ── Progress Ring ────────────────────────────────────────────────────────────
+// ── Status Strip Config ─────────────────────────────────────────────────────
 
-function ProgressRing({
-  progress,
-  size = 36,
-  strokeWidth = 3,
-  color,
-  trackColor,
-}: {
-  progress: number;
-  size?: number;
-  strokeWidth?: number;
-  color: string;
-  trackColor: string;
-}) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const filled = Math.min(Math.max(progress, 0), 1);
-  const strokeDashoffset = circumference * (1 - filled);
-  const center = size / 2;
-  const pct = Math.round(filled * 100);
+function getStripConfig(
+  dream: DreamWithCounts,
+  categoryLabel: string,
+  colors: ColorPalette,
+) {
+  if (dream.status === "completed") {
+    return { color: colors.success, label: "Done" };
+  }
+  if (dream.status === "archived") {
+    return { color: colors.mutedForeground, label: "Paused" };
+  }
+  return { color: colors.primary, label: categoryLabel };
+}
 
+// ── Vertical Label ──────────────────────────────────────────────────────────
+
+function VerticalLabel({ label, color }: { label: string; color: string }) {
   return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-      <Svg width={size} height={size} style={{ position: "absolute" }}>
-        <SvgCircle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={trackColor}
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        <SvgCircle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          rotation={-90}
-          origin={`${center}, ${center}`}
-        />
-      </Svg>
+    <View
+      style={{
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <ThemedText
-        style={{ fontSize: 10, fontWeight: "700" }}
+        style={{
+          transform: [{ rotate: "-90deg" }],
+          width: 120,
+          textAlign: "center",
+          fontSize: FontSize.xs,
+          fontWeight: "800",
+          letterSpacing: 1,
+          textTransform: "uppercase",
+        }}
+        numberOfLines={1}
         color={color}
       >
-        {pct}
+        {label}
       </ThemedText>
     </View>
   );
 }
 
-// ── Compact Dream Row ────────────────────────────────────────────────────────
+// ── Dream Card ──────────────────────────────────────────────────────────────
+
+const STRIP_WIDTH = 44;
 
 export const CompactDreamRow = memo(function CompactDreamRow({
   dream,
@@ -88,9 +81,10 @@ export const CompactDreamRow = memo(function CompactDreamRow({
   const config = getCategoryConfig(dream);
   const hasSteps = dream.totalActions > 0;
   const progress = hasSteps ? dream.completedActions / dream.totalActions : 0;
+  const pct = Math.round(progress * 100);
   const stepsLabel = hasSteps
     ? `${dream.completedActions}/${dream.totalActions} steps`
-    : "Add steps";
+    : "No steps yet";
 
   const targetLabel = dream.targetDate
     ? new Date(dream.targetDate).toLocaleDateString(undefined, {
@@ -99,6 +93,9 @@ export const CompactDreamRow = memo(function CompactDreamRow({
       })
     : null;
 
+  const catIcon = CATEGORY_ICONS[dream.category as DreamCategory] ?? "star.fill";
+  const strip = getStripConfig(dream, config.label, colors);
+
   return (
     <Link href={`/(app)/dream/${dream._id}`} asChild>
       <Pressable
@@ -106,78 +103,119 @@ export const CompactDreamRow = memo(function CompactDreamRow({
         accessibilityRole="button"
         accessibilityLabel={`${dream.title}, ${stepsLabel}`}
       >
-        <MaterialCard variant="tinted">
-          <View style={{ flexDirection: "row" }}>
-            {/* Category color accent bar */}
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: colors.card,
+            borderRadius: Radius.lg,
+            borderCurve: "continuous",
+            borderWidth: 1,
+            borderColor: colors.borderAccent,
+            overflow: "hidden",
+            shadowColor: colors.glowShadow,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 1,
+            shadowRadius: 12,
+            elevation: 3,
+          }}
+        >
+          {/* Content */}
+          <View style={{ flex: 1, padding: Spacing.lg, gap: Spacing.sm }}>
+            {/* Title row */}
             <View
               style={{
-                width: 4,
-                backgroundColor: config.color,
-                borderTopLeftRadius: Radius.lg,
-                borderBottomLeftRadius: Radius.lg,
-              }}
-            />
-            <View
-              style={{
-                flex: 1,
                 flexDirection: "row",
                 alignItems: "center",
-                paddingVertical: Spacing.md,
-                paddingLeft: Spacing.md,
-                paddingRight: Spacing.md,
-                gap: Spacing.md,
+                gap: Spacing.sm,
               }}
             >
-              <View style={{ flex: 1 }}>
-                <ThemedText
-                  style={{ fontSize: FontSize.xl, fontWeight: "600" }}
-                  color={colors.foreground}
-                  numberOfLines={1}
-                >
-                  {dream.title}
-                </ThemedText>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: Spacing.xs,
-                    marginTop: 2,
-                  }}
-                >
-                  <ThemedText
-                    style={{ fontSize: FontSize.sm }}
-                    color={colors.mutedForeground}
-                  >
-                    {stepsLabel}
-                  </ThemedText>
-                  {targetLabel && (
-                    <ThemedText
-                      style={{ fontSize: FontSize.sm }}
-                      color={colors.mutedForeground}
-                    >
-                      · {targetLabel}
-                    </ThemedText>
-                  )}
-                </View>
-              </View>
-              {hasSteps ? (
-                <ProgressRing
-                  progress={progress}
-                  size={34}
-                  strokeWidth={3}
-                  color={config.color}
-                  trackColor={`${config.color}20`}
-                />
-              ) : (
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  borderCurve: "continuous",
+                  backgroundColor: `${config.color}18`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <IconSymbol
-                  name="chevron.right"
+                  name={catIcon as never}
                   size={IconSize.md}
-                  color={colors.mutedForeground}
+                  color={config.color}
                 />
+              </View>
+              <ThemedText
+                style={{
+                  fontSize: FontSize.xl,
+                  fontWeight: "700",
+                  flex: 1,
+                  letterSpacing: -0.3,
+                }}
+                color={colors.foreground}
+                numberOfLines={2}
+              >
+                {dream.title}
+              </ThemedText>
+            </View>
+
+            {/* Meta row */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: Spacing.xs,
+              }}
+            >
+              <ThemedText
+                style={{ fontSize: FontSize.sm }}
+                color={colors.mutedForeground}
+              >
+                {stepsLabel}
+              </ThemedText>
+              {targetLabel && (
+                <ThemedText
+                  style={{ fontSize: FontSize.sm }}
+                  color={colors.mutedForeground}
+                >
+                  · {targetLabel}
+                </ThemedText>
               )}
             </View>
+
+            {/* Progress bar */}
+            {hasSteps && dream.status !== "completed" && (
+              <View
+                style={{
+                  height: 5,
+                  borderRadius: 3,
+                  backgroundColor: `${config.color}15`,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    height: "100%",
+                    width: `${pct}%`,
+                    borderRadius: 3,
+                    backgroundColor: config.color,
+                  }}
+                />
+              </View>
+            )}
           </View>
-        </MaterialCard>
+
+          {/* Status strip */}
+          <View
+            style={{
+              width: STRIP_WIDTH,
+              backgroundColor: strip.color,
+            }}
+          >
+            <VerticalLabel label={strip.label} color="#fff" />
+          </View>
+        </View>
       </Pressable>
     </Link>
   );

@@ -89,7 +89,7 @@ export function DailyReview({ completedActions, onSubmit }: DailyReviewProps) {
         onPress={handleSubmit}
         disabled={isSubmitting}
         style={({ pressed }) => ({
-          backgroundColor: colors.accentBlue,
+          backgroundColor: colors.accent,
           paddingVertical: Spacing.md,
           borderRadius: Radius.md,
           alignItems: 'center',
@@ -100,7 +100,7 @@ export function DailyReview({ completedActions, onSubmit }: DailyReviewProps) {
       >
         <ThemedText
           style={{ fontSize: FontSize.base, fontWeight: '600' }}
-          color={colors.accentBlueForeground}
+          color={colors.accentForeground}
         >
           {isSubmitting ? 'Saving...' : 'Lock It In'}
         </ThemedText>

@@ -49,7 +49,7 @@ export function WeeklyReviewCard({
         <IconSymbol
           name="checklist"
           size={IconSize["2xl"]}
-          color={colors.accentBlue}
+          color={colors.accent}
           weight="bold"
         />
         <ThemedText
@@ -59,7 +59,7 @@ export function WeeklyReviewCard({
             textTransform: "uppercase",
             letterSpacing: 0.5,
           }}
-          color={colors.accentBlue}
+          color={colors.accent}
         >
           Your Week
         </ThemedText>

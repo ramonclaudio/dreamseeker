@@ -106,9 +106,9 @@ export function MorningCheckIn({ name, onSubmit }: MorningCheckInProps) {
                 paddingVertical: Spacing.sm,
                 paddingHorizontal: Spacing.xs,
                 borderRadius: Radius.full,
-                backgroundColor: isSelected ? colors.accentBlue : colors.secondary,
+                backgroundColor: isSelected ? colors.accent : colors.secondary,
                 borderWidth: 1,
-                borderColor: isSelected ? colors.accentBlue : colors.border,
+                borderColor: isSelected ? colors.accent : colors.border,
               }}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
@@ -117,7 +117,7 @@ export function MorningCheckIn({ name, onSubmit }: MorningCheckInProps) {
               <ThemedText style={{ fontSize: FontSize.lg }}>{mood.emoji}</ThemedText>
               <ThemedText
                 style={{ fontSize: FontSize.xs, fontWeight: '600' }}
-                color={isSelected ? colors.accentBlueForeground : colors.foreground}
+                color={isSelected ? colors.accentForeground : colors.foreground}
               >
                 {mood.label}
               </ThemedText>
@@ -150,7 +150,7 @@ export function MorningCheckIn({ name, onSubmit }: MorningCheckInProps) {
         onPress={handleSubmit}
         disabled={!selectedMood || isSubmitting}
         style={({ pressed }) => ({
-          backgroundColor: selectedMood ? colors.accentBlue : colors.muted,
+          backgroundColor: selectedMood ? colors.accent : colors.muted,
           paddingVertical: Spacing.md,
           borderRadius: Radius.md,
           alignItems: 'center',
@@ -161,7 +161,7 @@ export function MorningCheckIn({ name, onSubmit }: MorningCheckInProps) {
       >
         <ThemedText
           style={{ fontSize: FontSize.base, fontWeight: '600' }}
-          color={selectedMood ? colors.accentBlueForeground : colors.mutedForeground}
+          color={selectedMood ? colors.accentForeground : colors.mutedForeground}
         >
           {isSubmitting ? 'Saving...' : "Let's Go"}
         </ThemedText>

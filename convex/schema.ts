@@ -8,6 +8,9 @@ import {
   personalityValidator,
   motivationValidator,
   moodValidator,
+  feedEventTypeValidator,
+  feedMetadataValidator,
+  pinTypeValidator,
 } from './constants';
 
 export default defineSchema({
@@ -191,4 +194,101 @@ export default defineSchema({
     userId: v.string(),
     createdAt: v.number(),
   }).index('by_user', ['userId']),
+
+  // ── Community ────────────────────────────────────────────────────────────
+
+  // User profiles — community-facing profile data
+  userProfiles: defineTable({
+    userId: v.string(),
+    username: v.string(),
+    displayName: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    bannerUrl: v.optional(v.string()),
+    bannerStorageId: v.optional(v.id('_storage')),
+    isPublic: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_username', ['username'])
+    .index('by_public_username', ['isPublic', 'username']),
+
+  // Activity feed — events for the community feed
+  activityFeed: defineTable({
+    userId: v.string(),
+    type: feedEventTypeValidator,
+    referenceId: v.optional(v.string()),
+    metadata: v.optional(feedMetadataValidator),
+    createdAt: v.number(),
+  })
+    .index('by_user_created', ['userId', 'createdAt'])
+    .index('by_type_created', ['type', 'createdAt']),
+
+  // Community rate limiting
+  communityRateLimit: defineTable({
+    userId: v.string(),
+    action: v.string(), // e.g. 'friend_request', 'reaction', 'profile_update', 'search'
+    createdAt: v.number(),
+  }).index('by_user_action', ['userId', 'action']),
+
+  // ── Vision Boards ──────────────────────────────────────────────────────────
+
+  visionBoards: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+  }).index('by_user_order', ['userId', 'order']),
+
+  // ── Pins (Pinterest-style pin board) ──────────────────────────────────────
+
+  pins: defineTable({
+    userId: v.string(),
+    type: pinTypeValidator,
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    category: v.optional(dreamCategoryValidator),
+    tags: v.optional(v.array(v.string())),
+    imageStorageId: v.optional(v.id('_storage')),
+    linkUrl: v.optional(v.string()),
+    linkTitle: v.optional(v.string()),
+    linkDescription: v.optional(v.string()),
+    linkImageUrl: v.optional(v.string()),
+    linkDomain: v.optional(v.string()),
+    imageAspectRatio: v.optional(v.number()),
+    boardId: v.optional(v.id('visionBoards')),
+    isPersonalOnly: v.boolean(),
+    isHidden: v.optional(v.boolean()),
+    customCategoryName: v.optional(v.string()),
+    customCategoryIcon: v.optional(v.string()),
+    customCategoryColor: v.optional(v.string()),
+    originalPinId: v.optional(v.id('pins')),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index('by_user_created', ['userId', 'createdAt'])
+    .index('by_board', ['boardId', 'createdAt'])
+    .index('by_community_created', ['isPersonalOnly', 'createdAt'])
+    .index('by_category_created', ['category', 'createdAt']),
+
+  // Pin reports — community moderation
+  pinReports: defineTable({
+    pinId: v.id('pins'),
+    reporterId: v.string(),
+    reason: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_pin', ['pinId'])
+    .index('by_reporter_pin', ['reporterId', 'pinId']),
+
+  // Blocked users — community safety
+  blockedUsers: defineTable({
+    blockerId: v.string(),
+    blockedId: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_blocker', ['blockerId'])
+    .index('by_pair', ['blockerId', 'blockedId']),
+
 });

@@ -66,6 +66,8 @@ export const Breakpoint = {
 
 // Floating tab bar clearance
 export const TAB_BAR_HEIGHT = 80;
+/** Bottom padding for scrollable content — clears the tab bar + breathing room */
+export const TAB_BAR_CLEARANCE = TAB_BAR_HEIGHT + Spacing.lg;
 
 // Icon sizes
 export const IconSize = {

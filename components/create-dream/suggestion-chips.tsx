@@ -33,9 +33,9 @@ export function SuggestionChips({ options, selected, onSelect }: SuggestionChips
               paddingHorizontal: Spacing.lg,
               paddingVertical: Spacing.sm,
               borderRadius: Radius.full,
-              backgroundColor: isSelected ? colors.accentBlue : colors.secondary,
+              backgroundColor: isSelected ? colors.accent : colors.secondary,
               borderWidth: 1,
-              borderColor: isSelected ? colors.accentBlue : colors.border,
+              borderColor: isSelected ? colors.accent : colors.border,
             })}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}

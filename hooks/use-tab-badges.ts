@@ -5,9 +5,8 @@ import { api } from '@/convex/_generated/api';
 export type TabBadges = {
   dreams: string | null;
   today: string | null;
-  journal: string | null;
+  boards: string | null;
   progress: string | null;
-  profile: string | null;
 };
 
 /**
@@ -33,8 +32,7 @@ export function useTabBadges(): TabBadges {
   return {
     dreams: null,
     today: todayBadge,
-    journal: null,
+    boards: null,
     progress: null,
-    profile: null,
   };
 }

@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
+import { useIsFocused } from "@react-navigation/native";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -12,7 +13,9 @@ import { timezone } from "@/lib/timezone";
 
 export function useToday() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const isFocused = useIsFocused();
 
+  // Cheap queries — always active
   const progress = useQuery(api.progress.getProgress, { timezone });
   const dailyChallenge = useQuery(api.challenges.getDaily, { timezone });
   const mindsetMoment = useQuery(api.mindset.getRandom, { timezone });
@@ -20,22 +23,24 @@ export function useToday() {
     api.actions.listPending,
     isAuthenticated ? {} : "skip"
   );
-  const weeklyActivity = useQuery(
-    api.progress.getWeeklyActivity,
-    isAuthenticated ? { timezone } : "skip"
-  );
-  const weeklySummary = useQuery(
-    api.progress.getWeeklySummary,
-    isAuthenticated ? { timezone } : "skip"
-  );
-  const completedToday = useQuery(
-    api.actions.listCompletedToday,
-    isAuthenticated ? { timezone } : "skip"
-  );
   const user = useQuery(api.auth.getCurrentUser);
   const categoryCounts = useQuery(
     api.dreams.getCategoryCounts,
     isAuthenticated ? {} : "skip"
+  );
+
+  // Expensive queries — skip when tab is not focused
+  const weeklyActivity = useQuery(
+    api.progress.getWeeklyActivity,
+    isAuthenticated && isFocused ? { timezone } : "skip"
+  );
+  const weeklySummary = useQuery(
+    api.progress.getWeeklySummary,
+    isAuthenticated && isFocused ? { timezone } : "skip"
+  );
+  const completedToday = useQuery(
+    api.actions.listCompletedToday,
+    isAuthenticated && isFocused ? { timezone } : "skip"
   );
 
   const { morningCheckIn, eveningCheckIn, submitMorning, submitEvening } =
@@ -57,6 +62,10 @@ export function useToday() {
     streak: number;
     xpReward: number;
   } | null>(null);
+  const [showFirstAction, setShowFirstAction] = useState(false);
+  const [showAllDone, setShowAllDone] = useState(false);
+  const [reflectionFeeling, setReflectionFeeling] = useState<string | null>(null);
+  const pendingCountRef = useRef(0);
 
   const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
   useEffect(() => {
@@ -65,6 +74,18 @@ export function useToday() {
     }, 60_000);
     return () => clearInterval(interval);
   }, []);
+  useEffect(() => {
+    if (pendingActions !== undefined) {
+      const prevCount = pendingCountRef.current;
+      const newCount = pendingActions.length;
+      // Detect all-done: went from >0 to 0
+      if (prevCount > 0 && newCount === 0) {
+        setShowAllDone(true);
+      }
+      pendingCountRef.current = newCount;
+    }
+  }, [pendingActions]);
+
   const showMorningCheckIn = currentHour < 12 && !morningCheckIn;
   const showDailyReview =
     currentHour >= 17 &&
@@ -89,7 +110,8 @@ export function useToday() {
           timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           timezone,
         });
-        haptics.success();
+        // Haptic already fires in TodayActionItem — no duplicate here
+        if (result?.isFirstAction) setShowFirstAction(true);
         if (result?.newBadge) setNewBadge(result.newBadge);
         if (result?.streakMilestone) setStreakMilestone(result.streakMilestone);
       } catch {
@@ -141,5 +163,11 @@ export function useToday() {
     isLoading,
     handleToggleAction,
     handleCompleteChallenge,
+    showFirstAction,
+    setShowFirstAction,
+    showAllDone,
+    setShowAllDone,
+    reflectionFeeling,
+    setReflectionFeeling,
   };
 }

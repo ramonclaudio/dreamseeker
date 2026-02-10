@@ -4,8 +4,8 @@ import { Image } from "expo-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { ColorPalette } from "@/constants/theme";
-import { Breakpoint, Spacing, TouchTarget, FontSize, IconSize } from "@/constants/layout";
-import { Opacity, Size, Duration, Responsive } from "@/constants/ui";
+import { Breakpoint, Spacing, TouchTarget, IconSize } from "@/constants/layout";
+import { Opacity, Duration, Responsive } from "@/constants/ui";
 
 function useAvatarSize() {
   const { width } = useWindowDimensions();
@@ -20,79 +20,91 @@ export function AvatarSection({
   isUploading,
   onPress,
   colors,
+  editable = true,
 }: {
   image: string | null | undefined;
   avatarInitial: string;
   isUploading: boolean;
   onPress: () => void;
   colors: ColorPalette;
+  editable?: boolean;
 }) {
   const avatarSize = useAvatarSize();
+  const borderWidth = 4;
 
   return (
-    <View style={{ alignItems: "center", paddingVertical: Spacing.xl, gap: Spacing.sm }}>
+    <View style={{ paddingHorizontal: Spacing.xl, marginTop: -(avatarSize / 2) }}>
       <Pressable
-        onPress={onPress}
-        disabled={isUploading}
+        onPress={editable ? onPress : undefined}
+        disabled={!editable || isUploading}
         style={({ pressed }) => ({
-          opacity: pressed ? Opacity.pressed : 1,
+          opacity: editable && pressed ? Opacity.pressed : 1,
           minHeight: TouchTarget.min,
+          alignSelf: "flex-start",
         })}
-        accessibilityRole="button"
-        accessibilityLabel="Change profile photo"
-        accessibilityHint="Double tap to choose a new profile photo"
-        accessibilityState={{ disabled: isUploading }}
+        accessibilityRole={editable ? "button" : undefined}
+        accessibilityLabel={editable ? "Change profile photo" : "Profile photo"}
+        accessibilityState={editable ? { disabled: isUploading } : undefined}
       >
         <View style={{ position: "relative" }}>
-          {image ? (
-            <Image
-              source={{ uri: image }}
-              style={{
-                width: avatarSize,
-                height: avatarSize,
-                borderRadius: avatarSize / 2,
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-              }}
-              contentFit="cover"
-              transition={Duration.normal}
-            />
-          ) : (
-            <View
-              style={{
-                width: avatarSize,
-                height: avatarSize,
-                borderRadius: avatarSize / 2,
-                backgroundColor: colors.card,
-                borderWidth: 2,
-                borderColor: colors.borderAccent,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <ThemedText
+          {/* White ring around avatar */}
+          <View
+            style={{
+              width: avatarSize + borderWidth * 2,
+              height: avatarSize + borderWidth * 2,
+              borderRadius: (avatarSize + borderWidth * 2) / 2,
+              backgroundColor: colors.background,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {image ? (
+              <Image
+                source={{ uri: image }}
                 style={{
-                  fontSize: avatarSize * 0.36,
-                  lineHeight: avatarSize * 0.36,
-                  fontWeight: "700",
-                  textAlign: "center",
-                  includeFontPadding: false,
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: avatarSize / 2,
                 }}
-                color={colors.primary}
+                contentFit="cover"
+                transition={Duration.normal}
+              />
+            ) : (
+              <View
+                style={{
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: avatarSize / 2,
+                  backgroundColor: colors.card,
+                  borderWidth: 2,
+                  borderColor: colors.borderAccent,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                {avatarInitial}
-              </ThemedText>
-            </View>
-          )}
-          {isUploading ? (
+                <ThemedText
+                  style={{
+                    fontSize: avatarSize * 0.36,
+                    lineHeight: avatarSize * 0.36,
+                    fontWeight: "700",
+                    textAlign: "center",
+                    includeFontPadding: false,
+                  }}
+                  color={colors.primary}
+                >
+                  {avatarInitial}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+          {editable && (isUploading ? (
             <View
               style={{
                 position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
+                top: borderWidth,
+                left: borderWidth,
+                width: avatarSize,
+                height: avatarSize,
                 borderRadius: avatarSize / 2,
                 backgroundColor: colors.overlay,
                 alignItems: "center",
@@ -105,30 +117,25 @@ export function AvatarSection({
             <View
               style={{
                 position: "absolute",
-                bottom: 0,
-                right: 0,
-                width: Size.badge,
-                height: Size.badge,
-                borderRadius: Size.badge / 2,
+                top: borderWidth,
+                left: borderWidth,
+                width: avatarSize,
+                height: avatarSize,
+                borderRadius: avatarSize / 2,
                 alignItems: "center",
                 justifyContent: "center",
-                borderWidth: 3,
-                backgroundColor: colors.primary,
-                borderColor: colors.background,
+                backgroundColor: "rgba(0,0,0,0.35)",
               }}
             >
               <IconSymbol
                 name="camera.fill"
-                size={IconSize.sm}
-                color={colors.primaryForeground}
+                size={IconSize.xl}
+                color="#fff"
               />
             </View>
-          )}
+          ))}
         </View>
       </Pressable>
-      <ThemedText style={{ fontSize: FontSize.md }} color={colors.mutedForeground}>
-        Tap to change photo
-      </ThemedText>
     </View>
   );
 }

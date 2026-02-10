@@ -1,15 +1,14 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { Link } from "expo-router";
 
 import { CompactDreamRow, type DreamWithCounts } from "@/components/dreams/compact-dream-row";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MaterialCard } from "@/components/ui/material-card";
 import { ThemedText } from "@/components/ui/themed-text";
 import { type ColorPalette } from "@/constants/theme";
 import { Spacing, FontSize, IconSize } from "@/constants/layout";
-import { Opacity } from "@/constants/ui";
-import { DREAM_CATEGORIES, CATEGORY_ICONS, type DreamCategory } from "@/constants/dreams";
+import { Opacity, HypeCopy } from "@/constants/ui";
+import { DREAM_CATEGORIES, CATEGORY_ICONS, CATEGORY_PROMPTS, type DreamCategory } from "@/constants/dreams";
 
 // ── Category Section ─────────────────────────────────────────────────────────
 
@@ -108,7 +107,7 @@ export const CategorySection = memo(function CategorySection({
           >
             <ThemedText
               style={{ fontSize: FontSize.sm, fontWeight: "600" }}
-              color={colors.accentBlue}
+              color={colors.primary}
             >
               See all {dreams.length} →
             </ThemedText>
@@ -119,7 +118,10 @@ export const CategorySection = memo(function CategorySection({
   );
 });
 
-// ── Empty Category Cards ─────────────────────────────────────────────────────
+// ── Empty Category Cards ────────────────────────────────────────────────────
+
+const CARD_WIDTH = 120;
+const ICON_BADGE = 40;
 
 export function EmptyCategoryCards({
   emptyCategories,
@@ -128,26 +130,30 @@ export function EmptyCategoryCards({
   emptyCategories: DreamCategory[];
   colors: ColorPalette;
 }) {
+  const quote = useMemo(
+    () => HypeCopy.visionBoard[Math.floor(Math.random() * HypeCopy.visionBoard.length)],
+    [],
+  );
+
   if (emptyCategories.length === 0) return null;
 
   return (
-    <View style={{ gap: Spacing.sm }}>
+    <View style={{ gap: Spacing.md }}>
       <ThemedText
         style={{
-          fontSize: FontSize.base,
-          fontWeight: "600",
-          textTransform: "uppercase",
-          marginLeft: Spacing.xs,
-          letterSpacing: 0.5,
+          fontSize: FontSize.sm,
+          fontStyle: "italic",
+          lineHeight: 18,
         }}
         color={colors.mutedForeground}
       >
-        Explore More
+        {quote}
       </ThemedText>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: Spacing.md }}
+        contentContainerStyle={{ gap: Spacing.sm, paddingRight: Spacing.md }}
       >
         {emptyCategories.map((category) => {
           const config = DREAM_CATEGORIES[category];
@@ -156,25 +162,32 @@ export function EmptyCategoryCards({
               <Pressable
                 style={({ pressed }) => ({
                   opacity: pressed ? Opacity.pressed : 1,
+                  width: CARD_WIDTH,
                 })}
+                accessibilityRole="button"
+                accessibilityLabel={`Create ${config.label} dream`}
               >
-                <MaterialCard
+                <View
                   style={{
-                    width: 130,
-                    borderLeftWidth: 4,
-                    borderLeftColor: config.color,
-                    padding: Spacing.lg,
+                    backgroundColor: `${config.color}10`,
+                    borderRadius: 16,
+                    borderCurve: "continuous",
+                    borderWidth: 1,
+                    borderColor: `${config.color}20`,
+                    paddingVertical: Spacing.md,
+                    paddingHorizontal: Spacing.md,
+                    alignItems: "center",
+                    gap: Spacing.sm,
                   }}
                 >
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: `${config.color}18`,
+                      width: ICON_BADGE,
+                      height: ICON_BADGE,
+                      borderRadius: ICON_BADGE / 2,
+                      backgroundColor: `${config.color}20`,
                       alignItems: "center",
                       justifyContent: "center",
-                      marginBottom: Spacing.md,
                     }}
                   >
                     <IconSymbol
@@ -183,35 +196,29 @@ export function EmptyCategoryCards({
                       color={config.color}
                     />
                   </View>
+
                   <ThemedText
-                    style={{ fontSize: FontSize.lg, fontWeight: "600" }}
+                    style={{
+                      fontSize: FontSize.sm,
+                      fontWeight: "600",
+                    }}
                     color={colors.foreground}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
                     {config.label}
                   </ThemedText>
-                  <View
+
+                  <ThemedText
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 3,
-                      marginTop: Spacing.xs,
+                      fontSize: FontSize.xs,
+                      textAlign: "center",
+                      lineHeight: 14,
                     }}
+                    color={colors.mutedForeground}
+                    numberOfLines={1}
                   >
-                    <IconSymbol
-                      name="plus.circle.fill"
-                      size={IconSize.sm}
-                      color={colors.accentBlue}
-                    />
-                    <ThemedText
-                      style={{ fontSize: FontSize.sm, fontWeight: "500" }}
-                      color={colors.accentBlue}
-                    >
-                      Add dream
-                    </ThemedText>
-                  </View>
-                </MaterialCard>
+                    {CATEGORY_PROMPTS[category]}
+                  </ThemedText>
+                </View>
               </Pressable>
             </Link>
           );

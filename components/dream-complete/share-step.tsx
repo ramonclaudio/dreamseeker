@@ -1,75 +1,99 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 import ViewShot from "react-native-view-shot";
 import type { RefObject } from "react";
-import { ThemedText } from "@/components/ui/themed-text";
-import { WinCard } from "@/components/engagement/win-card";
-import { Spacing, FontSize } from "@/constants/layout";
+import { DreamShareCard } from "@/components/share-cards/dream-share-card";
+import { SHARE_CARD } from "@/constants/share-card";
+import { Spacing } from "@/constants/layout";
+import { Radius } from "@/constants/theme";
 import type { DreamCategory } from "@/constants/dreams";
-import type { ColorPalette } from "@/constants/theme";
+
+type ShareAction = {
+  text: string;
+  isCompleted: boolean;
+};
 
 export function ShareStep({
   viewShotRef,
   dreamTitle,
   category,
-  completedActions,
-  totalActions,
+  actions,
+  createdAt,
   completedAt,
   handle,
-  colors,
 }: {
   viewShotRef: RefObject<ViewShot | null>;
   dreamTitle: string;
   category: DreamCategory;
-  completedActions: number;
-  totalActions: number;
+  actions: ShareAction[];
+  createdAt: number;
   completedAt: number;
   handle?: string;
-  colors: ColorPalette;
 }) {
+  const completedActions = actions.filter((a) => a.isCompleted).length;
+  const { width } = useWindowDimensions();
+  const cardScale = Math.min(1, (width - Spacing["2xl"] * 2) / SHARE_CARD.WIDTH);
+
+  const cardProps = {
+    title: dreamTitle,
+    category,
+    status: "completed" as const,
+    completedActions,
+    totalActions: actions.length,
+    actions,
+    createdAt,
+    completedAt,
+    handle,
+  };
+
   return (
     <View style={styles.container}>
-      <ThemedText variant="title" style={styles.title}>
-        Share your win
-      </ThemedText>
-      <ThemedText
-        style={styles.subtitle}
-        color={colors.mutedForeground}
+      {/* Scaled preview with rounded corners */}
+      <View
+        style={[
+          styles.previewClip,
+          {
+            width: SHARE_CARD.WIDTH * cardScale,
+            height: SHARE_CARD.HEIGHT * cardScale,
+          },
+        ]}
       >
-        Let the world know what you achieved!
-      </ThemedText>
-      <View style={styles.cardWrapper}>
-        <ViewShot
-          ref={viewShotRef}
-          options={{ format: "png", quality: 1 }}
+        <View
+          style={{
+            width: SHARE_CARD.WIDTH,
+            height: SHARE_CARD.HEIGHT,
+            transform: [{ scale: cardScale }],
+            transformOrigin: "top left",
+          }}
         >
-          <WinCard
-            dreamTitle={dreamTitle}
-            category={category}
-            completedActions={completedActions}
-            totalActions={totalActions}
-            completedAt={completedAt}
-            handle={handle}
-          />
-        </ViewShot>
+          <DreamShareCard {...cardProps} />
+        </View>
       </View>
+
+      {/* Offscreen capture target (same pattern as badge/level/streak modals) */}
+      <ViewShot
+        ref={viewShotRef}
+        options={{ format: "png", quality: 1 }}
+        style={styles.offscreen}
+      >
+        <DreamShareCard {...cardProps} />
+      </ViewShot>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
   },
-  title: {
-    textAlign: "center",
-    marginBottom: Spacing.sm,
+  previewClip: {
+    borderRadius: Radius["2xl"],
+    borderCurve: "continuous",
+    overflow: "hidden",
   },
-  subtitle: {
-    textAlign: "center",
-    fontSize: FontSize.base,
-    marginBottom: Spacing.xl,
-  },
-  cardWrapper: {
-    alignItems: "center",
+  offscreen: {
+    position: "absolute",
+    left: -9999,
   },
 });

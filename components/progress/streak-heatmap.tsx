@@ -52,6 +52,24 @@ function getMonthAbbr(dateStr: string): string {
   return MONTH_LABELS[monthIndex] ?? '';
 }
 
+function formatStreakDuration(days: number): string {
+  if (days === 0) return '0 days';
+
+  const years = Math.floor(days / 365);
+  const remaining = days % 365;
+  const months = Math.floor(remaining / 30);
+  const weeks = Math.floor((remaining % 30) / 7);
+  const d = (remaining % 30) % 7;
+
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years}y`);
+  if (months > 0) parts.push(`${months}mo`);
+  if (weeks > 0) parts.push(`${weeks}w`);
+  if (d > 0 || parts.length === 0) parts.push(`${d}d`);
+
+  return parts.join(' ');
+}
+
 export function StreakHeatmap({ activityData, currentStreak, longestStreak, colors, timezone }: StreakHeatmapProps) {
   const { width: screenWidth } = useWindowDimensions();
 
@@ -80,7 +98,7 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
 
         week.push({ date: dateStr, count, isToday, isFuture });
 
-        // Track month labels (only on first day of month)
+        // Track month labels — only check first day (Monday) of each week
         if (dayIdx === 0) {
           const month = getMonthAbbr(dateStr);
           if (month !== currentMonth) {
@@ -90,6 +108,15 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
         }
       }
       weeksData.push(week);
+    }
+
+    // Filter out month labels that are too close together (need at least 3 columns apart)
+    const filteredLabels: typeof monthLabelPositions = [];
+    for (const label of monthLabelPositions) {
+      const prev = filteredLabels[filteredLabels.length - 1];
+      if (!prev || label.columnIndex - prev.columnIndex >= 3) {
+        filteredLabels.push(label);
+      }
     }
 
     // Calculate square size based on available width
@@ -104,7 +131,7 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
     const calculatedSquareSize = Math.floor((availableWidth - totalGaps) / numWeeks);
     const finalSquareSize = Math.min(calculatedSquareSize, 14);
 
-    return { weeks: weeksData, monthLabels: monthLabelPositions, squareSize: finalSquareSize };
+    return { weeks: weeksData, monthLabels: filteredLabels, squareSize: finalSquareSize };
   }, [activityData, timezone, screenWidth]);
 
   const hexToRgba = (hex: string, opacity: number) => {
@@ -121,9 +148,9 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
 
     // Color intensity based on activity count
     // Low: 1 action (30% opacity), Medium: 2-3 actions (60%), High: 4+ (100%)
-    if (count === 1) return hexToRgba(colors.accentBlue, 0.3);
-    if (count <= 3) return hexToRgba(colors.accentBlue, 0.6);
-    return colors.accentBlue;
+    if (count === 1) return hexToRgba(colors.accent, 0.3);
+    if (count <= 3) return hexToRgba(colors.accent, 0.6);
+    return colors.accent;
   };
 
   return (
@@ -132,11 +159,14 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
       <View style={styles.header}>
         <View style={styles.streakRow}>
           <View style={styles.streakItem}>
-            <ThemedText style={[styles.streakNumber, { color: colors.accentBlue }]}>
+            <ThemedText style={[styles.streakNumber, { color: colors.accent }]}>
               {currentStreak}
             </ThemedText>
             <ThemedText style={styles.streakLabel} color={colors.mutedForeground}>
               Current Streak
+            </ThemedText>
+            <ThemedText style={styles.streakDuration} color={colors.mutedForeground}>
+              {formatStreakDuration(currentStreak)}
             </ThemedText>
           </View>
           <View style={styles.streakDivider} />
@@ -146,6 +176,9 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
             </ThemedText>
             <ThemedText style={styles.streakLabel} color={colors.mutedForeground}>
               Longest Streak
+            </ThemedText>
+            <ThemedText style={styles.streakDuration} color={colors.mutedForeground}>
+              {formatStreakDuration(longestStreak)}
             </ThemedText>
           </View>
         </View>
@@ -207,7 +240,7 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
                       height: squareSize,
                       backgroundColor: getSquareColor(day.count, day.isFuture),
                       borderWidth: day.isToday ? 1.5 : 0,
-                      borderColor: day.isToday ? colors.accentBlue : 'transparent',
+                      borderColor: day.isToday ? colors.accent : 'transparent',
                       marginBottom: dayIdx < week.length - 1 ? 3 : 0,
                     },
                   ]}
@@ -225,9 +258,9 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
         </ThemedText>
         <View style={styles.legendSquares}>
           <View style={[styles.legendSquare, { backgroundColor: colors.muted }]} />
-          <View style={[styles.legendSquare, { backgroundColor: hexToRgba(colors.accentBlue, 0.3) }]} />
-          <View style={[styles.legendSquare, { backgroundColor: hexToRgba(colors.accentBlue, 0.6) }]} />
-          <View style={[styles.legendSquare, { backgroundColor: colors.accentBlue }]} />
+          <View style={[styles.legendSquare, { backgroundColor: hexToRgba(colors.accent, 0.3) }]} />
+          <View style={[styles.legendSquare, { backgroundColor: hexToRgba(colors.accent, 0.6) }]} />
+          <View style={[styles.legendSquare, { backgroundColor: colors.accent }]} />
         </View>
         <ThemedText style={styles.legendText} color={colors.mutedForeground}>
           More
@@ -265,6 +298,10 @@ const styles = StyleSheet.create({
   },
   streakLabel: {
     fontSize: FontSize.sm,
+    marginTop: Spacing.xxs,
+  },
+  streakDuration: {
+    fontSize: FontSize.xs,
     marginTop: Spacing.xxs,
   },
   monthLabelsRow: {

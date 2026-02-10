@@ -57,13 +57,13 @@ export function SubscriptionSection({
     <SettingsSection title="Subscription" colors={colors}>
       <View style={{ padding: Spacing.lg, gap: Spacing.md }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.md }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.md, flex: 1, marginRight: Spacing.md }}>
             <IconSymbol
               name="star.fill"
               size={IconSize["2xl"]}
               color={isPremium ? colors.primary : colors.mutedForeground}
             />
-            <View>
+            <View style={{ flex: 1 }}>
               <ThemedText style={{ fontSize: FontSize.xl, fontWeight: "600" }}>
                 {isPremium ? "Premium" : "Free"}
               </ThemedText>

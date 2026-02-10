@@ -23,7 +23,6 @@ export function GlassSwitch({ value, onValueChange, disabled, ...props }: GlassS
       onValueChange={onValueChange}
       disabled={disabled}
       trackColor={{ false: colors.muted, true: colors.primary }}
-      thumbColor={process.env.EXPO_OS === 'android' ? colors.background : undefined}
       ios_backgroundColor={colors.muted}
       {...props}
     />

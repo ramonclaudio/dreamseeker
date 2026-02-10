@@ -1,12 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import { View, Modal, StyleSheet, Animated } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { View, Modal, StyleSheet, Animated, Pressable } from "react-native";
+import ViewShot from "react-native-view-shot";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { GradientButton } from "@/components/ui/gradient-button";
+import { LevelShareCard } from "./level-share-card";
 import { useColors } from "@/hooks/use-color-scheme";
+import { useShareCapture } from "@/hooks/use-share-capture";
 import { Spacing, FontSize, IconSize } from "@/constants/layout";
 import { Radius } from "@/constants/theme";
+import { pickHype } from "@/constants/ui";
 import { haptics } from "@/lib/haptics";
 import { shootConfetti } from "@/lib/confetti";
 
@@ -14,6 +18,7 @@ type LevelUpModalProps = {
   visible: boolean;
   level: number;
   levelTitle: string;
+  handle?: string;
   onDismiss: () => void;
 };
 
@@ -21,11 +26,12 @@ const ANIMATION_DELAY = 100;
 const LEVEL_ANIMATION_DURATION = 800;
 const TEXT_ANIMATION_DURATION = 400;
 const TITLE_ANIMATION_DELAY = 500;
-const AUTO_DISMISS_DELAY = 5000;
 
-export function LevelUpModal({ visible, level, levelTitle, onDismiss }: LevelUpModalProps) {
+export function LevelUpModal({ visible, level, levelTitle, handle, onDismiss }: LevelUpModalProps) {
   const colors = useColors();
   const [displayedLevel, setDisplayedLevel] = useState(0);
+  const { viewShotRef, capture, isSharing } = useShareCapture();
+  const hypeSubtitle = useMemo(() => (visible ? pickHype('levelUp') : ''), [visible]);
 
   // Animation values
   const levelScale = useRef(new Animated.Value(0)).current;
@@ -117,19 +123,10 @@ export function LevelUpModal({ visible, level, levelTitle, onDismiss }: LevelUpM
         ]).start();
       }, TITLE_ANIMATION_DELAY);
 
-      // Confetti after level number appears
+      // Epic confetti after level number appears
       setTimeout(() => {
-        shootConfetti();
+        shootConfetti('epic');
       }, ANIMATION_DELAY + 400);
-
-      // Auto-dismiss after 5 seconds
-      const autoDismissTimer = setTimeout(() => {
-        onDismiss();
-      }, AUTO_DISMISS_DELAY);
-
-      return () => {
-        clearTimeout(autoDismissTimer);
-      };
     }
   }, [
     visible,
@@ -141,7 +138,6 @@ export function LevelUpModal({ visible, level, levelTitle, onDismiss }: LevelUpM
     titleTranslateY,
     overlayOpacity,
     animatedLevel,
-    onDismiss,
   ]);
 
   // Update display when animated value changes
@@ -220,6 +216,9 @@ export function LevelUpModal({ visible, level, levelTitle, onDismiss }: LevelUpM
             <ThemedText style={styles.levelUpText} color={colors.primary}>
               LEVEL UP!
             </ThemedText>
+            <ThemedText style={styles.hypeSubtitle} color={colors.gold}>
+              {hypeSubtitle}
+            </ThemedText>
           </Animated.View>
 
           {/* Level title */}
@@ -230,16 +229,38 @@ export function LevelUpModal({ visible, level, levelTitle, onDismiss }: LevelUpM
             }}
           >
             <ThemedText style={styles.levelTitle}>{levelTitle}</ThemedText>
+            <ThemedText style={styles.gabbyQuote} color={colors.mutedForeground}>
+              {"\"Be confident. Be delusional.\""}
+            </ThemedText>
+            <ThemedText style={styles.gabbyAttribution} color={colors.mutedForeground}>
+              {"— Gabby"}
+            </ThemedText>
           </Animated.View>
 
-          {/* Dismiss button */}
+          {/* Dismiss button — user must tap to dismiss */}
           <GradientButton
             onPress={onDismiss}
-            label="Keep Going!"
+            label="LET'S GOOO"
             style={styles.button}
           />
+
+          {/* Share button */}
+          <Pressable
+            onPress={capture}
+            disabled={isSharing}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, paddingVertical: Spacing.md, alignItems: 'center' })}
+          >
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '600' }} color={colors.primary}>
+              Share
+            </ThemedText>
+          </Pressable>
         </View>
       </Animated.View>
+
+      {/* Offscreen share card */}
+      <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }} style={{ position: 'absolute', left: -9999 }}>
+        <LevelShareCard level={level} levelTitle={levelTitle} handle={handle} />
+      </ViewShot>
     </Modal>
   );
 }
@@ -271,15 +292,23 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   levelNumber: {
-    fontSize: 96,
+    fontSize: 120,
     fontWeight: "800",
     letterSpacing: -4,
-    lineHeight: 100,
+    lineHeight: 126,
   },
   levelUpText: {
     fontSize: FontSize["6xl"],
     fontWeight: "800",
     letterSpacing: 2,
+    textAlign: "center",
+    marginBottom: Spacing.xs,
+    textTransform: "uppercase",
+  },
+  hypeSubtitle: {
+    fontSize: FontSize.lg,
+    fontWeight: "700",
+    letterSpacing: 1,
     textAlign: "center",
     marginBottom: Spacing.sm,
     textTransform: "uppercase",
@@ -288,7 +317,20 @@ const styles = StyleSheet.create({
     fontSize: FontSize["4xl"],
     fontWeight: "600",
     textAlign: "center",
-    marginBottom: Spacing["3xl"],
+    marginBottom: Spacing.md,
+  },
+  gabbyQuote: {
+    fontSize: FontSize.base,
+    fontStyle: "italic",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: Spacing.xs,
+  },
+  gabbyAttribution: {
+    fontSize: FontSize.sm,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: Spacing["2xl"],
   },
   button: {
     width: "100%",

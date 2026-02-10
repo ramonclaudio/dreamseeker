@@ -139,10 +139,10 @@ export const cleanupStaleTokens = internalMutation({
   args: {},
   handler: async (ctx) => {
     const cutoff = Date.now() - THIRTY_DAYS_MS;
-    const staleTokens = await ctx.db
+    const allTokens = await ctx.db
       .query('pushTokens')
-      .filter((q) => q.lt(q.field('lastUsed'), cutoff))
       .collect();
+    const staleTokens = allTokens.filter((t) => t.lastUsed < cutoff);
     for (const token of staleTokens) {
       await ctx.db.delete(token._id);
     }

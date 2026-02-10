@@ -80,7 +80,7 @@ export function GradientButton({
           {icon}
           <ThemedText
             style={{ fontSize: FontSize.lg, fontWeight: '600' }}
-            color={colors.accentBlue}
+            color={colors.accent}
           >
             {label}
           </ThemedText>
@@ -126,11 +126,11 @@ export function GradientButton({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
           {icon}
           {isLoading ? (
-            <ActivityIndicator color={colors.accentBlue} />
+            <ActivityIndicator color={colors.accent} />
           ) : (
             <ThemedText
               style={{ fontSize: FontSize.lg, fontWeight: '600' }}
-              color={colors.accentBlue}
+              color={colors.accent}
             >
               {label}
             </ThemedText>

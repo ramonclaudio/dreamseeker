@@ -16,10 +16,7 @@ export function RevenueCatProvider({ children }: RevenueCatProviderProps) {
 
   // Configure SDK once on mount
   useEffect(() => {
-    const apiKey =
-      process.env.EXPO_OS === 'ios'
-        ? env.revenuecatAppleApiKey
-        : env.revenuecatGoogleApiKey;
+    const apiKey = env.revenuecatAppleApiKey;
 
     if (!apiKey) {
       if (__DEV__) console.warn('[RevenueCat] No API key configured for platform');

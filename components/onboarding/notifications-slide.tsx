@@ -2,6 +2,7 @@ import { View, Pressable } from 'react-native';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { CloudShape } from '@/components/ui/cloud-shape';
 import { GlassControl } from '@/components/ui/glass-control';
 import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
@@ -28,6 +29,25 @@ export function NotificationsSlide({
 }) {
   return (
     <View style={{ flex: 1, gap: Spacing.xl }}>
+      <View style={{ alignItems: 'center', marginBottom: Spacing.sm }}>
+        <View style={{ width: 120, height: 64, position: 'relative' }}>
+          <CloudShape fill={colors.surfaceTinted} stroke={colors.borderAccent} strokeWidth={1} variant={2} />
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <IconSymbol name="bell.fill" size={IconSize['3xl']} color={colors.accent} />
+          </View>
+        </View>
+      </View>
+
       <View style={{ gap: Spacing.sm }}>
         <ThemedText variant="title">Daily reminders</ThemedText>
         <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>

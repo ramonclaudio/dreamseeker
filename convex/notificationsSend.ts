@@ -1,19 +1,18 @@
 import { action, internalAction, internalMutation } from './_generated/server';
+import type { ActionCtx } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
-import { env } from './env';
 import type { PushToken } from './notificationsTokens';
+import { getAuthHeaders, fetchWithRetry } from './pushHelpers';
 
-export const PUSH_RATE_LIMIT = 10; // max sends per window
-export const PUSH_RATE_WINDOW_MS = 60 * 1000; // 1 minute
+const PUSH_RATE_LIMIT = 10; // max sends per window
+const PUSH_RATE_WINDOW_MS = 60 * 1000; // 1 minute
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
-export const MAX_BATCH_SIZE = 100;
-export const MAX_RETRIES = 3;
-export const INITIAL_RETRY_DELAY = 1000;
+const MAX_BATCH_SIZE = 100;
 const DEFAULT_TTL = 2419200; // 28 days in seconds
-export const MAX_NOTIF_TITLE_LENGTH = 100;
-export const MAX_NOTIF_BODY_LENGTH = 500;
+const MAX_NOTIF_TITLE_LENGTH = 100;
+const MAX_NOTIF_BODY_LENGTH = 500;
 
 export type PushTicket = {
   status: 'ok' | 'error';
@@ -22,7 +21,7 @@ export type PushTicket = {
   details?: { error?: string };
 };
 
-export type SendResult = {
+type SendResult = {
   success: boolean;
   sent: number;
   failed: number;
@@ -52,7 +51,7 @@ type RetryableError = {
 const NO_TOKENS_RESULT: SendResult = { success: false, sent: 0, failed: 0, errors: ['No push tokens for user'] };
 
 /** Build the standard deleteToken/storeReceipts callbacks for sendPushMessagesRaw. */
-function makeSendCallbacks(ctx: { runMutation: (...args: any[]) => Promise<any> }) {
+function makeSendCallbacks(ctx: Pick<ActionCtx, 'runMutation'>) {
   return {
     deleteToken: (token: string) => ctx.runMutation(internal.notificationsTokens.deleteTokenByValue, { token }),
     storeReceipts: (receipts: { ticketId: string; token: string }[]) =>
@@ -61,48 +60,9 @@ function makeSendCallbacks(ctx: { runMutation: (...args: any[]) => Promise<any> 
 }
 
 /** Fetch tokens for a user. Returns null (with NO_TOKENS_RESULT) if empty. */
-async function getTokensOrFail(ctx: { runQuery: (...args: any[]) => Promise<any> }, userId: string): Promise<PushToken[] | null> {
+async function getTokensOrFail(ctx: Pick<ActionCtx, 'runQuery'>, userId: string): Promise<PushToken[] | null> {
   const tokens: PushToken[] = await ctx.runQuery(internal.notificationsTokens.getUserTokens, { userId });
   return tokens.length === 0 ? null : tokens;
-}
-
-function getAuthHeaders(): Record<string, string> | null {
-  const token = env.expo.accessToken;
-  if (!token) return null;
-  return {
-    Accept: 'application/json',
-    'Accept-encoding': 'gzip, deflate',
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
-}
-
-async function fetchWithRetry(url: string, options: RequestInit, retries = MAX_RETRIES): Promise<Response> {
-  let lastError: Error | null = null;
-  let delay = INITIAL_RETRY_DELAY;
-
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(url, options);
-      if (response.ok || (response.status < 500 && response.status !== 429)) {
-        return response;
-      }
-      if (response.status === 429 || response.status >= 500) {
-        lastError = new Error(`HTTP ${response.status}`);
-        const retryAfter = response.headers.get('Retry-After');
-        if (retryAfter) {
-          delay = parseInt(retryAfter, 10) * 1000;
-        }
-      } else {
-        return response;
-      }
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-    }
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    delay *= 2;
-  }
-  throw lastError ?? new Error('Fetch failed');
 }
 
 type TicketProcessResult = {
@@ -240,11 +200,11 @@ export const checkPushRateLimit = internalMutation({
   returns: v.boolean(),
   handler: async (ctx, args): Promise<boolean> => {
     const cutoff = Date.now() - PUSH_RATE_WINDOW_MS;
-    const recent = await ctx.db
+    const allRecords = await ctx.db
       .query('pushNotificationRateLimit')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .filter((q) => q.gte(q.field('createdAt'), cutoff))
       .collect();
+    const recent = allRecords.filter((r) => r.createdAt >= cutoff);
 
     if (recent.length >= PUSH_RATE_LIMIT) return false;
 

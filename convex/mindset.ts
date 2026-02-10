@@ -1,14 +1,12 @@
-import { query } from './_generated/server';
+import { authQuery } from './functions';
 import { v } from 'convex/values';
-import { getAuthUserId } from './helpers';
 import { getTodayString, dateToDailyIndex } from './dates';
 
 // Get a random mindset moment
-export const getRandom = query({
+export const getRandom = authQuery({
   args: { category: v.optional(v.string()), timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
+    if (!ctx.user) return null;
 
     let quotes;
 
@@ -30,11 +28,10 @@ export const getRandom = query({
 });
 
 // Get all mindset moments
-export const list = query({
+export const list = authQuery({
   args: { category: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
 
     if (args.category) {
       return await ctx.db

@@ -138,7 +138,7 @@ export default function CreateDreamScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
       style={{ flex: 1, backgroundColor: colors.background }}
     >
       <View style={{ flex: 1 }}>

@@ -1,19 +1,46 @@
 import { View } from "react-native";
-import { MaterialCard } from "@/components/ui/material-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { Spacing, FontSize, IconSize } from "@/constants/layout";
-import type { ColorPalette } from "@/constants/theme";
+import { Radius } from "@/constants/theme";
+const STAT_COLORS = {
+  dreams: { light: "#FFF5E0", dark: "#2E2A18", icon: "#EDAF4A" },
+  actions: { light: "#E4F0DF", dark: "#1E2E1A", icon: "#5A9A52" },
+  xp: { light: "#FFE0D0", dark: "#3D2820", icon: "#E8936E" },
+} as const;
 
 export function StatsOverview({
   dreamsCompleted,
   actionsCompleted,
-  colors,
+  totalXp,
+  scheme,
 }: {
   dreamsCompleted: number;
   actionsCompleted: number;
-  colors: ColorPalette;
+  totalXp: number;
+  scheme: "light" | "dark";
 }) {
+  const stats = [
+    {
+      value: dreamsCompleted,
+      label: "Dreams",
+      icon: "trophy.fill" as const,
+      palette: STAT_COLORS.dreams,
+    },
+    {
+      value: actionsCompleted,
+      label: "Actions",
+      icon: "checkmark.circle.fill" as const,
+      palette: STAT_COLORS.actions,
+    },
+    {
+      value: totalXp >= 1000 ? `${(totalXp / 1000).toFixed(1)}k` : totalXp,
+      label: "Total XP",
+      icon: "bolt.fill" as const,
+      palette: STAT_COLORS.xp,
+    },
+  ];
+
   return (
     <View
       style={{
@@ -22,69 +49,50 @@ export function StatsOverview({
         marginBottom: Spacing.lg,
       }}
     >
-      <MaterialCard
-        variant="elevated"
-        style={{
-          flex: 1,
-          padding: Spacing.lg,
-          alignItems: "center",
-          backgroundColor: colors.surfaceTinted,
-        }}
-        accessible={true}
-        accessibilityLabel={`${dreamsCompleted} Dreams Achieved`}
-      >
-        <View style={{
-          width: 48,
-          height: 48,
-          borderRadius: 24,
-          backgroundColor: `${colors.gold}18`,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }} importantForAccessibility="no-hide-descendants">
-          <IconSymbol name="trophy.fill" size={IconSize["2xl"]} color={colors.gold} />
-        </View>
-        <ThemedText
-          style={{ fontSize: FontSize["3xl"], fontWeight: "700", marginTop: Spacing.sm }}
-          importantForAccessibility="no"
-        >
-          {dreamsCompleted}
-        </ThemedText>
-        <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground} importantForAccessibility="no">
-          Dreams Achieved
-        </ThemedText>
-      </MaterialCard>
+      {stats.map((stat) => {
+        const bg = scheme === "dark" ? stat.palette.dark : stat.palette.light;
+        const textColor = scheme === "dark" ? "#F5EDE6" : "#2D2019";
+        const subColor = scheme === "dark" ? "#9A8A7A" : "#8A7B6D";
 
-      <MaterialCard
-        variant="elevated"
-        style={{
-          flex: 1,
-          padding: Spacing.lg,
-          alignItems: "center",
-          backgroundColor: colors.surfaceTinted,
-        }}
-        accessible={true}
-        accessibilityLabel={`${actionsCompleted} Actions Done`}
-      >
-        <View style={{
-          width: 48,
-          height: 48,
-          borderRadius: 24,
-          backgroundColor: `${colors.success}18`,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }} importantForAccessibility="no-hide-descendants">
-          <IconSymbol name="checkmark.circle.fill" size={IconSize["2xl"]} color={colors.success} />
-        </View>
-        <ThemedText
-          style={{ fontSize: FontSize["3xl"], fontWeight: "700", marginTop: Spacing.sm }}
-          importantForAccessibility="no"
-        >
-          {actionsCompleted}
-        </ThemedText>
-        <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground} importantForAccessibility="no">
-          Actions Done
-        </ThemedText>
-      </MaterialCard>
+        return (
+          <View
+            key={stat.label}
+            style={{
+              flex: 1,
+              backgroundColor: bg,
+              borderRadius: Radius["2xl"],
+              padding: Spacing.md,
+              alignItems: "center",
+            }}
+            accessible={true}
+            accessibilityLabel={`${stat.value} ${stat.label}`}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: `${stat.palette.icon}20`,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              importantForAccessibility="no-hide-descendants"
+            >
+              <IconSymbol name={stat.icon} size={IconSize.xl} color={stat.palette.icon} />
+            </View>
+            <ThemedText
+              style={{ fontSize: FontSize["2xl"], fontWeight: "700", marginTop: Spacing.xs }}
+              color={textColor}
+              importantForAccessibility="no"
+            >
+              {stat.value}
+            </ThemedText>
+            <ThemedText style={{ fontSize: FontSize.xs }} color={subColor} importantForAccessibility="no">
+              {stat.label}
+            </ThemedText>
+          </View>
+        );
+      })}
     </View>
   );
 }

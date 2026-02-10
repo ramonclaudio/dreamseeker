@@ -16,7 +16,7 @@ export function SentencePreview({ title, targetDate, identity, activeStep }: Sen
   const colors = useColors();
 
   const placeholder = '___';
-  const activeColor = colors.accentBlue;
+  const activeColor = colors.accent;
   const inactiveColor = colors.mutedForeground;
 
   const showDate = targetDate || activeStep === 1;
@@ -37,7 +37,7 @@ export function SentencePreview({ title, targetDate, identity, activeStep }: Sen
         </ThemedText>
         {showDate && (
           <>
-            <ThemedText style={{ fontSize: FontSize.lg }}> by </ThemedText>
+            <ThemedText style={{ fontSize: FontSize.lg }}> in </ThemedText>
             <ThemedText
               style={{
                 fontSize: FontSize.lg,
@@ -51,7 +51,7 @@ export function SentencePreview({ title, targetDate, identity, activeStep }: Sen
         )}
         {showIdentity && (
           <>
-            <ThemedText style={{ fontSize: FontSize.lg }}> so I can </ThemedText>
+            <ThemedText style={{ fontSize: FontSize.lg }}> so I can become </ThemedText>
             <ThemedText
               style={{
                 fontSize: FontSize.lg,

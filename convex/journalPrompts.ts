@@ -1,6 +1,5 @@
-import { query } from './_generated/server';
+import { authQuery } from './functions';
 import { v } from 'convex/values';
-import { getAuthUserId } from './helpers';
 import { getTodayString } from './dates';
 
 // Gabby-voiced journal prompts (rotate daily)
@@ -44,16 +43,15 @@ const JOURNAL_PROMPTS = [
 ] as const;
 
 // Get today's journal prompt based on date + user's active dreams
-export const getDailyPrompt = query({
+export const getDailyPrompt = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
+    if (!ctx.user) return null;
 
     // Get user's active dreams
     const dreams = await ctx.db
       .query('dreams')
-      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+      .withIndex('by_user_status', (q) => q.eq('userId', ctx.user!).eq('status', 'active'))
       .take(5);
 
     // Hash the date to get a deterministic prompt

@@ -17,14 +17,58 @@ import { GlassControl } from "@/components/ui/glass-control";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/hooks/use-color-scheme";
-import { useSubscription } from "@/hooks/use-subscription";
-import type { ColorPalette } from "@/constants/theme";
-import { Spacing, TouchTarget, FontSize, MaxWidth, IconSize, TAB_BAR_HEIGHT } from "@/constants/layout";
+
+import { type ColorPalette, Radius } from "@/constants/theme";
+import { Spacing, TouchTarget, FontSize, MaxWidth, IconSize, TAB_BAR_CLEARANCE } from "@/constants/layout";
 import { Opacity } from "@/constants/ui";
 import { haptics } from "@/lib/haptics";
-import { DREAM_CATEGORIES, type DreamCategory } from "@/constants/dreams";
+import { DREAM_CATEGORIES, DREAM_CATEGORY_LIST, CATEGORY_ICONS, type DreamCategory } from "@/constants/dreams";
 
 type Dream = Doc<"dreams">;
+
+const STRIP_WIDTH = 36;
+
+function getStripColor(status: string, categoryColor: string, colors: ColorPalette) {
+  if (status === "completed") return colors.success;
+  if (status === "archived") return colors.mutedForeground;
+  return categoryColor;
+}
+
+function getStripLabel(status: string) {
+  if (status === "completed") return "Done";
+  if (status === "archived") return "Paused";
+  return "Active";
+}
+
+function VerticalLabel({ label, color }: { label: string; color: string }) {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <ThemedText
+        style={{
+          transform: [{ rotate: "-90deg" }],
+          fontSize: FontSize.xs,
+          fontWeight: "800",
+          letterSpacing: 1,
+          textTransform: "uppercase",
+        }}
+        numberOfLines={1}
+        color={color}
+      >
+        {label}
+      </ThemedText>
+    </View>
+  );
+}
 
 const DreamCard = memo(function DreamCard({
   dream,
@@ -35,6 +79,8 @@ const DreamCard = memo(function DreamCard({
   colors: ColorPalette;
   categoryColor: string;
 }) {
+  const catIcon = CATEGORY_ICONS[dream.category as DreamCategory] ?? "star.fill";
+
   return (
     <Pressable
       onPress={() => {
@@ -48,93 +94,105 @@ const DreamCard = memo(function DreamCard({
       accessibilityRole="button"
       accessibilityLabel={`Dream: ${dream.title}`}
     >
-      <MaterialCard
+      <View
         style={{
-          padding: Spacing.lg,
-          borderLeftWidth: 4,
-          borderLeftColor: categoryColor,
+          flexDirection: "row",
+          backgroundColor: colors.card,
+          borderRadius: Radius.lg,
+          borderCurve: "continuous",
+          borderWidth: 1,
+          borderColor: colors.borderAccent,
+          overflow: "hidden",
+          shadowColor: colors.glowShadow,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 1,
+          shadowRadius: 12,
+          elevation: 3,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View style={{ flex: 1, marginRight: Spacing.md }}>
+        {/* Content */}
+        <View style={{ flex: 1, padding: Spacing.lg, gap: Spacing.sm }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: Spacing.sm,
+            }}
+          >
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                borderCurve: "continuous",
+                backgroundColor: `${categoryColor}18`,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <IconSymbol
+                name={catIcon as never}
+                size={IconSize.md}
+                color={categoryColor}
+              />
+            </View>
             <ThemedText
-              style={{ fontSize: FontSize.xl, fontWeight: "600" }}
+              style={{
+                fontSize: FontSize.xl,
+                fontWeight: "700",
+                flex: 1,
+                letterSpacing: -0.3,
+              }}
+              color={colors.foreground}
               numberOfLines={2}
             >
               {dream.title}
             </ThemedText>
-            {dream.targetDate && (
-              <ThemedText
-                style={{ fontSize: FontSize.sm, marginTop: Spacing.xs }}
-                color={colors.mutedForeground}
-              >
-                Target:{" "}
-                {new Date(dream.targetDate).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </ThemedText>
-            )}
           </View>
-          <IconSymbol
-            name="chevron.right"
-            size={IconSize.lg}
-            color={colors.mutedForeground}
-          />
+          {dream.targetDate && (
+            <ThemedText
+              style={{ fontSize: FontSize.sm }}
+              color={colors.mutedForeground}
+            >
+              Target:{" "}
+              {new Date(dream.targetDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </ThemedText>
+          )}
         </View>
-      </MaterialCard>
+
+        {/* Status strip */}
+        <View
+          style={{
+            width: STRIP_WIDTH,
+            backgroundColor: getStripColor(dream.status, categoryColor, colors),
+          }}
+        >
+          <VerticalLabel label={getStripLabel(dream.status)} color="#fff" />
+        </View>
+      </View>
     </Pressable>
   );
 });
 
 export default function CategoryDreamsScreen() {
-  const { category } = useLocalSearchParams<{ category: DreamCategory }>();
+  const { category } = useLocalSearchParams<{ category: string }>();
   const colors = useColors();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const [newDreamTitle, setNewDreamTitle] = useState("");
 
+  const isValidCategory = DREAM_CATEGORY_LIST.includes(category as DreamCategory);
+
   const categoryConfig = DREAM_CATEGORIES[category as DreamCategory] ?? DREAM_CATEGORIES.custom;
   const dreams = useQuery(
     api.dreams.list,
-    isAuthenticated ? { category: category as DreamCategory } : "skip"
+    isAuthenticated && isValidCategory ? { category: category as DreamCategory } : "skip"
   );
 
   const createDream = useMutation(api.dreams.create);
-  const { canCreateDream, showUpgrade } = useSubscription();
-
-  const handleCreateDream = async () => {
-    if (!newDreamTitle.trim()) return;
-
-    if (!canCreateDream) {
-      haptics.warning();
-      showUpgrade();
-      return;
-    }
-
-    haptics.medium();
-    try {
-      const dreamId = await createDream({
-        title: newDreamTitle.trim(),
-        category: category as DreamCategory,
-      });
-      setNewDreamTitle("");
-      router.push(`/(app)/dream/${dreamId}`);
-    } catch (e) {
-      if (e instanceof Error && e.message === "LIMIT_REACHED") {
-        haptics.warning();
-        showUpgrade();
-      } else {
-        haptics.error();
-      }
-    }
-  };
 
   const renderItem: ListRenderItem<Dream> = useCallback(
     ({ item }) => (
@@ -148,6 +206,28 @@ export default function CategoryDreamsScreen() {
   );
 
   const keyExtractor = useCallback((item: Dream) => item._id, []);
+
+  // Redirect if someone navigates to an invalid category (e.g. "vision-board")
+  if (!isValidCategory && !authLoading) {
+    router.replace("/(app)/(tabs)/(dreams)/");
+    return null;
+  }
+
+  const handleCreateDream = async () => {
+    if (!newDreamTitle.trim()) return;
+
+    haptics.medium();
+    try {
+      const dreamId = await createDream({
+        title: newDreamTitle.trim(),
+        category: category as DreamCategory,
+      });
+      setNewDreamTitle("");
+      router.push(`/(app)/dream/${dreamId}`);
+    } catch {
+      haptics.error();
+    }
+  };
 
   if (authLoading || dreams === undefined) {
     return (
@@ -238,7 +318,7 @@ export default function CategoryDreamsScreen() {
         keyExtractor={keyExtractor}
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={{
-          paddingBottom: TAB_BAR_HEIGHT,
+          paddingBottom: TAB_BAR_CLEARANCE,
           paddingHorizontal: Spacing.xl,
           maxWidth: MaxWidth.content,
           alignSelf: "center",

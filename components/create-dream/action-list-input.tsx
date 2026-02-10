@@ -92,7 +92,7 @@ export function ActionListInput({ actions, onChange }: ActionListInputProps) {
           accessibilityRole="button"
           accessibilityLabel="Add another step"
         >
-          <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }} color={colors.accentBlue}>
+          <ThemedText style={{ fontSize: FontSize.base, fontWeight: '500' }} color={colors.accent}>
             + Add another
           </ThemedText>
         </Pressable>

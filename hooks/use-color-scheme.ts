@@ -7,15 +7,6 @@ export type ThemeMode = "system" | "light" | "dark";
 
 const STORAGE_KEY = "theme";
 
-const storage = {
-  get: async (key: string) =>
-    process.env.EXPO_OS === "web" ? localStorage.getItem(key) : SecureStore.getItemAsync(key),
-  set: async (key: string, value: string) =>
-    process.env.EXPO_OS === "web"
-      ? localStorage.setItem(key, value)
-      : SecureStore.setItemAsync(key, value),
-};
-
 let globalMode: ThemeMode = "system";
 const listeners = new Set<() => void>();
 
@@ -25,22 +16,18 @@ function notifyListeners() {
 
 function updateGlobalMode(newMode: ThemeMode) {
   globalMode = newMode;
-  if (process.env.EXPO_OS !== "web") {
-    Appearance.setColorScheme(newMode === "system" ? "unspecified" : newMode);
-  }
-  storage.set(STORAGE_KEY, newMode).catch(() => {});
+  Appearance.setColorScheme(newMode === "system" ? "unspecified" : newMode);
+  SecureStore.setItemAsync(STORAGE_KEY, newMode).catch(() => {});
   notifyListeners();
 }
 
 // Initialize from storage on module load
 (async () => {
   try {
-    const saved = await storage.get(STORAGE_KEY);
+    const saved = await SecureStore.getItemAsync(STORAGE_KEY);
     if (saved && ["system", "light", "dark"].includes(saved)) {
       globalMode = saved as ThemeMode;
-      if (process.env.EXPO_OS !== "web") {
-        Appearance.setColorScheme(globalMode === "system" ? "unspecified" : globalMode);
-      }
+      Appearance.setColorScheme(globalMode === "system" ? "unspecified" : globalMode);
       notifyListeners();
     }
   } catch {
@@ -79,8 +66,6 @@ export function useColors(): ColorPalette {
   const [highContrast, setHighContrast] = useState(false);
 
   useEffect(() => {
-    if (process.env.EXPO_OS !== "ios") return;
-
     // Check initial state - boldText is a proxy for "Increase Contrast" on iOS
     AccessibilityInfo.isBoldTextEnabled().then(setHighContrast);
 

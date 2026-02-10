@@ -13,5 +13,4 @@ export const env = {
   convexSiteUrl: required('EXPO_PUBLIC_CONVEX_SITE_URL'),
   siteUrl: required('EXPO_PUBLIC_SITE_URL'),
   revenuecatAppleApiKey: optional('EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY'),
-  revenuecatGoogleApiKey: optional('EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY'),
 } as const;

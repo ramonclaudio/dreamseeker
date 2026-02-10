@@ -3,6 +3,12 @@ import type { MutationCtx } from './_generated/server';
 import { authComponent } from './auth';
 import { components } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import {
+  deleteAllFeedForUser,
+  deleteUserProfile,
+  deleteCommunityRateLimitsForUser,
+  deletePinsForUser,
+} from './cascadeDelete';
 
 /** Tables that have a `by_user` index on `userId`. */
 type UserIndexedTable =
@@ -16,9 +22,10 @@ type UserIndexedTable =
 
 /** Delete all rows in `table` where `by_user` index matches `userId`. */
 async function deleteAllByUser(ctx: MutationCtx, table: UserIndexedTable, userId: string) {
-  const rows = await ctx.db
-    .query(table)
-    .withIndex('by_user', (q: any) => q.eq('userId', userId))
+  // Type assertion needed: TypeScript can't narrow the index type across a union of table names.
+  // The `by_user` index exists on all tables in UserIndexedTable.
+  const rows = await (ctx.db.query(table) as ReturnType<typeof ctx.db.query<'checkIns'>>)
+    .withIndex('by_user', (q) => q.eq('userId', userId))
     .collect();
   await Promise.all(rows.map((row) => ctx.db.delete(row._id)));
 }
@@ -82,6 +89,24 @@ export const deleteAccount = mutation({
       for (const receipt of receipts) await ctx.db.delete(receipt._id);
       await ctx.db.delete(token._id);
     }
+
+    // Cascade-delete community data
+    await deleteAllFeedForUser(ctx.db, userId);
+    await deleteUserProfile(ctx.db, ctx.storage, userId);
+    await deleteCommunityRateLimitsForUser(ctx.db, userId);
+
+    // Cascade-delete pins, pin reactions, and vision boards
+    await deletePinsForUser(ctx.db, ctx.storage, userId);
+    const boards = await ctx.db
+      .query('visionBoards')
+      .withIndex('by_user_order', (q) => q.eq('userId', userId))
+      .collect();
+    await Promise.all(boards.map((b) => ctx.db.delete(b._id)));
+
+    // RevenueCat component tables (customers, subscriptions, entitlements, etc.)
+    // are sandboxed — Convex component isolation prevents direct deletion.
+    // RC server-side data kept for historical billing. Local cache is orphaned
+    // but inaccessible to the deleted user and cleaned by RC's own cron jobs.
 
     if (user.image && !user.image.includes('/') && !user.image.startsWith('http')) {
       try { await ctx.storage.delete(user.image as Id<'_storage'>); } catch (error) {

@@ -1,5 +1,6 @@
 import type { MutationCtx } from './_generated/server';
 import { XP_REWARDS, getLevelFromXp } from './constants';
+import { createFeedEvent } from './feed';
 
 /**
  * Award a badge if not already earned. Idempotent.
@@ -34,6 +35,11 @@ export async function checkAndAwardBadge(
     userId,
     badgeKey,
     earnedAt: Date.now(),
+  });
+
+  await createFeedEvent(ctx, userId, 'badge_earned', badgeKey, {
+    badgeKey: def.key,
+    title: def.title,
   });
 
   // Return XP delta — caller is responsible for patching userProgress

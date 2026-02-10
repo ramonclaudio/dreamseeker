@@ -1,21 +1,19 @@
-import { query } from './_generated/server';
+import { authQuery } from './functions';
 import { hasEntitlement } from './revenuecat';
-import { getAuthUserId } from './helpers';
 
 export const TIERS = {
-  free: { name: 'Free', limit: 3 }, // 3 free dreams
-  premium: { name: 'Premium', limit: null }, // Unlimited dreams
+  free: { name: 'Free', limit: null }, // Unlimited dreams — premium gates community only
+  premium: { name: 'Premium', limit: null }, // Unlimited dreams + community access
 } as const;
 
 export type TierKey = keyof typeof TIERS;
 
 export const PREMIUM_ENTITLEMENT = 'DreamSeeker Premium';
 
-export const getSubscriptionStatus = query({
+export const getSubscriptionStatus = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
+    if (!ctx.user) {
       return {
         tier: 'free' as TierKey,
         isPremium: false,
@@ -27,7 +25,7 @@ export const getSubscriptionStatus = query({
     }
 
     const isPremium = await hasEntitlement(ctx, {
-      appUserId: userId,
+      appUserId: ctx.user,
       entitlementId: PREMIUM_ENTITLEMENT,
     });
 
@@ -37,7 +35,7 @@ export const getSubscriptionStatus = query({
     // For free: O(limit+1). For premium: fetch up to 100 for display count.
     const dreams = await ctx.db
       .query('dreams')
-      .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+      .withIndex('by_user_status', (q) => q.eq('userId', ctx.user!).eq('status', 'active'))
       .take(dreamLimit !== null ? dreamLimit + 1 : 100);
     const dreamCount = dreams.length;
 
@@ -54,4 +52,3 @@ export const getSubscriptionStatus = query({
     };
   },
 });
-

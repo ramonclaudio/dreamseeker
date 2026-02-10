@@ -1,6 +1,7 @@
-import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId, requireAuth, awardXp, deductXp } from './helpers';
+import { authQuery, authMutation } from './functions';
+import { awardXp } from './helpers';
+import { recalculateUserProgress } from './progress';
 import { getTodayString } from './dates';
 import { requireText, validateTags } from './validation';
 import {
@@ -11,69 +12,68 @@ import {
   MAX_TAGS_COUNT,
   MAX_TAG_LENGTH,
   FREE_JOURNAL_DAILY_LIMIT,
+  FREE_MAX_JOURNALS_PER_DREAM,
 } from './constants';
 import { hasEntitlement } from './revenuecat';
 import { PREMIUM_ENTITLEMENT } from './subscriptions';
+import { createFeedEvent } from './feed';
+import { deleteFeedEventsForItem } from './cascadeDelete';
 
-export const list = query({
+export const list = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
 
     return await ctx.db
       .query('journalEntries')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user!))
       .order('desc')
       .take(50);
   },
 });
 
-export const get = query({
+export const get = authQuery({
   args: { id: v.id('journalEntries') },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
+    if (!ctx.user) return null;
 
     const entry = await ctx.db.get(args.id);
-    if (!entry || entry.userId !== userId) return null;
+    if (!entry || entry.userId !== ctx.user) return null;
 
     return entry;
   },
 });
 
-export const listByDream = query({
+export const listByDream = authQuery({
   args: { dreamId: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
 
     return await ctx.db
       .query('journalEntries')
       .withIndex('by_dream', (q) => q.eq('dreamId', args.dreamId))
-      .filter((q) => q.eq(q.field('userId'), userId))
+      .filter((q) => q.eq(q.field('userId'), ctx.user!))
       .order('desc')
       .take(20);
   },
 });
 
-export const getTodayCount = query({
+export const getTodayCount = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return 0;
+    if (!ctx.user) return 0;
 
     const today = getTodayString(args.timezone);
     const entries = await ctx.db
       .query('journalEntries')
-      .withIndex('by_user_date', (q) => q.eq('userId', userId).eq('date', today))
+      .withIndex('by_user_date', (q) => q.eq('userId', ctx.user!).eq('date', today))
       .collect();
 
     return entries.length;
   },
 });
 
-export const create = mutation({
+export const create = authMutation({
   args: {
     title: v.string(),
     body: v.string(),
@@ -83,23 +83,25 @@ export const create = mutation({
     timezone: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
     const today = getTodayString(args.timezone);
 
-    // Check daily limit for free users
-    const isPremium = await hasEntitlement(ctx, {
-      appUserId: userId,
-      entitlementId: PREMIUM_ENTITLEMENT,
-    });
+    // Free tier: max 10 journal entries per dream (when linked to a dream)
+    if (args.dreamId) {
+      const isPremium = await hasEntitlement(ctx, {
+        appUserId: userId,
+        entitlementId: PREMIUM_ENTITLEMENT,
+      });
+      if (!isPremium) {
+        const dreamJournals = await ctx.db
+          .query('journalEntries')
+          .withIndex('by_dream', (q) => q.eq('dreamId', args.dreamId!))
+          .filter((q) => q.eq(q.field('userId'), userId))
+          .take(FREE_MAX_JOURNALS_PER_DREAM + 1);
 
-    if (!isPremium) {
-      const todayEntries = await ctx.db
-        .query('journalEntries')
-        .withIndex('by_user_date', (q) => q.eq('userId', userId).eq('date', today))
-        .collect();
-
-      if (todayEntries.length >= FREE_JOURNAL_DAILY_LIMIT) {
-        throw new Error('JOURNAL_LIMIT_REACHED');
+        if (dreamJournals.length >= FREE_MAX_JOURNALS_PER_DREAM) {
+          throw new Error('FREE_JOURNAL_LIMIT');
+        }
       }
     }
 
@@ -125,11 +127,16 @@ export const create = mutation({
       timezone: args.timezone,
     });
 
+    await createFeedEvent(ctx, userId, 'journal_entry', entryId, {
+      title: trimmedTitle,
+      mood: args.mood,
+    });
+
     return { entryId, xpAwarded: xpReward, streakMilestone };
   },
 });
 
-export const update = mutation({
+export const update = authMutation({
   args: {
     id: v.id('journalEntries'),
     title: v.optional(v.string()),
@@ -139,7 +146,7 @@ export const update = mutation({
     tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
     const entry = await ctx.db.get(args.id);
     if (!entry) throw new Error('Entry not found');
@@ -165,18 +172,22 @@ export const update = mutation({
   },
 });
 
-export const remove = mutation({
-  args: { id: v.id('journalEntries') },
+export const remove = authMutation({
+  args: { id: v.id('journalEntries'), timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
     const entry = await ctx.db.get(args.id);
     if (!entry) return;
     if (entry.userId !== userId) throw new Error('Forbidden');
 
+    // Cascade-delete feed events
+    const db = ctx.unsafeDb;
+    await deleteFeedEventsForItem(db, userId, args.id);
+
     await ctx.db.delete(args.id);
 
-    // Deduct XP
-    await deductXp(ctx, userId, XP_REWARDS.journalEntry);
+    // Recalculate progress from source data
+    await recalculateUserProgress(ctx, userId, args.timezone ?? 'UTC');
   },
 });

@@ -19,6 +19,10 @@ export const CATEGORY_ICONS: Record<_DreamCategory, IconSymbolName> = {
   lifestyle: 'house.fill',
   growth: 'leaf.fill',
   relationships: 'heart.fill',
+  health: 'figure.walk',
+  education: 'book.fill',
+  creative: 'paintpalette.fill',
+  social: 'globe',
   custom: 'star.fill',
 };
 
@@ -30,6 +34,20 @@ export type {
   Pace,
   Personality,
 } from '@/convex/constants';
+
+export const CATEGORY_PROMPTS: Record<_DreamCategory, string> = {
+  travel: 'Where to next?',
+  money: 'Build your freedom',
+  career: 'Make your move',
+  lifestyle: 'Design your life',
+  growth: 'Invest in you',
+  relationships: 'Nurture your people',
+  health: 'Feel your best',
+  education: 'Level up your mind',
+  creative: 'Express yourself',
+  social: 'Make a difference',
+  custom: 'You decide',
+};
 
 export function getCategoryConfig(dream: {
   category: string;

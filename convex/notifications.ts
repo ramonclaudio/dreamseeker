@@ -16,5 +16,3 @@ export { savePushToken, removePushToken } from './notificationsTokens';
 // ── Sending (public actions) ────────────────────────────────────────────────
 export { sendPushNotification, sendTestNotification } from './notificationsSend';
 
-// ── Token types ─────────────────────────────────────────────────────────────
-export type { PushToken } from './notificationsTokens';

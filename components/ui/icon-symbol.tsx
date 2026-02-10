@@ -1,102 +1,34 @@
 import { SymbolView, type SymbolWeight } from "expo-symbols";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { OpaqueColorValue, type StyleProp, type ViewStyle, type TextStyle } from "react-native";
+import { OpaqueColorValue, type StyleProp, type ViewStyle } from "react-native";
 
 import { IconSize } from "@/constants/layout";
 
-// SF Symbol names (iOS) -> Material Community Icons (Android/Web)
-const ANDROID_MAPPING = {
-  "house.fill": "home",
-  house: "home-outline",
-  "paperplane.fill": "send",
-  "chevron.left.forwardslash.chevron.right": "code-tags",
-  "chevron.right": "chevron-right",
-  checklist: "format-list-checks",
-  checkmark: "check",
-  "checkmark.circle.fill": "check-circle",
-  xmark: "close",
-  gear: "cog",
-  "gearshape.fill": "cog",
-  "sun.max.fill": "white-balance-sunny",
-  "sun.max": "white-balance-sunny",
-  "moon.fill": "moon-waning-crescent",
-  "person.fill": "account",
-  person: "account-outline",
-  "person.crop.circle": "account-circle",
-  "lock.fill": "lock",
-  "rectangle.portrait.and.arrow.right": "logout",
-  "trash.fill": "delete",
-  pencil: "pencil",
-  "camera.fill": "camera",
-  "photo.fill": "image",
-  "xmark.circle.fill": "close-circle",
-  star: "star-outline",
-  "star.fill": "star",
-  sparkles: "auto-fix",
-  gift: "gift",
-  "paintpalette.fill": "palette",
-  "square.and.arrow.up": "share-variant",
-  "bell.fill": "bell",
-  "hand.raised.fill": "hand-back-right",
-  "questionmark.circle.fill": "help-circle",
-  "info.circle.fill": "information",
-  "hammer.fill": "hammer",
-  link: "link",
-  "doc.text.fill": "file-document",
-  "doc.plaintext.fill": "file-document-outline",
-  "arrow.up.right": "open-in-new",
-  "envelope.fill": "email",
-  "envelope.badge": "email-alert",
-  "exclamationmark.bubble.fill": "alert-circle",
-  "exclamationmark.triangle": "alert",
-  "exclamationmark.triangle.fill": "alert",
-  "creditcard.fill": "credit-card",
-  "map.fill": "map-marker",
-  "safari.fill": "compass",
-  "bag.fill": "shopping",
-  "mappin.and.ellipse": "map-marker",
-  "star.leadinghalf.filled": "star-half-full",
-  "leaf.fill": "leaf",
-  leaf: "leaf",
-  "cup.and.saucer.fill": "coffee",
-  // Dream category icons
-  "airplane": "airplane",
-  "dollarsign.circle.fill": "cash",
-  "briefcase.fill": "briefcase",
-  "heart.fill": "heart",
-  // Tab icons
-  "lightbulb.fill": "lightbulb",
-  lightbulb: "lightbulb-outline",
-  // Gamification icons
-  "flame.fill": "fire",
-  flame: "fire",
-  "trophy.fill": "trophy",
-  bolt: "lightning-bolt",
-  "bolt.fill": "lightning-bolt",
-  "target": "target",
-  "quote.bubble.fill": "format-quote-close",
-  "quote.bubble": "format-quote-close",
-  plus: "plus",
-  "plus.circle.fill": "plus-circle",
-  "circle.fill": "circle",
-  circle: "circle-outline",
-  // Onboarding personality/motivation icons
-  "list.bullet": "format-list-bulleted",
-  "person.2.fill": "account-group",
-  "figure.walk": "walk",
-  // Journal icons
-  "book.fill": "book-open-variant",
-  book: "book-open-outline",
-  "square.and.pencil": "square-edit-outline",
-  // Focus timer & streak milestone icons
-  timer: "timer-outline",
-  "diamond.fill": "diamond-stone",
-  "crown.fill": "crown",
-  // Additional icons
-  "arrow.clockwise": "refresh",
-} as const;
+// SF Symbol names used across the app
+export const SF_SYMBOLS = [
+  "house.fill", "house", "paperplane.fill", "chevron.left.forwardslash.chevron.right",
+  "chevron.right", "chevron.down", "chevron.up", "checklist", "checkmark", "checkmark.circle.fill", "xmark",
+  "gear", "gearshape", "gearshape.fill", "sun.max.fill", "sun.max", "moon.fill",
+  "person.fill", "person", "person.crop.circle", "lock.fill", "lock.open.fill",
+  "rectangle.portrait.and.arrow.right", "trash.fill", "pencil", "camera.fill",
+  "photo.fill", "xmark.circle.fill", "star", "star.fill", "sparkles", "gift",
+  "paintpalette.fill", "square.and.arrow.up", "bell.fill", "hand.raised.fill",
+  "questionmark.circle.fill", "info.circle.fill", "hammer.fill", "link",
+  "doc.text.fill", "doc.plaintext.fill", "arrow.up.right", "envelope.fill",
+  "envelope.badge", "exclamationmark.bubble.fill", "exclamationmark.triangle",
+  "exclamationmark.triangle.fill", "creditcard.fill", "map.fill", "safari.fill",
+  "bag.fill", "mappin.and.ellipse", "star.leadinghalf.filled", "leaf.fill", "leaf",
+  "cup.and.saucer.fill", "airplane", "dollarsign.circle.fill", "briefcase.fill",
+  "heart.fill", "lightbulb.fill", "lightbulb", "flame.fill", "flame", "trophy.fill",
+  "bolt", "bolt.fill", "target", "quote.bubble.fill", "quote.bubble", "plus",
+  "plus.circle.fill", "circle.fill", "circle", "list.bullet", "person.2.fill",
+  "figure.walk", "book.fill", "book", "square.and.pencil", "timer", "diamond.fill",
+  "crown.fill", "arrow.clockwise", "magnifyingglass", "person.badge.plus",
+  "eye.fill", "eye.slash.fill", "person.2", "globe", "square.grid.2x2", "pin.fill",
+  "cloud.fill", "sun.min.fill", "chevron.left", "medal.fill",
+  "bookmark", "bookmark.fill", "flag.fill",
+] as const;
 
-export type IconSymbolName = keyof typeof ANDROID_MAPPING;
+export type IconSymbolName = (typeof SF_SYMBOLS)[number];
 
 type IconSymbolProps = {
   name: IconSymbolName;
@@ -113,27 +45,14 @@ export function IconSymbol({
   style,
   weight = "regular",
 }: IconSymbolProps) {
-  // Use native SF Symbols on iOS for best native feel
-  if (process.env.EXPO_OS === "ios") {
-    return (
-      <SymbolView
-        name={name}
-        size={size}
-        tintColor={color as string}
-        style={style}
-        weight={weight}
-        resizeMode="scaleAspectFit"
-      />
-    );
-  }
-
-  // Fallback to Material Community Icons on Android/Web
   return (
-    <MaterialCommunityIcons
-      color={color as string}
+    <SymbolView
+      name={name}
       size={size}
-      name={ANDROID_MAPPING[name]}
-      style={style as StyleProp<TextStyle>}
+      tintColor={color as string}
+      style={style}
+      weight={weight}
+      resizeMode="scaleAspectFit"
     />
   );
 }

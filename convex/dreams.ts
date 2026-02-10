@@ -1,9 +1,7 @@
-import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import type { Doc } from './_generated/dataModel';
+import { authQuery, authMutation } from './functions';
 import {
-  getAuthUserId,
-  requireAuth,
   getOwnedDream,
   assertDreamLimit,
   awardXp,
@@ -19,25 +17,29 @@ import {
   MAX_CUSTOM_CATEGORY_COLOR_LENGTH,
   MAX_REFLECTION_LENGTH,
   XP_REWARDS,
+  FREE_MAX_ACTIONS_PER_DREAM,
 } from './constants';
+import { hasEntitlement } from './revenuecat';
+import { PREMIUM_ENTITLEMENT } from './subscriptions';
 import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 import { requireText, checkLength, sanitizeActions } from './validation';
 import { canComplete } from './dreamGuards';
+import { createFeedEvent } from './feed';
 
 // List all active dreams for the current user
-export const list = query({
+export const list = authQuery({
   args: { category: v.optional(dreamCategoryValidator) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
+    const userId = ctx.user;
 
     if (args.category) {
-      return await ctx.db
+      const allDreams = await ctx.db
         .query('dreams')
         .withIndex('by_user_category', (q) => q.eq('userId', userId).eq('category', args.category!))
-        .filter((q) => q.eq(q.field('status'), 'active'))
         .order('desc')
         .collect();
+      return allDreams.filter((d) => d.status === 'active');
     }
 
     return await ctx.db
@@ -49,11 +51,11 @@ export const list = query({
 });
 
 // List dreams by status (completed, archived, or active)
-export const listByStatus = query({
+export const listByStatus = authQuery({
   args: { status: dreamStatusValidator },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
+    const userId = ctx.user;
 
     return await ctx.db
       .query('dreams')
@@ -64,20 +66,19 @@ export const listByStatus = query({
 });
 
 // Get a single dream with its actions
-export const get = query({
+export const get = authQuery({
   args: { id: v.id('dreams') },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
+    if (!ctx.user) return null;
 
     const dream = await ctx.db.get(args.id);
-    if (!dream || dream.userId !== userId) return null;
+    if (!dream || dream.userId !== ctx.user) return null;
 
-    const actions = await ctx.db
+    const allActions = await ctx.db
       .query('actions')
       .withIndex('by_dream', (q) => q.eq('dreamId', args.id))
-      .filter((q) => q.neq(q.field('status'), 'archived'))
       .collect();
+    const actions = allActions.filter((a) => a.status !== 'archived');
 
     actions.sort((a, b) => a.order - b.order);
 
@@ -86,11 +87,11 @@ export const get = query({
 });
 
 // List all active dreams with per-dream action progress
-export const listWithActionCounts = query({
+export const listWithActionCounts = authQuery({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+    if (!ctx.user) return [];
+    const userId = ctx.user;
 
     const dreams = await ctx.db
       .query('dreams')
@@ -98,32 +99,80 @@ export const listWithActionCounts = query({
       .order('desc')
       .collect();
 
-    return await Promise.all(
-      dreams.map(async (dream) => {
-        const actions = await ctx.db
-          .query('actions')
-          .withIndex('by_dream', (q) => q.eq('dreamId', dream._id))
-          .filter((q) => q.neq(q.field('status'), 'archived'))
-          .collect();
+    // Bulk-fetch all actions for this user in one query instead of N+1
+    const allActions = await ctx.db
+      .query('actions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
 
-        return {
-          ...dream,
-          completedActions: actions.filter((a) => a.isCompleted).length,
-          totalActions: actions.length,
-        };
-      })
-    );
+    const actionsByDream = new Map<string, typeof allActions>();
+    for (const a of allActions) {
+      if (a.status === 'archived') continue;
+      const key = String(a.dreamId);
+      const list = actionsByDream.get(key) ?? [];
+      list.push(a);
+      actionsByDream.set(key, list);
+    }
+
+    return dreams.map((dream) => {
+      const actions = actionsByDream.get(String(dream._id)) ?? [];
+      return {
+        ...dream,
+        completedActions: actions.filter((a) => a.isCompleted).length,
+        totalActions: actions.length,
+      };
+    });
+  },
+});
+
+// List all non-archived dreams with per-dream action progress (for vision board)
+export const listAllWithActionCounts = authQuery({
+  args: {},
+  handler: async (ctx) => {
+    if (!ctx.user) return [];
+    const userId = ctx.user;
+
+    const allDreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    const dreams = allDreams.filter((d) => d.status !== 'archived');
+
+    // Bulk-fetch all actions for this user in one query instead of N+1
+    const allActions = await ctx.db
+      .query('actions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    const actionsByDream = new Map<string, typeof allActions>();
+    for (const a of allActions) {
+      if (a.status === 'archived') continue;
+      const key = String(a.dreamId);
+      const list = actionsByDream.get(key) ?? [];
+      list.push(a);
+      actionsByDream.set(key, list);
+    }
+
+    return dreams.map((dream) => {
+      const actions = actionsByDream.get(String(dream._id)) ?? [];
+      return {
+        ...dream,
+        completedActions: actions.filter((a) => a.isCompleted).length,
+        totalActions: actions.length,
+      };
+    });
   },
 });
 
 // Get dream counts by category
-export const getCategoryCounts = query({
+export const getCategoryCounts = authQuery({
   args: {},
   handler: async (ctx) => {
     const defaultCounts = Object.fromEntries(DREAM_CATEGORY_LIST.map((c) => [c, 0]));
 
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return defaultCounts;
+    if (!ctx.user) return defaultCounts;
+    const userId = ctx.user;
 
     const dreams = await ctx.db
       .query('dreams')
@@ -141,7 +190,7 @@ export const getCategoryCounts = query({
 });
 
 // Create a new dream
-export const create = mutation({
+export const create = authMutation({
   args: {
     title: v.string(),
     category: dreamCategoryValidator,
@@ -153,7 +202,7 @@ export const create = mutation({
     customCategoryColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
 
     const trimmedTitle = requireText(args.title, MAX_TITLE_LENGTH, 'Dream title');
     checkLength(args.whyItMatters, MAX_WHY_LENGTH, '"Why it matters"');
@@ -175,11 +224,16 @@ export const create = mutation({
       customCategoryColor: args.customCategoryColor?.trim(),
     });
 
-    // Batch-insert initial actions if provided
+    // Batch-insert initial actions if provided (cap to free tier limit if not premium)
     if (args.initialActions && args.initialActions.length > 0) {
-      const cleanedActions = sanitizeActions(args.initialActions, 20, MAX_ACTION_TEXT_LENGTH);
+      const isPremium = await hasEntitlement(ctx, {
+        appUserId: userId,
+        entitlementId: PREMIUM_ENTITLEMENT,
+      });
+      const maxActions = isPremium ? 50 : FREE_MAX_ACTIONS_PER_DREAM;
+      const cleanedActions = sanitizeActions(args.initialActions, maxActions, MAX_ACTION_TEXT_LENGTH);
       const now = Date.now();
-      await Promise.all(
+      const actionIds = await Promise.all(
         cleanedActions.map((text, index) =>
             ctx.db.insert('actions', {
               userId,
@@ -194,12 +248,17 @@ export const create = mutation({
       );
     }
 
+    await createFeedEvent(ctx, userId, 'dream_created', dreamId, {
+      title: trimmedTitle,
+      category: args.category,
+    });
+
     return dreamId;
   },
 });
 
 // Update a dream
-export const update = mutation({
+export const update = authMutation({
   args: {
     id: v.id('dreams'),
     title: v.optional(v.string()),
@@ -211,8 +270,7 @@ export const update = mutation({
     customCategoryColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-    await getOwnedDream(ctx, args.id, userId);
+    await getOwnedDream(ctx, args.id, ctx.user);
 
     const updates: Partial<Doc<'dreams'>> = {};
 
@@ -238,10 +296,10 @@ export const update = mutation({
 });
 
 // Complete a dream
-export const complete = mutation({
+export const complete = authMutation({
   args: { id: v.id('dreams'), timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
+    const userId = ctx.user;
     const dream = await getOwnedDream(ctx, args.id, userId);
 
     const check = canComplete(dream);
@@ -268,16 +326,20 @@ export const complete = mutation({
 
     await applyBadgeXp(ctx, userId, badgeXp);
 
+    await createFeedEvent(ctx, userId, 'dream_completed', args.id, {
+      title: dream.title,
+      category: dream.category,
+    });
+
     return { xpAwarded: xpReward + badgeXp, newBadge };
   },
 });
 
 // Save reflection on a completed dream
-export const saveReflection = mutation({
+export const saveReflection = authMutation({
   args: { id: v.id('dreams'), reflection: v.string() },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-    const dream = await getOwnedDream(ctx, args.id, userId);
+    const dream = await getOwnedDream(ctx, args.id, ctx.user);
     if (dream.status !== 'completed') throw new Error('Dream must be completed to add reflection');
 
     const trimmed = requireText(args.reflection, MAX_REFLECTION_LENGTH, 'Reflection');

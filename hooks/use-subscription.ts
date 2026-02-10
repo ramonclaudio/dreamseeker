@@ -54,18 +54,6 @@ export function useSubscription(): UseSubscriptionResult {
     }
   }, []);
 
-  const manageBilling = useCallback(async (): Promise<void> => {
-    try {
-      const info = await Purchases.getCustomerInfo();
-      if (info.managementURL) {
-        const { openURL } = await import('expo-linking');
-        await openURL(info.managementURL);
-      }
-    } catch (error) {
-      if (__DEV__) console.error('[Subscription] Manage billing failed:', error);
-    }
-  }, []);
-
   const showCustomerCenter = useCallback(async (): Promise<void> => {
     try {
       await RevenueCatUI.presentCustomerCenter();
@@ -77,7 +65,7 @@ export function useSubscription(): UseSubscriptionResult {
   return {
     tier: status?.tier ?? 'free',
     isPremium: status?.isPremium ?? false,
-    dreamLimit: status?.dreamLimit ?? 3,
+    dreamLimit: status?.dreamLimit ?? null,
     dreamCount: status?.dreamCount ?? 0,
     canCreateDream: status?.canCreateDream ?? true,
     dreamsRemaining: status?.dreamsRemaining ?? null,

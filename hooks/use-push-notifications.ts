@@ -34,13 +34,7 @@ async function getOrCreateDeviceId(): Promise<string> {
   const stored = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (stored) return stored;
 
-  let deviceId: string;
-  if (process.env.EXPO_OS === "ios") {
-    deviceId = (await Application.getIosIdForVendorAsync()) ?? crypto.randomUUID();
-  } else {
-    deviceId = Application.getAndroidId() ?? crypto.randomUUID();
-  }
-
+  const deviceId = (await Application.getIosIdForVendorAsync()) ?? crypto.randomUUID();
   await SecureStore.setItemAsync(DEVICE_ID_KEY, deviceId);
   return deviceId;
 }
@@ -51,20 +45,11 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     return null;
   }
 
-  if (process.env.EXPO_OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "Default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#7b8d9e",
-    });
-  }
-
   const permissionResponse = await Notifications.getPermissionsAsync();
   let finalStatus = permissionResponse.status;
 
   // Check iOS-specific status for granular permission handling
-  if (process.env.EXPO_OS === "ios" && permissionResponse.ios) {
+  if (permissionResponse.ios) {
     const iosStatus = permissionResponse.ios.status;
     if (iosStatus === Notifications.IosAuthorizationStatus.DENIED) {
       if (__DEV__) console.log("[Push] iOS permission denied");
@@ -124,12 +109,9 @@ export function usePushNotifications() {
       const token = await registerForPushNotificationsAsync();
       if (!token) return;
 
-      const platform = process.env.EXPO_OS;
-      if (platform !== "ios" && platform !== "android") return;
-
       if (token !== lastTokenRef.current) {
         const deviceId = await getOrCreateDeviceId();
-        await savePushToken({ token, platform, deviceId });
+        await savePushToken({ token, platform: "ios", deviceId });
         lastTokenRef.current = token;
         if (__DEV__) console.log("[Push] Token saved");
       }

@@ -88,7 +88,7 @@ export function DailyChallengeCard({
           style={({ pressed }) => ({
             backgroundColor: isCompleted
               ? colors.success
-              : colors.accentBlue,
+              : colors.accent,
             padding: Spacing.lg,
             alignItems: "center",
             opacity: pressed ? 0.8 : 1,

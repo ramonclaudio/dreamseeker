@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { View, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
@@ -23,11 +23,11 @@ type TabConfig = {
 const TAB_CONFIG: Record<string, TabConfig> = {
   today: { label: "Today", icon: "house", selectedIcon: "house.fill" },
   "(dreams)": { label: "Dreams", icon: "star", selectedIcon: "star.fill" },
-  journal: { label: "Journal", icon: "book", selectedIcon: "book.fill" },
+  boards: { label: "Boards", icon: "square.grid.2x2", selectedIcon: "square.grid.2x2" },
   progress: { label: "Progress", icon: "flame", selectedIcon: "flame.fill" },
 };
 
-const TAB_ORDER = ["today", "(dreams)", "journal", "progress"];
+const TAB_ORDER = ["today", "(dreams)", "boards", "progress"];
 
 type CreateMenuOption = {
   icon: IconSymbolName;
@@ -36,9 +36,11 @@ type CreateMenuOption = {
 };
 
 const CREATE_MENU_OPTIONS: CreateMenuOption[] = [
-  { icon: "sparkles", label: "New Dream", route: "/(app)/create-dream" },
-  { icon: "book", label: "Journal Entry", route: "/(app)/journal-entry" },
-  { icon: "timer", label: "Focus Session", route: "/(app)/focus-timer" },
+  { icon: "sparkles", label: "Dream", route: "/(app)/create-dream" },
+  { icon: "checkmark.circle.fill", label: "Action", route: "/(app)/create-action" },
+  { icon: "timer", label: "Focus", route: "/(app)/focus-timer" },
+  { icon: "book.fill", label: "Journal", route: "/(app)/journal-entry" },
+  { icon: "pin.fill", label: "Pin", route: "/(app)/(tabs)/boards?create=true" },
 ];
 
 function TabItem({
@@ -148,7 +150,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const badgeMap: Record<string, string | null> = {
     today: badges.today,
     "(dreams)": badges.dreams,
-    journal: badges.journal,
+    boards: badges.boards,
     progress: badges.progress,
   };
 
@@ -188,7 +190,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               onPress={() => {
                 haptics.light();
                 setShowCreateMenu(false);
-                router.push(option.route as any);
+                router.push(option.route as Href);
               }}
             >
               <IconSymbol name={option.icon} size={20} color={colors.foreground} />
@@ -228,7 +230,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           }}
           accessibilityRole="button"
           accessibilityLabel="Create menu"
-          accessibilityHint="Opens menu to create dream, journal entry, or focus session"
+          accessibilityHint="Opens menu to create dream or focus session"
           accessibilityState={{ expanded: showCreateMenu }}
           style={({ pressed }) => [
             styles.createButton,
@@ -266,7 +268,7 @@ export default function TabLayout() {
       {TAB_ORDER.map((name) => (
         <Tabs.Screen key={name} name={name} />
       ))}
-      <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="dashboard" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,19 +1,66 @@
-import { query, mutation } from './_generated/server';
-import type { QueryCtx } from './_generated/server';
+import type { QueryCtx, MutationCtx } from './_generated/server';
+import type { Doc } from './_generated/dataModel';
 import { v } from 'convex/values';
-import {
-  getAuthUserId,
-  requireAuth,
-  createDefaultProgress,
-} from './helpers';
+import { authQuery, authMutation } from './functions';
 import { getTodayString, getYesterdayString, getStartOfDay, timestampToDateString } from './dates';
-import { getLevelFromXp, getXpToNextLevel } from './constants';
+import { getLevelFromXp, getXpToNextLevel, XP_REWARDS, DREAM_CATEGORIES, STREAK_XP_REWARDS } from './constants';
 
-export const getProgress = query({
+// ── Shared Helpers ──────────────────────────────────────────────────────────
+
+/** Compute date cutoffs for a given timezone and lookback window. */
+function getDateRange(timezone: string, days: number) {
+  const todayStr = getTodayString(timezone);
+  const cutoffDate = new Date(todayStr);
+  cutoffDate.setDate(cutoffDate.getDate() - days + 1);
+  const cutoffStr = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(cutoffDate);
+  const cutoffMs = getStartOfDay(timezone) - (days - 1) * 24 * 60 * 60 * 1000;
+  return { todayStr, cutoffStr, cutoffMs };
+}
+
+/** Validate a streak against today/yesterday — returns 0 if broken. */
+function validateCurrentStreak(
+  progress: Pick<Doc<'userProgress'>, 'currentStreak' | 'lastActiveDate'> | null,
+  timezone: string,
+  todayStr?: string,
+): number {
+  if (!progress) return 0;
+  const today = todayStr ?? getTodayString(timezone);
+  const yesterday = getYesterdayString(timezone);
+  if (progress.lastActiveDate !== today && progress.lastActiveDate !== yesterday) return 0;
+  return progress.currentStreak;
+}
+
+// ── Progress Utilities (moved from helpers.ts) ──────────────────────────────
+
+export function createDefaultProgress(
+  userId: string,
+  overrides?: {
+    totalXp?: number;
+    level?: number;
+    currentStreak?: number;
+    longestStreak?: number;
+    dreamsCompleted?: number;
+    actionsCompleted?: number;
+    timezone?: string;
+  }
+) {
+  return {
+    userId,
+    totalXp: overrides?.totalXp ?? 0,
+    level: overrides?.level ?? 1,
+    currentStreak: overrides?.currentStreak ?? 0,
+    longestStreak: overrides?.longestStreak ?? 0,
+    lastActiveDate: getTodayString(overrides?.timezone ?? 'UTC'),
+    dreamsCompleted: overrides?.dreamsCompleted ?? 0,
+    actionsCompleted: overrides?.actionsCompleted ?? 0,
+  };
+}
+
+// ── Queries ─────────────────────────────────────────────────────────────────
+
+export const getProgress = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-
     const defaultProgress = {
       totalXp: 0,
       level: 1,
@@ -27,11 +74,11 @@ export const getProgress = query({
       streakMilestones: [] as number[],
     };
 
-    if (!userId) return defaultProgress;
+    if (!ctx.user) return defaultProgress;
 
     const progress = await ctx.db
       .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user!))
       .first();
 
     if (!progress) return defaultProgress;
@@ -40,20 +87,11 @@ export const getProgress = query({
     const { current, needed, progress: xpProgress } = getXpToNextLevel(progress.totalXp);
     const xpToNextLevel = Math.max(0, needed - current);
 
-    // Check if streak is still valid (user was active yesterday or today)
-    const today = getTodayString(args.timezone);
-    const yesterday = getYesterdayString(args.timezone);
-
-    let currentStreak = progress.currentStreak;
-    if (progress.lastActiveDate !== today && progress.lastActiveDate !== yesterday) {
-      currentStreak = 0; // Streak broken
-    }
-
     return {
       totalXp: progress.totalXp,
       level: currentLevel.level,
       levelTitle: currentLevel.title,
-      currentStreak,
+      currentStreak: validateCurrentStreak(progress, args.timezone),
       longestStreak: progress.longestStreak,
       dreamsCompleted: progress.dreamsCompleted,
       actionsCompleted: progress.actionsCompleted,
@@ -64,164 +102,123 @@ export const getProgress = query({
   },
 });
 
-// ── Weekly Activity Helpers ─────────────────────────────────────────────────
-
-/** Tally completed (non-archived) actions within the cutoff window. */
-async function tallyCompletedActions(
-  ctx: QueryCtx,
-  userId: string,
-  cutoff: number,
-  timezone: string,
-  activity: Record<string, number>
-) {
-  const actions = await ctx.db
-    .query('actions')
-    .withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true))
-    .filter((q) =>
-      q.and(
-        q.gte(q.field('completedAt'), cutoff),
-        q.neq(q.field('status'), 'archived')
-      )
-    )
-    .collect();
-
-  for (const action of actions) {
-    if (action.completedAt) {
-      addToActivity(activity, timestampToDateString(action.completedAt, timezone));
-    }
-  }
-}
-
-/** Tally date-indexed records (checkIns, journalEntries) within the cutoff date. */
-async function tallyDateIndexedRecords(
-  ctx: QueryCtx,
-  table: 'checkIns' | 'journalEntries',
-  userId: string,
-  cutoffDate: string,
-  activity: Record<string, number>
-) {
-  const records = await ctx.db
-    .query(table)
-    .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffDate))
-    .collect();
-
-  for (const record of records) {
-    addToActivity(activity, record.date);
-  }
-}
-
-/** Tally focus sessions within the cutoff. */
-async function tallyFocusSessions(
-  ctx: QueryCtx,
-  userId: string,
-  cutoff: number,
-  timezone: string,
-  activity: Record<string, number>
-) {
-  const records = await ctx.db
-    .query('focusSessions')
-    .withIndex('by_user_completedAt', (q) => q.eq('userId', userId).gte('completedAt', cutoff))
-    .collect();
-
-  for (const record of records) {
-    addToActivity(activity, timestampToDateString(record.completedAt, timezone));
-  }
-}
-
-/** Tally challenge completions within the cutoff. */
-async function tallyChallengeCompletions(
-  ctx: QueryCtx,
-  userId: string,
-  cutoff: number,
-  timezone: string,
-  activity: Record<string, number>
-) {
-  const records = await ctx.db
-    .query('challengeCompletions')
-    .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', cutoff))
-    .collect();
-
-  for (const record of records) {
-    addToActivity(activity, timestampToDateString(record.completedAt, timezone));
-  }
-}
+// ── Unified Activity Tally ──────────────────────────────────────────────────
 
 function addToActivity(activity: Record<string, number>, date: string) {
   activity[date] = (activity[date] ?? 0) + 1;
 }
 
-export const getWeeklyActivity = query({
+/** Tally all activity types into a single date-keyed map. */
+async function tallyActivity(
+  ctx: QueryCtx,
+  userId: string,
+  timezone: string,
+  cutoffMs: number,
+  _cutoffStr: string,
+) {
+  const activity: Record<string, number> = {};
+
+  // Completed actions (timestamp-based, exclude archived)
+  const allCompleted = await ctx.db
+    .query('actions')
+    .withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true))
+    .collect();
+  for (const a of allCompleted) {
+    if (a.completedAt && a.completedAt >= cutoffMs && a.status !== 'archived') {
+      addToActivity(activity, timestampToDateString(a.completedAt, timezone));
+    }
+  }
+
+  // Journal entries (date-indexed)
+  const journals = await ctx.db
+    .query('journalEntries')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+  for (const j of journals) {
+    if (j.createdAt >= cutoffMs) addToActivity(activity, timestampToDateString(j.createdAt, timezone));
+  }
+
+  // Focus sessions (timestamp-based)
+  const sessions = await ctx.db
+    .query('focusSessions')
+    .withIndex('by_user_completedAt', (q) => q.eq('userId', userId).gte('completedAt', cutoffMs))
+    .collect();
+  for (const s of sessions) addToActivity(activity, timestampToDateString(s.completedAt, timezone));
+
+  // Challenge completions (timestamp-based)
+  const completions = await ctx.db
+    .query('challengeCompletions')
+    .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('completedAt', cutoffMs))
+    .collect();
+  for (const c of completions) addToActivity(activity, timestampToDateString(c.completedAt, timezone));
+
+  // Dream creation
+  const dreams = await ctx.db
+    .query('dreams')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+  for (const d of dreams) {
+    if (d.createdAt >= cutoffMs) addToActivity(activity, timestampToDateString(d.createdAt, timezone));
+    if (d.completedAt && d.completedAt >= cutoffMs) addToActivity(activity, timestampToDateString(d.completedAt, timezone));
+  }
+
+  // Pin creation
+  const pins = await ctx.db
+    .query('pins')
+    .withIndex('by_user_created', (q) => q.eq('userId', userId).gte('createdAt', cutoffMs))
+    .collect();
+  for (const p of pins) addToActivity(activity, timestampToDateString(p.createdAt, timezone));
+
+  return activity;
+}
+
+export const getWeeklyActivity = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return {};
-
-    const todayStr = getTodayString(args.timezone);
-    const sevenDaysAgo = new Date(todayStr);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    const cutoffDate = new Intl.DateTimeFormat('en-CA', { timeZone: args.timezone }).format(sevenDaysAgo);
-    const cutoff = getStartOfDay(args.timezone) - 6 * 24 * 60 * 60 * 1000;
-
-    const activity: Record<string, number> = {};
-
-    await tallyCompletedActions(ctx, userId, cutoff, args.timezone, activity);
-    await tallyDateIndexedRecords(ctx, 'checkIns', userId, cutoffDate, activity);
-    await tallyDateIndexedRecords(ctx, 'journalEntries', userId, cutoffDate, activity);
-    await tallyFocusSessions(ctx, userId, cutoff, args.timezone, activity);
-    await tallyChallengeCompletions(ctx, userId, cutoff, args.timezone, activity);
-
-    return activity;
+    if (!ctx.user) return {};
+    const { cutoffMs, cutoffStr } = getDateRange(args.timezone, 7);
+    return tallyActivity(ctx, ctx.user, args.timezone, cutoffMs, cutoffStr);
   },
 });
 
-export const initialize = mutation({
+export const initialize = authMutation({
   args: { timezone: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const userId = await requireAuth(ctx);
-
     const existing = await ctx.db
       .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user))
       .first();
 
     if (existing) return existing._id;
 
-    return await ctx.db.insert('userProgress', createDefaultProgress(userId, {
+    return await ctx.db.insert('userProgress', createDefaultProgress(ctx.user, {
       timezone: args.timezone ?? 'UTC',
     }));
   },
 });
 
-// ── Weekly Summary ─────────────────────────────────────────────────
+// ── Weekly Summary ──────────────────────────────────────────────────────────
 
-export const getWeeklySummary = query({
+export const getWeeklySummary = authQuery({
   args: { timezone: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return { actionsCompleted: 0, journalEntries: 0, currentStreak: 0, xpEarned: 0 };
-
-    const todayStr = getTodayString(args.timezone);
-    const sevenDaysAgo = new Date(todayStr);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    const cutoffDate = new Intl.DateTimeFormat('en-CA', { timeZone: args.timezone }).format(sevenDaysAgo);
-    const cutoff = getStartOfDay(args.timezone) - 6 * 24 * 60 * 60 * 1000;
+    if (!ctx.user) return { actionsCompleted: 0, journalEntries: 0, currentStreak: 0, xpEarned: 0 };
+    const userId = ctx.user;
+    const { todayStr, cutoffStr, cutoffMs } = getDateRange(args.timezone, 7);
 
     // Count completed actions this week
-    const actions = await ctx.db
+    const allCompleted = await ctx.db
       .query('actions')
       .withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true))
-      .filter((q) =>
-        q.and(
-          q.gte(q.field('completedAt'), cutoff),
-          q.neq(q.field('status'), 'archived')
-        )
-      )
       .collect();
+    const actions = allCompleted.filter(
+      (a) => a.completedAt && a.completedAt >= cutoffMs && a.status !== 'archived'
+    );
 
     // Count journal entries this week
     const journals = await ctx.db
       .query('journalEntries')
-      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffDate))
+      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffStr))
       .collect();
 
     // Get current streak
@@ -230,86 +227,409 @@ export const getWeeklySummary = query({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
-    const yesterday = getYesterdayString(args.timezone);
-    let currentStreak = progress?.currentStreak ?? 0;
+    // Calculate XP earned this week using constants
+    const xpFromActions = actions.length * XP_REWARDS.actionComplete;
+    const xpFromJournals = journals.length * XP_REWARDS.journalEntry;
 
-    // Validate streak (same as getProgress)
-    if (progress && progress.lastActiveDate !== todayStr && progress.lastActiveDate !== yesterday) {
-      currentStreak = 0;
-    }
-
-    // Calculate XP earned this week
-    // Each action = 10 XP, each journal = 10 XP
-    const xpFromActions = actions.length * 10;
-    const xpFromJournals = journals.length * 10;
-
-    // Count check-ins this week (5 XP each)
     const checkIns = await ctx.db
       .query('checkIns')
-      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffDate))
+      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffStr))
       .collect();
-    const xpFromCheckIns = checkIns.length * 5;
+    const xpFromCheckIns = checkIns.length * XP_REWARDS.checkIn;
 
-    // Count focus sessions this week (15 XP each)
     const focusSessions = await ctx.db
       .query('focusSessions')
-      .withIndex('by_user_completedAt', (q) => q.eq('userId', userId).gte('completedAt', cutoff))
+      .withIndex('by_user_completedAt', (q) => q.eq('userId', userId).gte('completedAt', cutoffMs))
       .collect();
-    const xpFromFocus = focusSessions.length * 15;
-
-    const xpEarned = xpFromActions + xpFromJournals + xpFromCheckIns + xpFromFocus;
+    const xpFromFocus = focusSessions.length * XP_REWARDS.focusSession;
 
     return {
       actionsCompleted: actions.length,
       journalEntries: journals.length,
-      currentStreak,
-      xpEarned,
+      currentStreak: validateCurrentStreak(progress, args.timezone, todayStr),
+      xpEarned: xpFromActions + xpFromJournals + xpFromCheckIns + xpFromFocus,
     };
   },
 });
 
-// ── Activity Heatmap Data ─────────────────────────────────────────────────
+// ── Activity Heatmap ────────────────────────────────────────────────────────
 
-export const getActivityHeatmap = query({
+export const getActivityHeatmap = authQuery({
   args: { timezone: v.string(), days: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return { activityData: {}, currentStreak: 0, longestStreak: 0 };
+    if (!ctx.user) return { activityData: {}, currentStreak: 0, longestStreak: 0 };
+    const userId = ctx.user;
 
-    const daysToFetch = args.days ?? 120; // Default to ~4 months
-    const todayStr = getTodayString(args.timezone);
-    const cutoffDate = new Date(todayStr);
-    cutoffDate.setDate(cutoffDate.getDate() - daysToFetch + 1);
-    const cutoffDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: args.timezone }).format(cutoffDate);
-    const cutoff = getStartOfDay(args.timezone) - (daysToFetch - 1) * 24 * 60 * 60 * 1000;
+    const daysToFetch = args.days ?? 120;
+    const { todayStr, cutoffStr, cutoffMs } = getDateRange(args.timezone, daysToFetch);
 
-    const activity: Record<string, number> = {};
+    const activityData = await tallyActivity(ctx, userId, args.timezone, cutoffMs, cutoffStr);
 
-    // Tally all activity types
-    await tallyCompletedActions(ctx, userId, cutoff, args.timezone, activity);
-    await tallyDateIndexedRecords(ctx, 'checkIns', userId, cutoffDateStr, activity);
-    await tallyDateIndexedRecords(ctx, 'journalEntries', userId, cutoffDateStr, activity);
-    await tallyFocusSessions(ctx, userId, cutoff, args.timezone, activity);
-    await tallyChallengeCompletions(ctx, userId, cutoff, args.timezone, activity);
-
-    // Get streaks from userProgress
     const progress = await ctx.db
       .query('userProgress')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
 
-    const yesterday = getYesterdayString(args.timezone);
-    let currentStreak = progress?.currentStreak ?? 0;
-
-    // Validate streak (same as getProgress)
-    if (progress && progress.lastActiveDate !== todayStr && progress.lastActiveDate !== yesterday) {
-      currentStreak = 0;
-    }
-
     return {
-      activityData: activity,
-      currentStreak,
+      activityData,
+      currentStreak: validateCurrentStreak(progress, args.timezone, todayStr),
       longestStreak: progress?.longestStreak ?? 0,
     };
+  },
+});
+
+// ── Recalculate Progress ────────────────────────────────────────────────────
+// Recomputes totalXp, dreamsCompleted, actionsCompleted from actual source data.
+// Call when counters drift (e.g. after deletion).
+
+/** Count all activity and compute total XP from source data. */
+async function countAndSumProgress(ctx: MutationCtx, userId: string) {
+  const completedDreams = await ctx.db
+    .query('dreams')
+    .withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'completed'))
+    .collect();
+
+  const allCompletedActions = await ctx.db
+    .query('actions')
+    .withIndex('by_user_completed', (q) => q.eq('userId', userId).eq('isCompleted', true))
+    .collect();
+  const activeCompletedActions = allCompletedActions.filter((a) => a.status !== 'archived');
+
+  const journals = await ctx.db
+    .query('journalEntries')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+
+  const checkIns = await ctx.db
+    .query('checkIns')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+
+  const focusSessions = await ctx.db
+    .query('focusSessions')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+
+  // Batch-load challenge XP via collect() + Map instead of N+1 queries
+  const challengeCompletions = await ctx.db
+    .query('challengeCompletions')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+  const challengeIds = [...new Set(challengeCompletions.map((c) => c.challengeId))];
+  const challenges = await Promise.all(challengeIds.map((id) => ctx.db.get(id)));
+  const challengeXpMap = new Map(
+    challenges.filter(Boolean).map((c) => [c!._id, c!.xpReward])
+  );
+  let challengeXp = 0;
+  for (const c of challengeCompletions) {
+    challengeXp += challengeXpMap.get(c.challengeId) ?? 0;
+  }
+
+  // Batch-load badge XP via collect() + Map instead of N+1 queries
+  const userBadges = await ctx.db
+    .query('userBadges')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+  const badgeKeys = [...new Set(userBadges.map((ub) => ub.badgeKey))];
+  const badgeDefs = await Promise.all(
+    badgeKeys.map((key) =>
+      ctx.db.query('badgeDefinitions').withIndex('by_key', (q) => q.eq('key', key)).first()
+    )
+  );
+  const badgeXpMap = new Map(
+    badgeDefs.filter(Boolean).map((b) => [b!.key, b!.xpReward])
+  );
+  let badgeXp = 0;
+  for (const ub of userBadges) {
+    badgeXp += badgeXpMap.get(ub.badgeKey) ?? 0;
+  }
+
+  // Onboarding XP: check if user completed onboarding
+  const prefs = await ctx.db
+    .query('userPreferences')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
+  const onboardingXp = prefs?.onboardingCompleted ? XP_REWARDS.onboardingComplete : 0;
+
+  // Streak milestone XP: sum XP from claimed milestones on the progress doc
+  const progress = await ctx.db
+    .query('userProgress')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
+  let streakMilestoneXp = 0;
+  if (progress?.streakMilestones) {
+    for (const milestone of progress.streakMilestones) {
+      streakMilestoneXp += STREAK_XP_REWARDS[milestone] ?? 0;
+    }
+  }
+
+  const totalXp =
+    activeCompletedActions.length * XP_REWARDS.actionComplete +
+    completedDreams.length * XP_REWARDS.dreamComplete +
+    journals.length * XP_REWARDS.journalEntry +
+    checkIns.length * XP_REWARDS.checkIn +
+    focusSessions.length * XP_REWARDS.focusSession +
+    challengeXp +
+    badgeXp +
+    onboardingXp +
+    streakMilestoneXp;
+
+  const counts = {
+    completedDreams: completedDreams.length,
+    activeCompletedActions: activeCompletedActions.length,
+    journals: journals.length,
+    checkIns: checkIns.length,
+    focusSessions: focusSessions.length,
+    challengeCompletions: challengeCompletions.length,
+    userBadges: userBadges.length,
+  };
+
+  const hasAnyData = Object.values(counts).some((n) => n > 0);
+
+  return { totalXp, counts, hasAnyData, userBadges };
+}
+
+/** Validate streak and reset if no activity data remains. */
+function validateAndResetStreak(
+  progress: Doc<'userProgress'>,
+  hasAnyData: boolean,
+  timezone: string,
+) {
+  const today = getTodayString(timezone);
+  const yesterday = getYesterdayString(timezone);
+  let currentStreak = progress.currentStreak;
+  let longestStreak = progress.longestStreak;
+
+  if (!hasAnyData) {
+    currentStreak = 0;
+    longestStreak = 0;
+  } else if (progress.lastActiveDate !== today && progress.lastActiveDate !== yesterday) {
+    currentStreak = 0;
+  }
+
+  return { currentStreak, longestStreak };
+}
+
+/** Clean up orphaned feed events and badges when all activity is deleted. */
+async function cleanupOrphans(
+  ctx: MutationCtx,
+  userId: string,
+  userBadges: Doc<'userBadges'>[],
+) {
+  const orphanedEvents = await ctx.db
+    .query('activityFeed')
+    .withIndex('by_user_created', (q) => q.eq('userId', userId))
+    .collect();
+
+  for (const event of orphanedEvents) {
+    await ctx.db.delete(event._id);
+  }
+
+  for (const ub of userBadges) {
+    await ctx.db.delete(ub._id);
+  }
+}
+
+export async function recalculateUserProgress(
+  ctx: MutationCtx,
+  userId: string,
+  timezone: string
+) {
+  const progress = await ctx.db
+    .query('userProgress')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
+  if (!progress) return null;
+
+  const { totalXp, counts, hasAnyData, userBadges } = await countAndSumProgress(ctx, userId);
+  const { currentStreak, longestStreak } = validateAndResetStreak(progress, hasAnyData, timezone);
+
+  await ctx.db.patch(progress._id, {
+    totalXp,
+    level: getLevelFromXp(totalXp).level,
+    dreamsCompleted: counts.completedDreams,
+    actionsCompleted: counts.activeCompletedActions,
+    currentStreak,
+    longestStreak,
+    ...(hasAnyData ? {} : { streakMilestones: [] }),
+  });
+
+  if (!hasAnyData) {
+    await cleanupOrphans(ctx, userId, userBadges);
+  }
+
+  return { totalXp, dreamsCompleted: counts.completedDreams, actionsCompleted: counts.activeCompletedActions };
+}
+
+export const recalculate = authMutation({
+  args: { timezone: v.string() },
+  handler: async (ctx, args) => {
+    return recalculateUserProgress(ctx, ctx.user, args.timezone);
+  },
+});
+
+// ── Activity Feed ──────────────────────────────────────────────────────────
+
+const MOOD_LABELS: Record<string, string> = {
+  great: 'Feeling great',
+  good: 'Feeling good',
+  okay: 'Feeling okay',
+  tough: 'Tough day',
+};
+
+export const getActivityFeed = authQuery({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const user = ctx.user;
+    if (!user) return [];
+
+    const limit = args.limit ?? 20;
+    // Fetch more than needed from each source to improve merge quality
+    const perSource = limit * 2;
+
+    type FeedItem = {
+      type: string;
+      title: string;
+      subtitle?: string;
+      icon: string;
+      timestamp: number;
+      category?: string;
+    };
+
+    const events: FeedItem[] = [];
+
+    // Dreams — created and completed
+    const dreams = await ctx.db
+      .query('dreams')
+      .withIndex('by_user', (q) => q.eq('userId', user))
+      .order('desc')
+      .take(perSource);
+
+    for (const dream of dreams) {
+      const cat = DREAM_CATEGORIES[dream.category as keyof typeof DREAM_CATEGORIES];
+      events.push({
+        type: 'dream_created',
+        title: dream.title,
+        subtitle: cat?.label,
+        icon: dream.category === 'custom'
+          ? (dream.customCategoryIcon ?? cat?.icon ?? 'star.fill')
+          : (cat?.icon ?? 'star.fill'),
+        timestamp: dream.createdAt,
+        category: dream.category,
+      });
+      if (dream.status === 'completed' && dream.completedAt) {
+        events.push({
+          type: 'dream_completed',
+          title: dream.title,
+          subtitle: 'Dream achieved!',
+          icon: 'trophy.fill',
+          timestamp: dream.completedAt,
+          category: dream.category,
+        });
+      }
+    }
+
+    // Actions — completed only
+    const completedActions = await ctx.db
+      .query('actions')
+      .withIndex('by_user_completed', (q) => q.eq('userId', user).eq('isCompleted', true))
+      .order('desc')
+      .take(perSource);
+
+    // Batch-load dream titles for actions
+    const actionDreamIds = [...new Set(completedActions.map((a) => a.dreamId))];
+    const actionDreams = await Promise.all(actionDreamIds.map((id) => ctx.db.get(id)));
+    const dreamTitleMap = new Map(
+      actionDreams.filter(Boolean).map((d) => [d!._id, d!.title]),
+    );
+
+    for (const action of completedActions) {
+      if (!action.completedAt || action.status === 'archived') continue;
+      events.push({
+        type: 'action_completed',
+        title: action.text,
+        subtitle: dreamTitleMap.get(action.dreamId),
+        icon: 'checkmark.circle.fill',
+        timestamp: action.completedAt,
+      });
+    }
+
+    // Journal entries
+    const journals = await ctx.db
+      .query('journalEntries')
+      .withIndex('by_user', (q) => q.eq('userId', user))
+      .order('desc')
+      .take(perSource);
+
+    for (const entry of journals) {
+      events.push({
+        type: 'journal_created',
+        title: entry.title,
+        subtitle: entry.mood ? MOOD_LABELS[entry.mood] : undefined,
+        icon: 'book.fill',
+        timestamp: entry.createdAt,
+      });
+    }
+
+    // Badges earned
+    const badges = await ctx.db
+      .query('userBadges')
+      .withIndex('by_user', (q) => q.eq('userId', user))
+      .order('desc')
+      .take(perSource);
+
+    // Batch-load badge definitions
+    const badgeKeys = [...new Set(badges.map((b) => b.badgeKey))];
+    const badgeDefs = await Promise.all(
+      badgeKeys.map((key) =>
+        ctx.db.query('badgeDefinitions').withIndex('by_key', (q) => q.eq('key', key)).first(),
+      ),
+    );
+    const badgeDefMap = new Map(
+      badgeDefs.filter(Boolean).map((b) => [b!.key, b!]),
+    );
+
+    for (const badge of badges) {
+      const def = badgeDefMap.get(badge.badgeKey);
+      if (!def) continue;
+      events.push({
+        type: 'badge_earned',
+        title: def.title,
+        subtitle: def.description,
+        icon: def.icon,
+        timestamp: badge.earnedAt,
+      });
+    }
+
+    // Focus sessions
+    const sessions = await ctx.db
+      .query('focusSessions')
+      .withIndex('by_user', (q) => q.eq('userId', user))
+      .order('desc')
+      .take(perSource);
+
+    // Batch-load dream titles for focus sessions
+    const sessionDreamIds = [...new Set(
+      sessions.filter((s) => s.dreamId).map((s) => s.dreamId!),
+    )];
+    const sessionDreams = await Promise.all(sessionDreamIds.map((id) => ctx.db.get(id)));
+    const sessionDreamMap = new Map(
+      sessionDreams.filter(Boolean).map((d) => [d!._id, d!.title]),
+    );
+
+    for (const session of sessions) {
+      const mins = Math.round(session.duration / 60);
+      events.push({
+        type: 'focus_completed',
+        title: `${mins}min focus session`,
+        subtitle: session.dreamId ? sessionDreamMap.get(session.dreamId) : undefined,
+        icon: 'timer',
+        timestamp: session.completedAt,
+      });
+    }
+
+    // Sort by timestamp descending and take limit
+    events.sort((a, b) => b.timestamp - a.timestamp);
+    return events.slice(0, limit);
   },
 });
