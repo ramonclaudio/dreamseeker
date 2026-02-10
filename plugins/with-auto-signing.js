@@ -6,6 +6,9 @@ const { withXcodeProject } = require('@expo/config-plugins');
  * with manual signing, causing device builds to fail.
  */
 const withAutoSigning = (config) => {
+  // Skip on EAS Build — EAS manages code signing with remote credentials
+  if (process.env.EAS_BUILD) return config;
+
   return withXcodeProject(config, async (config) => {
     const xcodeProject = config.modResults;
 
