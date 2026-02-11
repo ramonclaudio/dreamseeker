@@ -1,16 +1,18 @@
-/* eslint-disable expo/no-dynamic-env-var -- Env vars are validated at startup, keys are hardcoded below */
-const required = (key: string): string => {
-  const value = process.env[key];
-  if (!value) throw new Error(`Missing required env var: ${key}`);
-  return value;
-};
+// Static references required — Expo only inlines process.env.EXPO_PUBLIC_* when
+// accessed as literal member expressions. Dynamic process.env[key] is NOT replaced
+// at build time, leaving them undefined in production bundles.
 
-const optional = (key: string): string | undefined => process.env[key];
-/* eslint-enable expo/no-dynamic-env-var */
+const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
+const convexSiteUrl = process.env.EXPO_PUBLIC_CONVEX_SITE_URL;
+const siteUrl = process.env.EXPO_PUBLIC_SITE_URL;
+
+if (!convexUrl) throw new Error('Missing required env var: EXPO_PUBLIC_CONVEX_URL');
+if (!convexSiteUrl) throw new Error('Missing required env var: EXPO_PUBLIC_CONVEX_SITE_URL');
+if (!siteUrl) throw new Error('Missing required env var: EXPO_PUBLIC_SITE_URL');
 
 export const env = {
-  convexUrl: required('EXPO_PUBLIC_CONVEX_URL'),
-  convexSiteUrl: required('EXPO_PUBLIC_CONVEX_SITE_URL'),
-  siteUrl: required('EXPO_PUBLIC_SITE_URL'),
-  revenuecatAppleApiKey: optional('EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY'),
+  convexUrl,
+  convexSiteUrl,
+  siteUrl,
+  revenuecatAppleApiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY,
 } as const;
