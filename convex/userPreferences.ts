@@ -4,16 +4,11 @@ import { v } from 'convex/values';
 import { assertDreamLimit, awardXp } from './helpers';
 import {
   dreamCategoryValidator,
-  paceValidator,
-  confidenceValidator,
-  personalityValidator,
-  motivationValidator,
   XP_REWARDS,
   MAX_TITLE_LENGTH,
   MAX_WHY_LENGTH,
 } from './constants';
 import type { DreamCategory } from './constants';
-import { checkAndAwardBadge, applyBadgeXp } from './badgeChecks';
 
 export const getOnboardingStatus = authQuery({
   args: {},
@@ -62,12 +57,8 @@ async function createInitialDream(
 
 export const completeOnboarding = authMutation({
   args: {
-    selectedCategories: v.array(dreamCategoryValidator),
-    pace: paceValidator,
-    confidence: v.optional(confidenceValidator),
-    personality: v.optional(personalityValidator),
-    motivations: v.optional(v.array(motivationValidator)),
-    notificationTime: v.optional(v.string()),
+    displayName: v.optional(v.string()),
+    selectedCategories: v.optional(v.array(dreamCategoryValidator)),
     firstDream: v.optional(
       v.object({
         title: v.string(),
@@ -77,13 +68,11 @@ export const completeOnboarding = authMutation({
     ),
   },
   handler: async (ctx, args) => {
-    if (args.selectedCategories.length === 0) throw new Error('At least one category is required');
-    if (args.selectedCategories.length > 6) throw new Error('Too many categories');
-    const uniqueCategories = [...new Set(args.selectedCategories)];
-
-    if (args.notificationTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(args.notificationTime)) {
-      throw new Error('Invalid notification time format');
-    }
+    const categories = args.selectedCategories?.length
+      ? [...new Set(args.selectedCategories)]
+      : args.firstDream
+        ? [args.firstDream.category]
+        : ['growth' as DreamCategory];
 
     const existing = await ctx.db
       .query('userPreferences')
@@ -96,25 +85,39 @@ export const completeOnboarding = authMutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         onboardingCompleted: true,
-        selectedCategories: uniqueCategories,
-        pace: args.pace,
-        confidence: args.confidence,
-        personality: args.personality,
-        motivations: args.motivations,
-        notificationTime: args.notificationTime,
+        selectedCategories: categories,
+        pace: 'steady',
       });
     } else {
       await ctx.db.insert('userPreferences', {
         userId: ctx.user,
         onboardingCompleted: true,
-        selectedCategories: uniqueCategories,
-        pace: args.pace,
-        confidence: args.confidence,
-        personality: args.personality,
-        motivations: args.motivations,
-        notificationTime: args.notificationTime,
+        selectedCategories: categories,
+        pace: 'steady',
         createdAt: Date.now(),
       });
+    }
+
+    // Upsert display name into userProfiles
+    if (args.displayName?.trim()) {
+      const trimmedName = args.displayName.trim();
+      const profile = await ctx.db
+        .query('userProfiles')
+        .withIndex('by_user', (q) => q.eq('userId', ctx.user))
+        .first();
+
+      if (profile) {
+        await ctx.db.patch(profile._id, { displayName: trimmedName });
+      } else {
+        const username = `user_${Date.now().toString(36)}`;
+        await ctx.db.insert('userProfiles', {
+          userId: ctx.user,
+          username,
+          displayName: trimmedName,
+          isPublic: false,
+          createdAt: Date.now(),
+        });
+      }
     }
 
     if (args.firstDream) {
@@ -123,13 +126,54 @@ export const completeOnboarding = authMutation({
 
     await awardXp(ctx, ctx.user, XP_REWARDS.onboardingComplete, { skipStreak: true });
 
-    // Check delusionally_confident badge
-    let badgeXp = 0;
-    if (args.confidence === 'not-confident') {
-      const result = await checkAndAwardBadge(ctx, ctx.user, 'delusionally_confident');
-      badgeXp += result.xpAwarded;
+    return { success: true };
+  },
+});
+
+export const skipOnboarding = authMutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query('userPreferences')
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user))
+      .first();
+
+    // Guard against double calls
+    if (existing?.onboardingCompleted) return { success: true };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        onboardingCompleted: true,
+        selectedCategories: ['growth'],
+        pace: 'steady',
+      });
+    } else {
+      await ctx.db.insert('userPreferences', {
+        userId: ctx.user,
+        onboardingCompleted: true,
+        selectedCategories: ['growth'],
+        pace: 'steady',
+        createdAt: Date.now(),
+      });
     }
-    await applyBadgeXp(ctx, ctx.user, badgeXp);
+
+    // No XP award for skipping
+
+    return { success: true };
+  },
+});
+
+export const resetOnboarding = authMutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query('userPreferences')
+      .withIndex('by_user', (q) => q.eq('userId', ctx.user))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { onboardingCompleted: false });
+    }
 
     return { success: true };
   },
