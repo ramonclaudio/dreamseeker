@@ -178,12 +178,11 @@ export const MAX_TAGS_COUNT = 20;
 export const FREE_JOURNAL_DAILY_LIMIT = 1;
 
 // Free tier limits (premium = unlimited)
-export const FREE_TIER_LIMIT = 25;
-export const FREE_MAX_DREAMS = FREE_TIER_LIMIT;
-export const FREE_MAX_ACTIONS_PER_DREAM = FREE_TIER_LIMIT;
-export const FREE_MAX_JOURNALS_PER_DREAM = FREE_TIER_LIMIT;
-export const FREE_MAX_PINS = FREE_TIER_LIMIT;
-export const FREE_MAX_COMMUNITY_PINS = 5;
+export const FREE_MAX_DREAMS = 3;
+export const FREE_MAX_ACTIONS_PER_DREAM = 5;
+export const FREE_MAX_JOURNALS_PER_DREAM = 3;
+export const FREE_MAX_PINS = 5;
+export const FREE_MAX_COMMUNITY_PINS = 0;
 
 export const MAX_WIN_TEXT = 500;
 export const MAX_RESOURCE_TITLE = 200;

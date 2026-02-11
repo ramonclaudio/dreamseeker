@@ -1,6 +1,6 @@
 export const TIERS = {
-  free: { name: 'Free', limit: null }, // Unlimited dreams — premium gates community only
-  premium: { name: 'Premium', limit: null }, // Unlimited dreams + community access
+  free: { name: 'Free', limit: 3 },
+  premium: { name: 'Premium', limit: null },
 } as const;
 
 export type TierKey = keyof typeof TIERS;

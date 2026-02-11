@@ -24,8 +24,8 @@ describe('Subscription Tiers', () => {
       expect(TIERS.free.name).toBe('Free');
     });
 
-    it('has unlimited dreams (null limit)', () => {
-      expect(TIERS.free.limit).toBeNull();
+    it('has 3-dream limit', () => {
+      expect(TIERS.free.limit).toBe(3);
     });
   });
 
@@ -49,9 +49,11 @@ describe('Subscription Tiers', () => {
   });
 
   describe('Dream limit logic', () => {
-    it('free tier always allows creation (unlimited)', () => {
-      const canCreate = TIERS.free.limit === null || 100 < TIERS.free.limit;
+    it('free tier blocks creation at limit', () => {
+      const canCreate = TIERS.free.limit === null || 2 < TIERS.free.limit;
       expect(canCreate).toBe(true);
+      const cannotCreate = TIERS.free.limit === null || 3 < TIERS.free.limit;
+      expect(cannotCreate).toBe(false);
     });
 
     it('premium tier always allows creation', () => {
