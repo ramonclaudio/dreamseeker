@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColors } from '@/hooks/use-color-scheme';
+import { useSubscription } from '@/hooks/use-subscription';
 import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import { DREAM_CATEGORIES, DREAM_CATEGORY_LIST, PIN_TAGS_MAX, PIN_TAG_LENGTH_MAX } from '@/convex/constants';
@@ -29,6 +30,7 @@ type CreatePinModalProps = {
 
 export function CreatePinModal({ visible, onClose, defaultPersonalOnly, editPin, boardId }: CreatePinModalProps) {
   const colors = useColors();
+  const { isPremium, showUpgrade } = useSubscription();
   const isEditing = !!editPin;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -149,8 +151,13 @@ export function CreatePinModal({ visible, onClose, defaultPersonalOnly, editPin,
       haptics.success();
       reset();
       onClose();
-    } catch {
+    } catch (e: any) {
       haptics.error();
+      if (e.message?.includes('FREE_PIN_LIMIT') || e.message?.includes('FREE_COMMUNITY_PIN_LIMIT')) {
+        reset();
+        onClose();
+        showUpgrade();
+      }
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
@@ -306,20 +313,22 @@ export function CreatePinModal({ visible, onClose, defaultPersonalOnly, editPin,
             </View>
           )}
 
-          {/* Community toggle */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleLabel}>
-              <ThemedText style={styles.toggleTitle}>Pin to community</ThemedText>
-              <ThemedText style={styles.toggleSubtitle} color={colors.mutedForeground}>
-                Others can see this pin
-              </ThemedText>
+          {/* Community toggle — premium only */}
+          {isPremium && (
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleLabel}>
+                <ThemedText style={styles.toggleTitle}>Pin to community</ThemedText>
+                <ThemedText style={styles.toggleSubtitle} color={colors.mutedForeground}>
+                  Others can see this pin
+                </ThemedText>
+              </View>
+              <Switch
+                value={!isPersonalOnly}
+                onValueChange={(v) => setIsPersonalOnly(!v)}
+                trackColor={{ true: colors.primary }}
+              />
             </View>
-            <Switch
-              value={!isPersonalOnly}
-              onValueChange={(v) => setIsPersonalOnly(!v)}
-              trackColor={{ true: colors.primary }}
-            />
-          </View>
+          )}
         </ScrollView>
 
         {/* Submit */}

@@ -13,6 +13,7 @@ import { FirstActionModal } from "@/components/engagement/first-action-modal";
 import { AllDoneOverlay } from "@/components/engagement/all-done-overlay";
 import { useColors } from "@/hooks/use-color-scheme";
 import { useToday } from "@/hooks/use-today";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Radius } from "@/constants/theme";
 import type { ColorPalette } from "@/constants/theme";
 import { Spacing, FontSize, MaxWidth, IconSize, TAB_BAR_CLEARANCE } from "@/constants/layout";
@@ -217,15 +218,23 @@ const ACTIONS: ActionItem[] = [
 ];
 
 function ActionGrid({ colors }: { colors: ColorPalette }) {
+  const { canCreateDream, showUpgrade } = useSubscription();
+
+  const handleAction = (a: ActionItem) => {
+    haptics.light();
+    if (a.id === 'dream' && !canCreateDream) {
+      showUpgrade();
+      return;
+    }
+    router.push(a.route as never);
+  };
+
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: Spacing.md, marginBottom: Spacing["3xl"] }}>
       {ACTIONS.map((a) => (
         <Pressable
           key={a.id}
-          onPress={() => {
-            haptics.light();
-            router.push(a.route as never);
-          }}
+          onPress={() => handleAction(a)}
           style={({ pressed }) => ({
             width: "47.5%" as unknown as number,
             flexGrow: 1,

@@ -12,11 +12,14 @@ import { ProgressSummaryCard } from "@/components/dreams/progress-summary-card";
 import { EmptyState } from "@/components/dreams/empty-state";
 import { CompactDreamRow } from "@/components/dreams/compact-dream-row";
 import { GoalsShareCard } from "@/components/share-cards/goals-share-card";
+import { UpgradeBanner } from "@/components/ui/upgrade-banner";
 import { useColors } from "@/hooks/use-color-scheme";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useShareCapture } from "@/hooks/use-share-capture";
 import { Spacing, MaxWidth, TAB_BAR_CLEARANCE } from "@/constants/layout";
 import { timezone } from "@/lib/timezone";
 import { haptics } from "@/lib/haptics";
+import { FREE_MAX_DREAMS } from "@/convex/constants";
 
 // ── Main Screen ──────────────────────────────────────────────────────────────
 
@@ -26,6 +29,7 @@ export default function DreamsScreen() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const isFocused = useIsFocused();
   const { viewShotRef, capture, isSharing } = useShareCapture();
+  const { showUpgrade, canCreateDream } = useSubscription();
 
   // Always active — needed for main UI
   const user = useQuery(api.auth.getCurrentUser, isAuthenticated ? {} : "skip");
@@ -49,6 +53,10 @@ export default function DreamsScreen() {
 
   const handleCreateDream = () => {
     haptics.light();
+    if (!canCreateDream) {
+      showUpgrade();
+      return;
+    }
     router.push("/(app)/create-dream/");
   };
 
@@ -113,9 +121,12 @@ export default function DreamsScreen() {
                 colors={colors}
               />
             ))}
+
+            {/* Upgrade banner when approaching/at dream limit */}
+            <UpgradeBanner used={dreams.length} limit={FREE_MAX_DREAMS} noun="Dreams" />
           </View>
         ) : (
-          <EmptyState colors={colors} />
+          <EmptyState colors={colors} canCreateDream={canCreateDream} onUpgrade={showUpgrade} />
         )}
       </ScrollView>
 

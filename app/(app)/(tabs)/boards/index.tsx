@@ -24,8 +24,9 @@ import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import type { ColorPalette } from '@/constants/theme';
 import { Opacity } from '@/constants/ui';
-import { DREAM_CATEGORIES } from '@/convex/constants';
+import { DREAM_CATEGORIES, FREE_MAX_PINS } from '@/convex/constants';
 import type { DreamCategory } from '@/convex/constants';
+import { UpgradeBanner } from '@/components/ui/upgrade-banner';
 import { haptics } from '@/lib/haptics';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -426,7 +427,7 @@ export default function BoardsScreen() {
       if (e.message?.includes('ALREADY_SAVED')) {
         Alert.alert('Already Saved', 'This pin is already in your boards.');
       } else if (e.message?.includes('FREE_PIN_LIMIT')) {
-        Alert.alert('Limit Reached', 'Upgrade to premium for unlimited pins.');
+        showUpgrade();
       } else {
         haptics.error();
       }
@@ -549,6 +550,10 @@ export default function BoardsScreen() {
               </ThemedText>
             </View>
           )}
+
+          <View style={{ paddingHorizontal: Spacing.lg, marginTop: Spacing.md }}>
+            <UpgradeBanner used={boardPinCount} limit={FREE_MAX_PINS} noun="Pins" />
+          </View>
         </>
       )}
 

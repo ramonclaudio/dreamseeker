@@ -5,9 +5,12 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { MaterialCard } from "@/components/ui/material-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
+import { UpgradeBanner } from "@/components/ui/upgrade-banner";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Radius, type ColorPalette } from "@/constants/theme";
 import { Spacing, TouchTarget, FontSize, IconSize, HitSlop } from "@/constants/layout";
 import { Opacity } from "@/constants/ui";
+import { FREE_MAX_JOURNALS_PER_DREAM } from "@/convex/constants";
 
 type JournalEntry = Doc<"journalEntries">;
 
@@ -22,6 +25,21 @@ export function DreamJournalSection({
   categoryColor: string;
   colors: ColorPalette;
 }) {
+  const { isPremium, showUpgrade } = useSubscription();
+  const entryCount = entries?.length ?? 0;
+  const atJournalLimit = !isPremium && entryCount >= FREE_MAX_JOURNALS_PER_DREAM;
+
+  const handleAddJournal = () => {
+    if (atJournalLimit) {
+      showUpgrade();
+      return;
+    }
+    router.push({
+      pathname: "/(app)/journal-entry" as const,
+      params: { dreamId },
+    } as never);
+  };
+
   return (
     <View style={{ marginTop: Spacing.xl }}>
       <View
@@ -44,12 +62,7 @@ export function DreamJournalSection({
           Journal
         </ThemedText>
         <Pressable
-          onPress={() =>
-            router.push({
-              pathname: "/(app)/journal-entry" as const,
-              params: { dreamId },
-            } as never)
-          }
+          onPress={handleAddJournal}
           hitSlop={HitSlop.md}
           style={{
             minWidth: TouchTarget.min,
@@ -137,12 +150,7 @@ export function DreamJournalSection({
         ))
       ) : (
         <Pressable
-          onPress={() =>
-            router.push({
-              pathname: "/(app)/journal-entry" as const,
-              params: { dreamId },
-            } as never)
-          }
+          onPress={handleAddJournal}
           style={({ pressed }) => ({
             opacity: pressed ? Opacity.pressed : 1,
           })}
@@ -163,6 +171,10 @@ export function DreamJournalSection({
           </MaterialCard>
         </Pressable>
       )}
+
+      <View style={{ marginTop: Spacing.md }}>
+        <UpgradeBanner used={entryCount} limit={FREE_MAX_JOURNALS_PER_DREAM} noun="Journals" />
+      </View>
     </View>
   );
 }
