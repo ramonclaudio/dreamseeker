@@ -15,3 +15,17 @@ export async function hasEntitlement(
 ): Promise<boolean> {
   return revenuecat.hasEntitlement(ctx, args);
 }
+
+export async function getActiveSubscriptions(
+  ctx: QueryCtx | MutationCtx,
+  args: { appUserId: string }
+) {
+  return revenuecat.getActiveSubscriptions(ctx, args);
+}
+
+export async function getAllSubscriptions(
+  ctx: QueryCtx | MutationCtx,
+  args: { appUserId: string }
+) {
+  return revenuecat.getAllSubscriptions(ctx, args);
+}

@@ -1,5 +1,5 @@
 import { authQuery } from './functions';
-import { hasEntitlement } from './revenuecat';
+import { hasEntitlement, getActiveSubscriptions, getAllSubscriptions } from './revenuecat';
 import { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscriptionConstants';
 
 export { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscriptionConstants';
@@ -15,6 +15,9 @@ export const getSubscriptionStatus = authQuery({
         dreamCount: 0,
         canCreateDream: false,
         dreamsRemaining: 0,
+        isTrialActive: false,
+        trialExpiresAt: null,
+        hasTrialExpired: false,
       };
     }
 
@@ -22,6 +25,22 @@ export const getSubscriptionStatus = authQuery({
       appUserId: ctx.user,
       entitlementId: PREMIUM_ENTITLEMENT,
     });
+
+    // Trial state detection
+    let isTrialActive = false;
+    let trialExpiresAt: number | null = null;
+    let hasTrialExpired = false;
+
+    const activeSubs = await getActiveSubscriptions(ctx, { appUserId: ctx.user });
+    const trialSub = activeSubs.find((s) => s.periodType === 'TRIAL');
+
+    if (trialSub) {
+      isTrialActive = true;
+      trialExpiresAt = trialSub.expirationAtMs ?? null;
+    } else if (!isPremium) {
+      const allSubs = await getAllSubscriptions(ctx, { appUserId: ctx.user });
+      hasTrialExpired = allSubs.some((s) => s.periodType === 'TRIAL');
+    }
 
     const tier: TierKey = isPremium ? 'premium' : 'free';
     const dreamLimit = TIERS[tier].limit;
@@ -43,6 +62,9 @@ export const getSubscriptionStatus = authQuery({
       dreamCount,
       canCreateDream,
       dreamsRemaining,
+      isTrialActive,
+      trialExpiresAt,
+      hasTrialExpired,
     };
   },
 });

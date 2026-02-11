@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import Purchases from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
@@ -12,6 +12,10 @@ interface UseSubscriptionResult {
   dreamCount: number;
   canCreateDream: boolean;
   dreamsRemaining: number | null;
+  isTrialActive: boolean;
+  trialExpiresAt: number | null;
+  trialDaysRemaining: number | null;
+  hasTrialExpired: boolean;
   isLoading: boolean;
   showUpgrade: () => Promise<boolean>;
   showCustomerCenter: () => Promise<void>;
@@ -62,6 +66,15 @@ export function useSubscription(): UseSubscriptionResult {
     }
   }, []);
 
+  const isTrialActive = status?.isTrialActive ?? false;
+  const trialExpiresAt = status?.trialExpiresAt ?? null;
+  const hasTrialExpired = status?.hasTrialExpired ?? false;
+
+  const trialDaysRemaining = useMemo(() => {
+    if (!trialExpiresAt) return null;
+    return Math.max(0, Math.ceil((trialExpiresAt - Date.now()) / 86_400_000));
+  }, [trialExpiresAt]);
+
   return {
     tier: status?.tier ?? 'free',
     isPremium: status?.isPremium ?? false,
@@ -69,6 +82,10 @@ export function useSubscription(): UseSubscriptionResult {
     dreamCount: status?.dreamCount ?? 0,
     canCreateDream: status?.canCreateDream ?? true,
     dreamsRemaining: status?.dreamsRemaining ?? null,
+    isTrialActive,
+    trialExpiresAt,
+    trialDaysRemaining,
+    hasTrialExpired,
     isLoading: status === undefined,
     showUpgrade,
     showCustomerCenter,
