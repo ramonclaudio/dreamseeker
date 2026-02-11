@@ -9,7 +9,15 @@ import { Spacing, FontSize, IconSize } from "@/constants/layout";
 
 // ── Empty State ──────────────────────────────────────────────────────────────
 
-export function EmptyState({ colors }: { colors: ColorPalette }) {
+export function EmptyState({
+  colors,
+  canCreateDream = true,
+  onUpgrade,
+}: {
+  colors: ColorPalette;
+  canCreateDream?: boolean;
+  onUpgrade?: () => void;
+}) {
   return (
     <View
       style={{
@@ -58,7 +66,13 @@ export function EmptyState({ colors }: { colors: ColorPalette }) {
       </ThemedText>
       <GradientButton
         label="Start Your First Dream"
-        onPress={() => router.push("/(app)/create-dream/")}
+        onPress={() => {
+          if (!canCreateDream && onUpgrade) {
+            onUpgrade();
+            return;
+          }
+          router.push("/(app)/create-dream/");
+        }}
         accessibilityHint="Opens dream creation flow"
         icon={<IconSymbol name="plus" size={IconSize.lg} color={colors.onColor} weight="bold" />}
         style={{ marginTop: Spacing.lg }}

@@ -13,6 +13,9 @@ export function SubscriptionSection({
   isPremium,
   dreamLimit,
   dreamCount,
+  isTrialActive,
+  trialDaysRemaining,
+  hasTrialExpired,
   showUpgrade,
   showCustomerCenter,
   restorePurchases,
@@ -21,6 +24,9 @@ export function SubscriptionSection({
   isPremium: boolean;
   dreamLimit: number | null;
   dreamCount: number;
+  isTrialActive: boolean;
+  trialDaysRemaining: number | null;
+  hasTrialExpired: boolean;
   showUpgrade: () => void;
   showCustomerCenter: () => void;
   restorePurchases: () => Promise<boolean>;
@@ -68,13 +74,63 @@ export function SubscriptionSection({
                 {isPremium ? "Premium" : "Free"}
               </ThemedText>
               <ThemedText style={{ fontSize: FontSize.sm }} color={colors.mutedForeground}>
-                {isPremium
-                  ? "Unlimited dreams"
-                  : "7 days free, then $9.99/mo"}
+                {isTrialActive
+                  ? `Trial ends in ${trialDaysRemaining ?? 0} ${trialDaysRemaining === 1 ? 'day' : 'days'}`
+                  : isPremium
+                    ? "Unlimited dreams"
+                    : hasTrialExpired
+                      ? "Trial ended \u2014 subscribe for $3.99/mo"
+                      : "3-day free trial, then $3.99/mo"}
               </ThemedText>
             </View>
           </View>
-          {isPremium ? (
+          {isTrialActive ? (
+            <View style={{ flexDirection: "row", gap: Spacing.sm }}>
+              <Pressable
+                style={({ pressed }) => ({
+                  paddingVertical: Spacing.sm,
+                  paddingHorizontal: Spacing.lg,
+                  borderRadius: Radius.md,
+                  borderCurve: "continuous",
+                  backgroundColor: colors.primary,
+                  opacity: pressed ? Opacity.pressed : 1,
+                })}
+                onPress={() => {
+                  haptics.medium();
+                  showUpgrade();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Subscribe now"
+              >
+                <ThemedText
+                  style={{ fontSize: FontSize.base, fontWeight: "600" }}
+                  color={colors.primaryForeground}
+                >
+                  Subscribe
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => ({
+                  paddingVertical: Spacing.sm,
+                  paddingHorizontal: Spacing.lg,
+                  borderRadius: Radius.md,
+                  borderCurve: "continuous",
+                  backgroundColor: colors.secondary,
+                  opacity: pressed ? Opacity.pressed : 1,
+                })}
+                onPress={() => {
+                  haptics.light();
+                  showCustomerCenter();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Manage subscription"
+              >
+                <ThemedText style={{ fontSize: FontSize.base, fontWeight: "500" }}>
+                  Manage
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : isPremium ? (
             <Pressable
               style={({ pressed }) => ({
                 paddingVertical: Spacing.sm,
@@ -116,7 +172,7 @@ export function SubscriptionSection({
                 style={{ fontSize: FontSize.base, fontWeight: "600" }}
                 color={colors.primaryForeground}
               >
-                Start Free Trial
+                {hasTrialExpired ? "Subscribe" : "Start Free Trial"}
               </ThemedText>
             </Pressable>
           )}

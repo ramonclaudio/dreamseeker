@@ -8,6 +8,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/ui/themed-text';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { useColors } from '@/hooks/use-color-scheme';
+import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
 import { shootConfetti } from '@/lib/confetti';
 import { DREAM_CATEGORIES } from '@/convex/constants';
@@ -17,6 +18,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 
 export default function CreateActionScreen() {
   const colors = useColors();
+  const { showUpgrade } = useSubscription();
   const dreams = useQuery(api.dreams.list, {});
   const createAction = useMutation(api.actions.create);
   const [selectedDreamId, setSelectedDreamId] = useState<Id<'dreams'> | null>(null);
@@ -34,8 +36,11 @@ export default function CreateActionScreen() {
       haptics.success();
       shootConfetti('small');
       router.back();
-    } catch {
+    } catch (e: any) {
       haptics.error();
+      if (e.message?.includes('FREE_ACTION_LIMIT')) {
+        showUpgrade();
+      }
     } finally {
       setIsSubmitting(false);
     }

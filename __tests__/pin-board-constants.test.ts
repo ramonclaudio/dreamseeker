@@ -91,14 +91,12 @@ describe('Board constants', () => {
 
 describe('Free tier pin limits', () => {
   it('FREE_MAX_PINS allows a reasonable number of pins', () => {
-    expect(FREE_MAX_PINS).toBe(25);
+    expect(FREE_MAX_PINS).toBe(5);
     expect(FREE_MAX_PINS).toBeGreaterThan(0);
   });
 
-  it('FREE_MAX_COMMUNITY_PINS is lower than total pin limit', () => {
-    expect(FREE_MAX_COMMUNITY_PINS).toBe(5);
-    expect(FREE_MAX_COMMUNITY_PINS).toBeLessThan(FREE_MAX_PINS);
-    expect(FREE_MAX_COMMUNITY_PINS).toBeGreaterThan(0);
+  it('FREE_MAX_COMMUNITY_PINS is zero for free tier', () => {
+    expect(FREE_MAX_COMMUNITY_PINS).toBe(0);
   });
 });
 

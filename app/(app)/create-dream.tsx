@@ -18,6 +18,7 @@ import {
 } from '@/components/create-dream/steps';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useCreateDream } from '@/hooks/use-create-dream';
+import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
 import { Spacing, MaxWidth } from '@/constants/layout';
 import { Confetti } from '@/constants/ui';
@@ -30,6 +31,14 @@ export default function CreateDreamScreen() {
   const insets = useSafeAreaInsets();
   const confettiRef = useRef<ConfettiCannon>(null);
   const createdDreamId = useRef<string | null>(null);
+  const { canCreateDream, showUpgrade } = useSubscription();
+
+  // Redirect to paywall if at dream limit
+  useEffect(() => {
+    if (canCreateDream === false) {
+      showUpgrade().then(() => router.back());
+    }
+  }, [canCreateDream, showUpgrade]);
 
   const {
     state,

@@ -21,6 +21,7 @@ import { MoodSelector } from '@/components/journal/mood-selector';
 import { JournalPromptCard } from '@/components/journal/journal-prompt-card';
 import { useColors } from '@/hooks/use-color-scheme';
 import { useJournal } from '@/hooks/use-journal';
+import { useSubscription } from '@/hooks/use-subscription';
 import { Spacing, FontSize, TouchTarget, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import type { Mood } from '@/constants/dreams';
@@ -38,6 +39,7 @@ export default function JournalNewScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { create, update, remove } = useJournal();
+  const { showUpgrade } = useSubscription();
   const { viewShotRef, capture, isSharing } = useShareCapture();
   const user = useQuery(api.auth.getCurrentUser);
   const existingEntry = useQuery(
@@ -121,9 +123,13 @@ export default function JournalNewScreen() {
           router.back();
         }, 600);
       }
-    } catch {
+    } catch (e: any) {
       haptics.error();
-      Alert.alert('Save Failed', 'Could not save your entry. Please try again.');
+      if (e.message?.includes('FREE_JOURNAL_LIMIT')) {
+        showUpgrade();
+      } else {
+        Alert.alert('Save Failed', 'Could not save your entry. Please try again.');
+      }
     } finally {
       setSaving(false);
     }

@@ -39,7 +39,6 @@ export const Size = {
   dividerMargin: 50,
   dragHandle: { width: 36, height: 5, radius: 3 },
   badge: 32,
-  appleButton: 50,
 } as const;
 
 // Responsive image/header constants

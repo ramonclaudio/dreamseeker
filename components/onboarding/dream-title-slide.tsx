@@ -1,117 +1,150 @@
-import { View, TextInput } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 
 import { ThemedText } from '@/components/ui/themed-text';
+import { MaterialCard } from '@/components/ui/material-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
-import { DREAM_CATEGORIES, CATEGORY_ICONS } from '@/constants/dreams';
-import { type SlideColors, type DreamCategory } from './shared';
+import type { SlideColors } from './shared';
 
-export function DreamTitleSlide({
+const CHIPS = [
+  { icon: 'bolt.fill' as const, label: 'Seek risk' },
+  { icon: 'star.fill' as const, label: 'Seize opportunity' },
+  { icon: 'globe' as const, label: 'See the world' },
+] as const;
+
+export function SendOffSlide({
   colors,
-  title,
-  onChangeTitle,
-  selectedCategory,
-  selectedCategories,
-  whyItMatters,
-  onChangeWhyItMatters,
+  displayName,
 }: {
   colors: SlideColors;
-  title: string;
-  onChangeTitle: (text: string) => void;
-  selectedCategory: DreamCategory;
-  selectedCategories: DreamCategory[];
-  whyItMatters?: string;
-  onChangeWhyItMatters?: (text: string) => void;
+  displayName: string;
 }) {
-  const categoryToUse = selectedCategories.includes(selectedCategory)
-    ? selectedCategory
-    : selectedCategories[0] || 'growth';
-  const config = DREAM_CATEGORIES[categoryToUse];
+  const name = displayName.trim();
 
   return (
-    <View style={{ flex: 1, gap: Spacing.xl }}>
-      <View style={{ gap: Spacing.sm }}>
-        <ThemedText variant="title">What&apos;s your first dream?</ThemedText>
-        <ThemedText style={{ fontSize: FontSize.lg }} color={colors.mutedForeground}>
-          Pick the dream that&apos;s calling you right now. You can add more later.
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing['2xl'] }}>
+      {/* App icon with double-ring halo */}
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        {/* Outer halo ring */}
+        <View
+          style={{
+            width: 180,
+            height: 180,
+            borderRadius: Radius.full,
+            borderWidth: 1,
+            borderColor: colors.borderAccent,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {/* Inner filled circle */}
+          <View
+            style={{
+              width: 148,
+              height: 148,
+              borderRadius: Radius.full,
+              backgroundColor: colors.surfaceTinted,
+              borderWidth: 1,
+              borderColor: colors.borderAccent,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: colors.glowShadow,
+              shadowOpacity: 1,
+              shadowRadius: 40,
+              shadowOffset: { width: 0, height: 8 },
+            }}
+          >
+            <Image
+              source={require('@/assets/images/icon.png')}
+              style={{ width: 120, height: 120 }}
+              contentFit="contain"
+              accessible
+              accessibilityLabel="DreamSeeker cloud icon"
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Headline — personalized if name provided */}
+      <View style={{ gap: Spacing.sm, alignItems: 'center' }}>
+        <ThemedText
+          variant="title"
+          style={{ textAlign: 'center', fontSize: 32, lineHeight: 40 }}
+        >
+          {name ? `${name}, your journey\nstarts now.` : 'Your journey starts now.'}
+        </ThemedText>
+        <ThemedText
+          style={{ textAlign: 'center', fontSize: FontSize['2xl'], lineHeight: 24 }}
+          color={colors.mutedForeground}
+        >
+          Go from dreaming to doing.{'\n'}We&apos;ll celebrate every step.
         </ThemedText>
       </View>
 
-      <View style={{ gap: Spacing.md }}>
-        <View
+      {/* Gabby quote */}
+      <MaterialCard
+        variant="tinted"
+        style={{
+          paddingVertical: Spacing.xl,
+          paddingHorizontal: Spacing['2xl'],
+          alignSelf: 'stretch',
+        }}
+      >
+        <ThemedText
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: Spacing.sm,
-            paddingVertical: Spacing.sm,
+            textAlign: 'center',
+            fontSize: FontSize['3xl'],
+            color: colors.accent,
+            marginBottom: Spacing.xs,
           }}
         >
+          &ldquo;
+        </ThemedText>
+        <ThemedText
+          style={{ textAlign: 'center', fontSize: FontSize.lg, fontStyle: 'italic', lineHeight: 22 }}
+        >
+          Give yourself permission to live in your possibilities.
+        </ThemedText>
+        <ThemedText
+          style={{ fontSize: FontSize.sm, textAlign: 'center', marginTop: Spacing.md }}
+          color={colors.mutedForeground}
+        >
+          — Gabby
+        </ThemedText>
+      </MaterialCard>
+
+      {/* Tagline chips */}
+      <View
+        style={{
+          flexDirection: 'row',
+          gap: Spacing.md,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
+        {CHIPS.map((chip) => (
           <View
+            key={chip.label}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              backgroundColor: `${config.color}20`,
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: Spacing.sm,
+              backgroundColor: colors.surfaceTinted,
+              borderRadius: Radius.full,
+              paddingVertical: Spacing.md,
+              paddingHorizontal: Spacing.lg,
+              borderWidth: 1,
+              borderColor: colors.borderAccent,
             }}
           >
-            <IconSymbol
-              name={CATEGORY_ICONS[categoryToUse]}
-              size={IconSize.lg}
-              color={config.color}
-            />
+            <IconSymbol name={chip.icon} size={IconSize.lg} color={colors.accent} />
+            <ThemedText style={{ fontSize: FontSize.base, fontWeight: '600' }} color={colors.accent}>
+              {chip.label}
+            </ThemedText>
           </View>
-          <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-            {config.label}
-          </ThemedText>
-        </View>
-
-        <TextInput
-          style={{
-            backgroundColor: colors.secondary,
-            borderRadius: Radius.md,
-            padding: Spacing.lg,
-            fontSize: FontSize.xl,
-            color: colors.foreground,
-            borderWidth: 1,
-            borderColor: colors.border,
-            minHeight: 60,
-          }}
-          placeholder="Visit Japan, start a business, buy a home..."
-          placeholderTextColor={colors.mutedForeground}
-          value={title}
-          onChangeText={onChangeTitle}
-          autoFocus
-          multiline
-          returnKeyType="done"
-          blurOnSubmit
-          accessibilityLabel="Enter your dream title"
-          accessibilityHint="Type the title of your first dream"
-        />
-
-        {onChangeWhyItMatters && (
-          <TextInput
-            style={{
-              backgroundColor: colors.secondary,
-              borderRadius: Radius.md,
-              padding: Spacing.lg,
-              fontSize: FontSize.base,
-              color: colors.foreground,
-              borderWidth: 1,
-              borderColor: colors.border,
-              minHeight: 80,
-              marginTop: Spacing.md,
-            }}
-            placeholder="Why does this matter to you? (optional)"
-            placeholderTextColor={colors.mutedForeground}
-            value={whyItMatters}
-            onChangeText={onChangeWhyItMatters}
-            multiline
-            accessibilityLabel="Why does this dream matter to you"
-          />
-        )}
+        ))}
       </View>
     </View>
   );

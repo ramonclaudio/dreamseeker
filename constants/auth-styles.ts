@@ -2,7 +2,6 @@ import { type TextStyle, type ViewStyle } from 'react-native';
 
 import { type ColorPalette, Radius } from './theme';
 import { FontSize, LineHeight, MaxWidth, Spacing, TouchTarget } from './layout';
-import { Size } from './ui';
 
 export function getErrorStyles(colors: ColorPalette): { container: ViewStyle; text: TextStyle } {
   return {
@@ -39,7 +38,4 @@ export const authStyles = {
   footerText: { fontSize: FontSize.base, lineHeight: LineHeight.base },
   linkText: { fontSize: FontSize.base, fontWeight: '500' as const },
   linkTouchTarget: { minHeight: TouchTarget.min, justifyContent: 'center' as const, paddingHorizontal: Spacing.xs },
-  divider: { flexDirection: 'row' as const, alignItems: 'center' as const, marginVertical: Spacing.lg },
-  dividerLine: { flex: 1, height: Size.divider },
-  dividerText: { marginHorizontal: Spacing.lg, fontSize: FontSize.base },
 };

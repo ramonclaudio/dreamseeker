@@ -2,35 +2,19 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { Confidence, DreamCategory, Pace, Personality, Motivation } from '@/constants/dreams';
+import { authClient } from '@/lib/auth-client';
 import { haptics } from '@/lib/haptics';
 
 interface OnboardingState {
-  selectedCategories: DreamCategory[];
-  dreamTitle: string;
-  dreamCategory: DreamCategory;
-  whyItMatters: string;
-  confidence: Confidence | null;
-  pace: Pace;
-  personality: Personality | null;
-  motivations: Motivation[];
-  notificationTime: string | null;
+  displayName: string;
 }
 
-const TOTAL_SLIDES = 5;
+const TOTAL_SLIDES = 2;
 const STORAGE_KEY = '@onboarding_state';
-const STORAGE_VERSION = 4;
+const STORAGE_VERSION = 7;
 
 const DEFAULT_STATE: OnboardingState = {
-  selectedCategories: [],
-  dreamTitle: '',
-  dreamCategory: 'growth',
-  whyItMatters: '',
-  confidence: null,
-  pace: 'steady',
-  personality: null,
-  motivations: [],
-  notificationTime: null,
+  displayName: '',
 };
 
 export function useOnboarding() {
@@ -82,47 +66,8 @@ export function useOnboarding() {
     []
   );
 
-  const toggleCategory = useCallback((category: DreamCategory) => {
-    setState((prev) => {
-      const isSelected = prev.selectedCategories.includes(category);
-      return {
-        ...prev,
-        selectedCategories: isSelected
-          ? prev.selectedCategories.filter((c) => c !== category)
-          : [...prev.selectedCategories, category],
-        dreamCategory:
-          !isSelected && prev.selectedCategories.length === 0 ? category : prev.dreamCategory,
-      };
-    });
-  }, []);
-
-  const toggleMotivation = useCallback((motivation: Motivation) => {
-    setState((prev) => {
-      const isSelected = prev.motivations.includes(motivation);
-      return {
-        ...prev,
-        motivations: isSelected
-          ? prev.motivations.filter((m) => m !== motivation)
-          : [...prev.motivations, motivation],
-      };
-    });
-  }, []);
-
-  // Slide order:
-  // 0: Welcome, 1: You + Goals (personality + motivations + categories)
-  // 2: Your First Dream (title + optional why), 3: Notifications, 4: Celebration
-  const canGoNext = useMemo(() => {
-    switch (currentSlide) {
-      case 1: // You + Your Goals
-        return state.personality !== null && state.motivations.length > 0 && state.selectedCategories.length > 0;
-      case 2: // Dream Title
-        return state.dreamTitle.trim().length > 0;
-      case 3: // Notifications
-        return false; // Only advances via explicit button
-      default:
-        return true;
-    }
-  }, [currentSlide, state]);
+  // Both slides always passable (name optional, send-off is static)
+  const canGoNext = useMemo(() => true, []);
 
   const goNext = useCallback(() => {
     if (currentSlide < TOTAL_SLIDES - 1) {
@@ -135,31 +80,18 @@ export function useOnboarding() {
   };
 
   const finish = useCallback(async (): Promise<boolean> => {
-    if (state.selectedCategories.length === 0) {
-      setError('Please complete all required fields');
-      haptics.error();
-      return false;
-    }
-
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await completeOnboarding({
-        selectedCategories: state.selectedCategories,
-        pace: state.pace,
-        confidence: state.confidence ?? undefined,
-        personality: state.personality ?? undefined,
-        motivations: state.motivations.length > 0 ? state.motivations : undefined,
-        notificationTime: state.notificationTime ?? undefined,
-        firstDream: state.dreamTitle.trim()
-          ? {
-              title: state.dreamTitle.trim(),
-              category: state.dreamCategory,
-              whyItMatters: state.whyItMatters.trim() || undefined,
-            }
-          : undefined,
-      });
+      const displayName = state.displayName.trim() || undefined;
+
+      await completeOnboarding({ displayName });
+
+      // Update Better Auth name client-side
+      if (displayName) {
+        await authClient.updateUser({ name: displayName }).catch(() => {});
+      }
 
       haptics.success();
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
@@ -183,9 +115,7 @@ export function useOnboarding() {
     goBack,
     canGoNext,
     canGoBack: currentSlide > 0,
-    toggleCategory,
     updateField,
-    toggleMotivation,
     finish,
   };
 }

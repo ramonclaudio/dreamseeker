@@ -17,6 +17,7 @@ import { GlassControl } from "@/components/ui/glass-control";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/hooks/use-color-scheme";
+import { useSubscription } from "@/hooks/use-subscription";
 
 import { type ColorPalette, Radius } from "@/constants/theme";
 import { Spacing, TouchTarget, FontSize, MaxWidth, IconSize, TAB_BAR_CLEARANCE } from "@/constants/layout";
@@ -182,6 +183,7 @@ export default function CategoryDreamsScreen() {
   const { category } = useLocalSearchParams<{ category: string }>();
   const colors = useColors();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const { canCreateDream, showUpgrade } = useSubscription();
   const [newDreamTitle, setNewDreamTitle] = useState("");
 
   const isValidCategory = DREAM_CATEGORY_LIST.includes(category as DreamCategory);
@@ -215,6 +217,10 @@ export default function CategoryDreamsScreen() {
 
   const handleCreateDream = async () => {
     if (!newDreamTitle.trim()) return;
+    if (!canCreateDream) {
+      showUpgrade();
+      return;
+    }
 
     haptics.medium();
     try {

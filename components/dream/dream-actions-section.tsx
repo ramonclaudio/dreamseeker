@@ -8,9 +8,12 @@ import { GlassControl } from "@/components/ui/glass-control";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { DreamActionItem } from "@/components/dream/action-item";
+import { UpgradeBanner } from "@/components/ui/upgrade-banner";
+import { useSubscription } from "@/hooks/use-subscription";
 import type { ColorPalette } from "@/constants/theme";
 import { Spacing, TouchTarget, FontSize, IconSize } from "@/constants/layout";
 import { Opacity } from "@/constants/ui";
+import { FREE_MAX_ACTIONS_PER_DREAM } from "@/convex/constants";
 import { haptics } from "@/lib/haptics";
 
 type Action = Doc<"actions">;
@@ -36,6 +39,18 @@ export function DreamActionsSection({
   categoryColor: string;
   colors: ColorPalette;
 }) {
+  const { isPremium, showUpgrade } = useSubscription();
+  const activeActions = dream.actions?.filter((a) => !a.isCompleted) ?? [];
+  const atActionLimit = !isPremium && activeActions.length >= FREE_MAX_ACTIONS_PER_DREAM;
+
+  const handleAdd = () => {
+    if (atActionLimit) {
+      showUpgrade();
+      return;
+    }
+    onAddAction();
+  };
+
   return (
     <View>
       <ThemedText
@@ -64,7 +79,7 @@ export function DreamActionsSection({
             placeholderTextColor={colors.mutedForeground}
             value={newActionText}
             onChangeText={onChangeText}
-            onSubmitEditing={onAddAction}
+            onSubmitEditing={handleAdd}
             returnKeyType="done"
           />
         </MaterialCard>
@@ -75,7 +90,7 @@ export function DreamActionsSection({
           <Pressable
             onPress={() => {
               haptics.light();
-              onAddAction();
+              handleAdd();
             }}
             disabled={!newActionText.trim()}
             style={{
@@ -129,6 +144,10 @@ export function DreamActionsSection({
           </ThemedText>
         </MaterialCard>
       )}
+
+      <View style={{ marginTop: Spacing.md }}>
+        <UpgradeBanner used={activeActions.length} limit={FREE_MAX_ACTIONS_PER_DREAM} noun="Actions" />
+      </View>
     </View>
   );
 }

@@ -12,10 +12,59 @@ import { Spacing, TouchTarget, FontSize, IconSize, MaxWidth } from '@/constants/
 import { Radius } from '@/constants/theme';
 import { Opacity } from '@/constants/ui';
 import { haptics } from '@/lib/haptics';
+import {
+  FREE_MAX_DREAMS,
+  FREE_MAX_ACTIONS_PER_DREAM,
+  FREE_MAX_JOURNALS_PER_DREAM,
+  FREE_MAX_PINS,
+} from '@/convex/constants';
 
 export default function SubscribeScreen() {
   const colors = useColors();
-  const { isPremium, showUpgrade } = useSubscription();
+  const { isPremium, isTrialActive, trialDaysRemaining, hasTrialExpired, showUpgrade, showCustomerCenter } = useSubscription();
+
+  if (isPremium && isTrialActive) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Premium Trial' }} />
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          <View style={styles.centeredContent}>
+            <Ionicons name="time-outline" size={64} color={colors.primary} />
+            <ThemedText variant="title" style={styles.textCenter}>
+              Trial: {trialDaysRemaining ?? 0} {trialDaysRemaining === 1 ? 'day' : 'days'} left
+            </ThemedText>
+            <ThemedText style={styles.textCenter} color={colors.mutedForeground}>
+              Your trial ends in {trialDaysRemaining ?? 0} {trialDaysRemaining === 1 ? 'day' : 'days'}. Subscribe now to keep Premium.
+            </ThemedText>
+            <Pressable
+              style={[styles.button, { backgroundColor: colors.primary }]}
+              onPress={() => {
+                haptics.medium();
+                showUpgrade();
+              }}
+              accessibilityRole="button"
+            >
+              <ThemedText style={styles.buttonText} color={colors.primaryForeground}>
+                Subscribe Now
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              style={[styles.button, { backgroundColor: colors.secondary }]}
+              onPress={() => {
+                haptics.light();
+                showCustomerCenter();
+              }}
+              accessibilityRole="button"
+            >
+              <ThemedText style={styles.buttonText} color={colors.foreground}>
+                Manage
+              </ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      </>
+    );
+  }
 
   if (isPremium) {
     return (
@@ -85,9 +134,9 @@ export default function SubscribeScreen() {
                   </ThemedText>
                 </View>
                 <View style={styles.tierFeatures}>
-                  <FeatureRow icon="checkmark.circle.fill" text="Up to 25 dreams" colors={colors} />
-                  <FeatureRow icon="checkmark.circle.fill" text="25 actions & journals per dream" colors={colors} />
-                  <FeatureRow icon="checkmark.circle.fill" text="25 pins, 5 shared to community" colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text={`Up to ${FREE_MAX_DREAMS} dreams`} colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text={`${FREE_MAX_ACTIONS_PER_DREAM} actions & ${FREE_MAX_JOURNALS_PER_DREAM} journals per dream`} colors={colors} />
+                  <FeatureRow icon="checkmark.circle.fill" text={`${FREE_MAX_PINS} pins`} colors={colors} />
                   <FeatureRow icon="checkmark.circle.fill" text="Unlimited focus sessions" colors={colors} />
                   <FeatureRow icon="checkmark.circle.fill" text="Streaks & badges" colors={colors} />
                   <FeatureRow icon="xmark.circle.fill" text="Community & social features" colors={colors} isDisabled />
@@ -107,7 +156,7 @@ export default function SubscribeScreen() {
               >
                 <View style={[styles.badge, { backgroundColor: colors.primary }]}>
                   <ThemedText style={styles.badgeText} color={colors.primaryForeground}>
-                    7-DAY FREE TRIAL
+                    {hasTrialExpired ? 'TRIAL ENDED' : '3-DAY FREE TRIAL'}
                   </ThemedText>
                 </View>
                 <View style={styles.tierHeader}>
@@ -123,6 +172,7 @@ export default function SubscribeScreen() {
                   <FeatureRow icon="checkmark.circle.fill" text="Vision board & community sharing" colors={colors} isPremium showBadge />
                   <FeatureRow icon="checkmark.circle.fill" text="Early access to new features" colors={colors} isPremium />
                 </View>
+
                 <Pressable
                   style={({ pressed }) => [
                     styles.upgradeButton,
@@ -136,20 +186,17 @@ export default function SubscribeScreen() {
                     showUpgrade();
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel="Start Your Free Trial"
+                  accessibilityLabel="Start Your 3-Day Free Trial"
                 >
                   <ThemedText
                     style={styles.upgradeButtonText}
                     color={colors.primaryForeground}
                   >
-                    Try Premium Free for 7 Days
+                    {hasTrialExpired ? 'Subscribe Now' : 'Start 3-Day Free Trial'}
                   </ThemedText>
                 </Pressable>
                 <ThemedText style={styles.trialSubtext} color={colors.mutedForeground}>
-                  No commitment. Cancel anytime.
-                </ThemedText>
-                <ThemedText style={styles.pricingNote} color={colors.mutedForeground}>
-                  After your 7-day free trial, Premium is $9.99/month
+                  {hasTrialExpired ? 'Your free trial has ended' : 'No commitment. Cancel anytime.'}
                 </ThemedText>
               </MaterialCard>
             </View>
@@ -302,12 +349,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginTop: Spacing.xs,
-  },
-  pricingNote: {
-    fontSize: FontSize.xs,
-    textAlign: 'center',
-    marginTop: Spacing.xxs,
-    lineHeight: 16,
   },
   footer: {
     alignItems: 'center',

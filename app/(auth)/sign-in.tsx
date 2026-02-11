@@ -6,7 +6,6 @@ import { authClient, signInWithUsername } from "@/lib/auth-client";
 import { haptics } from "@/lib/haptics";
 import { useColors } from "@/hooks/use-color-scheme";
 import { authStyles as styles, getErrorStyles } from "@/constants/auth-styles";
-import { AppleSignInButton } from "@/components/ui/apple-sign-in-button";
 import { ThemedText } from "@/components/ui/themed-text";
 
 export default function SignInScreen() {
@@ -157,15 +156,6 @@ export default function SignInScreen() {
             </ThemedText>
           </Pressable>
 
-          <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <ThemedText style={styles.dividerText} color={colors.mutedForeground}>
-              or
-            </ThemedText>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-          </View>
-
-          <AppleSignInButton onError={(err) => setError(err)} />
         </View>
 
         <View style={styles.footer}>
