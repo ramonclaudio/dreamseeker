@@ -9,7 +9,7 @@ const http = httpRouter();
 
 // cors: true uses corsRouter from convex-helpers with allowedOrigins derived
 // from trustedOrigins in auth.ts (dreamseeker://, exp://, localhost:8081,
-// SITE_URL, appleid.apple.com). Not a wildcard — already origin-restricted.
+// SITE_URL). Not a wildcard — already origin-restricted.
 // enforceAllowOrigins: false allows requests without an Origin header (mobile).
 authComponent.registerRoutes(http, createAuth, { cors: true });
 
@@ -85,7 +85,6 @@ const privacyContent = `
 <ul>
   <li><strong>Resend:</strong> For email delivery</li>
   <li><strong>Expo:</strong> For push notifications</li>
-  <li><strong>Apple:</strong> For Sign in with Apple</li>
   <li><strong>RevenueCat:</strong> For subscription management</li>
 </ul>
 
