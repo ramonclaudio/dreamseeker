@@ -3,7 +3,7 @@ import { useQuery } from 'convex/react';
 import Purchases from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import { api } from '@/convex/_generated/api';
-import { PREMIUM_ENTITLEMENT, type TierKey } from '@/convex/subscription-constants';
+import { PREMIUM_ENTITLEMENT, type TierKey } from '@/convex/subscriptionConstants';
 
 interface UseSubscriptionResult {
   tier: TierKey;

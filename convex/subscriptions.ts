@@ -1,8 +1,8 @@
 import { authQuery } from './functions';
 import { hasEntitlement } from './revenuecat';
-import { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscription-constants';
+import { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscriptionConstants';
 
-export { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscription-constants';
+export { TIERS, PREMIUM_ENTITLEMENT, type TierKey } from './subscriptionConstants';
 
 export const getSubscriptionStatus = authQuery({
   args: {},

@@ -47,6 +47,7 @@ import type * as security from "../security.js";
 import type * as seed from "../seed.js";
 import type * as storage from "../storage.js";
 import type * as streak from "../streak.js";
+import type * as subscriptionConstants from "../subscriptionConstants.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as userPreferences from "../userPreferences.js";
 import type * as users from "../users.js";
@@ -98,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   storage: typeof storage;
   streak: typeof streak;
+  subscriptionConstants: typeof subscriptionConstants;
   subscriptions: typeof subscriptions;
   userPreferences: typeof userPreferences;
   users: typeof users;
