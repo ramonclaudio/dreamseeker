@@ -1,5 +1,7 @@
-import { internalMutation } from './_generated/server';
+import { internalAction, internalMutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
+import { v } from 'convex/values';
+import { createAuth } from './auth';
 
 const MINDSET_MOMENTS = [
         // Gabby Beckford quotes
@@ -862,5 +864,35 @@ export const seedAll = internalMutation({
     }
 
     return results;
+  },
+});
+
+// Create a pre-verified test account (bypasses email OTP)
+export const createTestAccount = internalAction({
+  args: {
+    email: v.string(),
+    password: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, { email, password, name }) => {
+    const auth = createAuth(ctx);
+    const authCtx = await auth.$context;
+
+    const hashedPassword = await authCtx.password.hash(password);
+
+    const user = await authCtx.internalAdapter.createUser({
+      email,
+      name,
+      emailVerified: true,
+    });
+
+    await authCtx.internalAdapter.linkAccount({
+      userId: user.id,
+      providerId: 'credential',
+      accountId: user.id,
+      password: hashedPassword,
+    });
+
+    return { userId: user.id, email: user.email };
   },
 });
