@@ -36,13 +36,15 @@ import { authClient } from "@/lib/auth-client";
 import { haptics } from "@/lib/haptics";
 import { api } from "@/convex/_generated/api";
 import { useSubscription } from "@/hooks/use-subscription";
+import { router } from "expo-router";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const { mode, setMode } = useThemeMode();
   const user = useQuery(api.auth.getCurrentUser);
   const deleteAccountMutation = useMutation(api.users.deleteAccount);
-  const { isPremium, dreamLimit, dreamCount, showUpgrade, showCustomerCenter, restorePurchases } = useSubscription();
+  const resetOnboardingMutation = useMutation(api.userPreferences.resetOnboarding);
+  const { isPremium, dreamLimit, dreamCount, isTrialActive, trialDaysRemaining, hasTrialExpired, showUpgrade, showCustomerCenter, restorePurchases } = useSubscription();
 
   type AccountEditField = "name" | "username" | "email" | null;
   const [editingField, setEditingField] = useState<AccountEditField>(null);
@@ -87,6 +89,12 @@ export default function SettingsScreen() {
         error instanceof Error ? error.message : "Unable to delete account. Please try again.";
       Alert.alert("Deletion Failed", message);
     }
+  };
+
+  const handleResetOnboarding = async () => {
+    haptics.light();
+    await resetOnboardingMutation();
+    router.replace('/(app)/onboarding');
   };
 
   const handleDeleteAccount = () => {
@@ -175,6 +183,9 @@ export default function SettingsScreen() {
           isPremium={isPremium}
           dreamLimit={dreamLimit}
           dreamCount={dreamCount}
+          isTrialActive={isTrialActive}
+          trialDaysRemaining={trialDaysRemaining}
+          hasTrialExpired={hasTrialExpired}
           showUpgrade={showUpgrade}
           showCustomerCenter={showCustomerCenter}
           restorePurchases={restorePurchases}
@@ -200,6 +211,12 @@ export default function SettingsScreen() {
         <SettingsSection title="Account" colors={colors}>
           <SettingsItem icon="rectangle.portrait.and.arrow.right" label="Sign Out" onPress={handleSignOut} showChevron={false} colors={colors} />
         </SettingsSection>
+
+        {__DEV__ && (
+          <SettingsSection title="Developer" colors={colors}>
+            <SettingsItem icon="arrow.clockwise" label="Reset Onboarding" onPress={handleResetOnboarding} showChevron={false} colors={colors} />
+          </SettingsSection>
+        )}
 
         <SettingsSection title="Danger Zone" colors={colors}>
           {isDeleting ? (
