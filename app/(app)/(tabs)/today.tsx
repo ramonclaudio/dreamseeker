@@ -208,7 +208,7 @@ function DreamBanner({
 }
 
 // ---------------------------------------------------------------------------
-// My Actions — 2x2 grid, uniform card bg with icon accent
+// Quick Start — 2x2 grid, uniform card bg with icon accent
 // ---------------------------------------------------------------------------
 type ActionItem = {
   id: string;
@@ -636,9 +636,9 @@ export default function TodayScreen() {
           />
         </View>
 
-        {/* ── My Actions — 2x2 grid ── */}
+        {/* ── Quick Start — 2x2 grid ── */}
         <SectionHeader
-          title="My Actions"
+          title="Quick Start"
           onSeeAll={() => router.push("/(app)/(tabs)/(dreams)")}
           colors={colors}
         />
