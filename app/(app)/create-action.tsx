@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
 import { useQuery, useMutation } from 'convex/react';
 
@@ -11,6 +12,7 @@ import { useColors } from '@/hooks/use-color-scheme';
 import { useSubscription } from '@/hooks/use-subscription';
 import { haptics } from '@/lib/haptics';
 import { shootConfetti } from '@/lib/confetti';
+import { scheduleActionReminder } from '@/lib/local-notifications';
 import { DREAM_CATEGORIES } from '@/convex/constants';
 import { Spacing, FontSize, IconSize, TouchTarget, HitSlop } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
@@ -24,6 +26,10 @@ export default function CreateActionScreen() {
   const [selectedDreamId, setSelectedDreamId] = useState<Id<'dreams'> | null>(null);
   const [actionText, setActionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deadline, setDeadline] = useState<Date | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [reminder, setReminder] = useState<Date | null>(null);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
 
   const activeDreams = dreams ?? [];
   const canSubmit = selectedDreamId && actionText.trim().length > 0 && !isSubmitting;
@@ -32,7 +38,24 @@ export default function CreateActionScreen() {
     if (!canSubmit) return;
     setIsSubmitting(true);
     try {
-      await createAction({ dreamId: selectedDreamId, text: actionText.trim() });
+      const actionId = await createAction({
+        dreamId: selectedDreamId,
+        text: actionText.trim(),
+        deadline: deadline?.getTime(),
+        reminder: reminder?.getTime(),
+      });
+
+      // Schedule local notification for exact reminder time
+      if (reminder && actionId) {
+        const dreamTitle = activeDreams.find((d) => d._id === selectedDreamId)?.title ?? "your dream";
+        scheduleActionReminder({
+          actionId,
+          actionText: actionText.trim(),
+          dreamTitle,
+          reminderMs: reminder.getTime(),
+        });
+      }
+
       haptics.success();
       shootConfetti('small');
       router.back();
@@ -163,6 +186,179 @@ export default function CreateActionScreen() {
               autoFocus={false}
             />
           </View>
+
+          {/* Deadline picker */}
+          <View style={styles.section}>
+            <ThemedText style={styles.label} color={colors.foreground}>
+              Deadline
+            </ThemedText>
+            <ThemedText style={styles.hint} color={colors.mutedForeground}>
+              Optional — add time pressure to stay on track.
+            </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+              <Pressable
+                onPress={() => {
+                  haptics.light();
+                  if (!deadline) setDeadline(new Date(Date.now() + 24 * 60 * 60 * 1000));
+                  setShowPicker(true);
+                }}
+                style={[
+                  styles.deadlineTrigger,
+                  {
+                    backgroundColor: colors.surfaceTinted,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <IconSymbol name="clock" size={IconSize.lg} color={colors.mutedForeground} />
+                <ThemedText
+                  style={{ fontSize: FontSize.base }}
+                  color={deadline ? colors.foreground : colors.mutedForeground}
+                >
+                  {deadline
+                    ? deadline.toLocaleString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })
+                    : 'No deadline'}
+                </ThemedText>
+              </Pressable>
+              {deadline && (
+                <Pressable
+                  onPress={() => {
+                    haptics.light();
+                    setDeadline(null);
+                    setShowPicker(false);
+                  }}
+                  hitSlop={HitSlop.sm}
+                >
+                  <ThemedText style={{ fontSize: FontSize.base, fontWeight: '600' }} color={colors.destructive}>
+                    Clear
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+            {showPicker && deadline && (
+              <DateTimePicker
+                value={deadline}
+                mode="datetime"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(_event, date) => {
+                  if (date) setDeadline(date);
+                }}
+              />
+            )}
+          </View>
+
+          {/* Reminder picker */}
+          <View style={styles.section}>
+            <ThemedText style={styles.label} color={colors.foreground}>
+              Reminder
+            </ThemedText>
+            <ThemedText style={styles.hint} color={colors.mutedForeground}>
+              Get a push notification at this time.
+            </ThemedText>
+            {/* Quick presets when deadline is set */}
+            {deadline && !reminder && (
+              <View style={{ flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' }}>
+                {[
+                  { label: '15 min before', offset: 15 * 60 * 1000 },
+                  { label: '1 hr before', offset: 60 * 60 * 1000 },
+                  { label: '1 day before', offset: 24 * 60 * 60 * 1000 },
+                ].map((preset) => {
+                  const presetTime = deadline.getTime() - preset.offset;
+                  if (presetTime <= Date.now()) return null;
+                  return (
+                    <Pressable
+                      key={preset.label}
+                      onPress={() => {
+                        haptics.light();
+                        setReminder(new Date(presetTime));
+                      }}
+                      style={[
+                        styles.pill,
+                        {
+                          backgroundColor: colors.surfaceTinted,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                    >
+                      <ThemedText style={styles.pillText} color={colors.foreground}>
+                        {preset.label}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+              <Pressable
+                onPress={() => {
+                  haptics.light();
+                  if (!reminder) {
+                    const defaultTime = deadline
+                      ? new Date(deadline.getTime() - 60 * 60 * 1000)
+                      : new Date(Date.now() + 60 * 60 * 1000);
+                    if (defaultTime.getTime() <= Date.now()) {
+                      defaultTime.setTime(Date.now() + 15 * 60 * 1000);
+                    }
+                    setReminder(defaultTime);
+                  }
+                  setShowReminderPicker(true);
+                }}
+                style={[
+                  styles.deadlineTrigger,
+                  {
+                    backgroundColor: colors.surfaceTinted,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <IconSymbol name="bell.fill" size={IconSize.lg} color={colors.mutedForeground} />
+                <ThemedText
+                  style={{ fontSize: FontSize.base }}
+                  color={reminder ? colors.foreground : colors.mutedForeground}
+                >
+                  {reminder
+                    ? reminder.toLocaleString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })
+                    : 'No reminder'}
+                </ThemedText>
+              </Pressable>
+              {reminder && (
+                <Pressable
+                  onPress={() => {
+                    haptics.light();
+                    setReminder(null);
+                    setShowReminderPicker(false);
+                  }}
+                  hitSlop={HitSlop.sm}
+                >
+                  <ThemedText style={{ fontSize: FontSize.base, fontWeight: '600' }} color={colors.destructive}>
+                    Clear
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+            {showReminderPicker && reminder && (
+              <DateTimePicker
+                value={reminder}
+                mode="datetime"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(_event, date) => {
+                  if (date) setReminder(date);
+                }}
+              />
+            )}
+          </View>
         </ScrollView>
 
         {/* Submit button */}
@@ -245,6 +441,16 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     minHeight: 100,
     textAlignVertical: 'top',
+  },
+  deadlineTrigger: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   footer: {
     paddingHorizontal: Spacing.xl,
