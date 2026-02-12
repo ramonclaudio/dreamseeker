@@ -12,6 +12,9 @@ interface UseSubscriptionResult {
   dreamCount: number;
   canCreateDream: boolean;
   dreamsRemaining: number | null;
+  pinLimit: number | null;
+  pinCount: number;
+  canCreatePin: boolean;
   isTrialActive: boolean;
   trialExpiresAt: number | null;
   trialDaysRemaining: number | null;
@@ -82,6 +85,9 @@ export function useSubscription(): UseSubscriptionResult {
     dreamCount: status?.dreamCount ?? 0,
     canCreateDream: status?.canCreateDream ?? true,
     dreamsRemaining: status?.dreamsRemaining ?? null,
+    pinLimit: status?.pinLimit ?? null,
+    pinCount: status?.pinCount ?? 0,
+    canCreatePin: status?.canCreatePin ?? true,
     isTrialActive,
     trialExpiresAt,
     trialDaysRemaining,

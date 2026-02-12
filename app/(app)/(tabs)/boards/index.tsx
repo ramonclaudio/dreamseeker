@@ -24,7 +24,7 @@ import { Spacing, FontSize, IconSize } from '@/constants/layout';
 import { Radius } from '@/constants/theme';
 import type { ColorPalette } from '@/constants/theme';
 import { Opacity } from '@/constants/ui';
-import { DREAM_CATEGORIES, FREE_MAX_PINS } from '@/convex/constants';
+import { DREAM_CATEGORIES } from '@/convex/constants';
 import type { DreamCategory } from '@/convex/constants';
 import { UpgradeBanner } from '@/components/ui/upgrade-banner';
 import { haptics } from '@/lib/haptics';
@@ -49,6 +49,7 @@ type ActionMenuStep = 'actions' | 'pick-board';
 function ActionMenu({
   visible,
   onClose,
+  onDismiss,
   onCreateBoard,
   onCreatePin,
   boards,
@@ -56,6 +57,7 @@ function ActionMenu({
 }: {
   visible: boolean;
   onClose: () => void;
+  onDismiss?: () => void;
   onCreateBoard: () => void;
   onCreatePin: (boardId?: Id<'visionBoards'>) => void;
   boards: { _id: string; name: string }[];
@@ -79,7 +81,7 @@ function ActionMenu({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} onDismiss={onDismiss}>
       <Pressable style={styles.menuOverlay} onPress={onClose}>
         <Pressable
           style={[
@@ -229,6 +231,7 @@ export default function BoardsScreen() {
   const [editPin, setEditPin] = useState<Pin | null>(null);
   const [profileSetupDone, setProfileSetupDone] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [pendingUpgrade, setPendingUpgrade] = useState(false);
   const [pinBoardId, setPinBoardId] = useState<Id<'visionBoards'> | undefined>(undefined);
 
   // ── My Boards state ─────────────────────────────────────────────
@@ -246,7 +249,8 @@ export default function BoardsScreen() {
   const { pins: communityPins, isLoading: communityLoading, hasMore, loadMore } = useCommunityPins({
     category: selectedCategory,
   });
-  const { isPremium, showUpgrade } = useSubscription();
+  const { isPremium, canCreatePin, pinCount, pinLimit, showUpgrade } = useSubscription();
+  const atPinLimit = !canCreatePin;
   const myProfile = useQuery(api.community.getMyProfile);
   const savedPinIds = useQuery(api.pins.getSavedPinIds);
   const savePinMutation = useMutation(api.pins.savePin);
@@ -268,8 +272,14 @@ export default function BoardsScreen() {
 
   // Auto-open create pin modal when navigated with ?create=true
   useEffect(() => {
-    if (create === 'true') setShowCreatePin(true);
-  }, [create]);
+    if (create === 'true') {
+      if (atPinLimit) {
+        showUpgrade();
+      } else {
+        setShowCreatePin(true);
+      }
+    }
+  }, [create, atPinLimit, showUpgrade]);
 
   const currentBoard = boards[currentIndex];
 
@@ -404,8 +414,20 @@ export default function BoardsScreen() {
 
   const handleCreatePinFromMenu = (boardId?: Id<'visionBoards'>) => {
     setShowActionMenu(false);
+    if (atPinLimit) {
+      haptics.error();
+      setPendingUpgrade(true);
+      return;
+    }
     setPinBoardId(boardId);
     setShowCreatePin(true);
+  };
+
+  const handleActionMenuDismiss = () => {
+    if (pendingUpgrade) {
+      setPendingUpgrade(false);
+      showUpgrade();
+    }
   };
 
   const handleViewOriginal = (originalPinId: string) => {
@@ -459,6 +481,11 @@ export default function BoardsScreen() {
           addLabel="Create new board or pin"
           safeAreaTop
         />
+      </View>
+
+      {/* Upgrade banner */}
+      <View style={{ paddingHorizontal: Spacing.lg, marginBottom: Spacing.sm }}>
+        <UpgradeBanner used={pinCount} limit={pinLimit ?? Infinity} noun="Pins" />
       </View>
 
       {/* Segment control */}
@@ -537,7 +564,14 @@ export default function BoardsScreen() {
                   boardId={item._id as Id<'visionBoards'>}
                   width={screenWidth}
                   onPinPress={(pin) => setSelectedPin(pin)}
-                  onCreatePin={() => setShowCreatePin(true)}
+                  onCreatePin={() => {
+                    if (atPinLimit) {
+                      haptics.error();
+                      showUpgrade();
+                      return;
+                    }
+                    setShowCreatePin(true);
+                  }}
                   colors={colors}
                 />
               )}
@@ -551,9 +585,6 @@ export default function BoardsScreen() {
             </View>
           )}
 
-          <View style={{ paddingHorizontal: Spacing.lg, marginTop: Spacing.md }}>
-            <UpgradeBanner used={boardPinCount} limit={FREE_MAX_PINS} noun="Pins" />
-          </View>
         </>
       )}
 
@@ -633,6 +664,7 @@ export default function BoardsScreen() {
       <ActionMenu
         visible={showActionMenu}
         onClose={() => setShowActionMenu(false)}
+        onDismiss={handleActionMenuDismiss}
         onCreateBoard={() => {
           setShowActionMenu(false);
           handleAddBoard();

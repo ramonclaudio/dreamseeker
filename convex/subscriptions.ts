@@ -15,6 +15,9 @@ export const getSubscriptionStatus = authQuery({
         dreamCount: 0,
         canCreateDream: false,
         dreamsRemaining: 0,
+        pinLimit: TIERS.free.pinLimit,
+        pinCount: 0,
+        canCreatePin: false,
         isTrialActive: false,
         trialExpiresAt: null,
         hasTrialExpired: false,
@@ -55,6 +58,15 @@ export const getSubscriptionStatus = authQuery({
     const canCreateDream = dreamLimit === null || dreamCount < dreamLimit;
     const dreamsRemaining = dreamLimit === null ? null : Math.max(0, dreamLimit - dreamCount);
 
+    // Pin limits
+    const pinLimit = TIERS[tier].pinLimit;
+    const pins = await ctx.db
+      .query('pins')
+      .withIndex('by_user_created', (q) => q.eq('userId', ctx.user!))
+      .take(pinLimit !== null ? pinLimit + 1 : 1);
+    const pinCount = pins.length;
+    const canCreatePin = pinLimit === null || pinCount < pinLimit;
+
     return {
       tier,
       isPremium,
@@ -62,6 +74,9 @@ export const getSubscriptionStatus = authQuery({
       dreamCount,
       canCreateDream,
       dreamsRemaining,
+      pinLimit,
+      pinCount,
+      canCreatePin,
       isTrialActive,
       trialExpiresAt,
       hasTrialExpired,
