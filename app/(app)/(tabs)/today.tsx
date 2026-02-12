@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, Alert, LayoutAnimation, UIManager, Platform } from "react-native";
+import { View, ScrollView, Pressable, Alert, LayoutAnimation } from "react-native";
 import { router } from "expo-router";
 import { useState, useMemo, useCallback } from "react";
 import { useMutation } from "convex/react";

@@ -24,7 +24,7 @@ export const SF_SYMBOLS = [
   "figure.walk", "book.fill", "book", "square.and.pencil", "timer", "diamond.fill",
   "crown.fill", "arrow.clockwise", "magnifyingglass", "person.badge.plus",
   "eye.fill", "eye.slash.fill", "person.2", "globe", "square.grid.2x2", "pin.fill",
-  "cloud.fill", "sun.min.fill", "chevron.left", "medal.fill",
+  "cloud", "cloud.fill", "sun.min.fill", "chevron.left", "medal.fill",
   "bookmark", "bookmark.fill", "flag.fill",
   "clock", "exclamationmark.circle.fill",
   "archivebox", "archivebox.fill",
