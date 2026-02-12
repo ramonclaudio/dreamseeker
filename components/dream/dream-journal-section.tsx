@@ -3,6 +3,7 @@ import { router } from "expo-router";
 
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { MaterialCard } from "@/components/ui/material-card";
+import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { UpgradeBanner } from "@/components/ui/upgrade-banner";
@@ -19,11 +20,15 @@ export function DreamJournalSection({
   entries,
   categoryColor,
   colors,
+  onEdit,
+  onDelete,
 }: {
   dreamId: Id<"dreams">;
   entries: JournalEntry[] | undefined;
   categoryColor: string;
   colors: ColorPalette;
+  onEdit?: (entry: JournalEntry) => void;
+  onDelete?: (entryId: Id<"journalEntries">) => void;
 }) {
   const { isPremium, showUpgrade } = useSubscription();
   const entryCount = entries?.length ?? 0;
@@ -77,76 +82,83 @@ export function DreamJournalSection({
 
       {entries && entries.length > 0 ? (
         entries.map((entry) => (
-          <Pressable
-            key={entry._id}
-            onPress={() =>
-              router.push({
-                pathname: "/(app)/journal-entry" as const,
-                params: { id: entry._id },
-              } as never)
-            }
-            style={({ pressed }) => ({
-              opacity: pressed ? Opacity.pressed : 1,
-              marginBottom: Spacing.sm,
-            })}
-          >
-            <MaterialCard
-              style={{
-                padding: Spacing.lg,
-                borderLeftWidth: 3,
-                borderLeftColor: categoryColor,
-              }}
+          <View key={entry._id} style={{ marginBottom: Spacing.sm }}>
+            <SwipeableRow
+              onEdit={onEdit ? () => onEdit(entry) : undefined}
+              onDelete={onDelete ? () => onDelete(entry._id) : undefined}
+              editColor={colors.accent}
+              deleteColor={colors.destructive}
             >
-              <ThemedText
-                style={{ fontSize: FontSize.lg, fontWeight: "600" }}
-                numberOfLines={1}
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/journal-entry" as const,
+                    params: { id: entry._id },
+                  } as never)
+                }
+                style={({ pressed }) => ({
+                  opacity: pressed ? Opacity.pressed : 1,
+                })}
               >
-                {entry.title}
-              </ThemedText>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: Spacing.sm,
-                  marginTop: Spacing.xxs,
-                }}
-              >
-                <ThemedText
-                  style={{ fontSize: FontSize.sm }}
-                  color={colors.mutedForeground}
+                <MaterialCard
+                  style={{
+                    padding: Spacing.lg,
+                    borderLeftWidth: 3,
+                    borderLeftColor: categoryColor,
+                  }}
                 >
-                  {new Date(entry.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </ThemedText>
-                {entry.mood && (
+                  <ThemedText
+                    style={{ fontSize: FontSize.lg, fontWeight: "600" }}
+                    numberOfLines={1}
+                  >
+                    {entry.title}
+                  </ThemedText>
                   <View
                     style={{
-                      paddingHorizontal: Spacing.sm,
-                      paddingVertical: Spacing.xxs,
-                      borderRadius: Radius.full,
-                      backgroundColor: `${categoryColor}15`,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: Spacing.sm,
+                      marginTop: Spacing.xxs,
                     }}
                   >
                     <ThemedText
-                      style={{ fontSize: FontSize.xs, fontWeight: "500" }}
-                      color={categoryColor}
+                      style={{ fontSize: FontSize.sm }}
+                      color={colors.mutedForeground}
                     >
-                      {entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}
+                      {new Date(entry.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </ThemedText>
+                    {entry.mood && (
+                      <View
+                        style={{
+                          paddingHorizontal: Spacing.sm,
+                          paddingVertical: Spacing.xxs,
+                          borderRadius: Radius.full,
+                          backgroundColor: `${categoryColor}15`,
+                        }}
+                      >
+                        <ThemedText
+                          style={{ fontSize: FontSize.xs, fontWeight: "500" }}
+                          color={categoryColor}
+                        >
+                          {entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}
+                        </ThemedText>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-              <ThemedText
-                style={{ fontSize: FontSize.base, marginTop: Spacing.xs, lineHeight: 20 }}
-                color={colors.mutedForeground}
-                numberOfLines={2}
-              >
-                {entry.body}
-              </ThemedText>
-            </MaterialCard>
-          </Pressable>
+                  <ThemedText
+                    style={{ fontSize: FontSize.base, marginTop: Spacing.xs, lineHeight: 20 }}
+                    color={colors.mutedForeground}
+                    numberOfLines={2}
+                  >
+                    {entry.body}
+                  </ThemedText>
+                </MaterialCard>
+              </Pressable>
+            </SwipeableRow>
+          </View>
         ))
       ) : (
         <Pressable
