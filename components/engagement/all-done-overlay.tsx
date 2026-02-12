@@ -74,7 +74,7 @@ export function AllDoneOverlay({ visible, handle, onDismiss }: AllDoneOverlayPro
   return (
     <Modal visible={visible} animationType="none" presentationStyle="overFullScreen" transparent onRequestClose={onDismiss}>
       <View style={styles.overlay}>
-        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.overlay, opacity: overlayOpacity }]} />
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background, opacity: overlayOpacity }]} />
         <Animated.View style={[styles.content, { opacity: contentOpacity, transform: [{ scale: contentScale }] }]}>
           <Animated.View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20`, transform: [{ scale: iconScale }] }]}>
             <IconSymbol name="checkmark.circle.fill" size={IconSize["6xl"]} color={colors.primary} />
