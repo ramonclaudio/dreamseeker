@@ -104,7 +104,7 @@ function SectionHeader({
   colors,
 }: {
   title: string;
-  onSeeAll: () => void;
+  onSeeAll?: () => void;
   colors: ColorPalette;
 }) {
   return (
@@ -122,18 +122,20 @@ function SectionHeader({
       >
         {title}
       </ThemedText>
-      <Pressable
-        onPress={() => {
-          haptics.light();
-          onSeeAll();
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={`See all ${title}`}
-      >
-        <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-          See all
-        </ThemedText>
-      </Pressable>
+      {onSeeAll && (
+        <Pressable
+          onPress={() => {
+            haptics.light();
+            onSeeAll();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`See all ${title}`}
+        >
+          <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
+            See all
+          </ThemedText>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -637,11 +639,7 @@ export default function TodayScreen() {
         </View>
 
         {/* ── Quick Start — 2x2 grid ── */}
-        <SectionHeader
-          title="Quick Start"
-          onSeeAll={() => router.push("/(app)/(tabs)/(dreams)")}
-          colors={colors}
-        />
+        <SectionHeader title="Quick Start" colors={colors} />
         <ActionGrid colors={colors} />
 
         {/* ── My Journal — time-of-day cards ── */}
