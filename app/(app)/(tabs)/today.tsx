@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, Alert, LayoutAnimation, UIManager, Platform } from "react-native";
+import { View, ScrollView, Pressable, Alert, LayoutAnimation } from "react-native";
 import { router } from "expo-router";
 import { useState, useMemo, useCallback } from "react";
 import { useMutation } from "convex/react";
@@ -104,7 +104,7 @@ function SectionHeader({
   colors,
 }: {
   title: string;
-  onSeeAll: () => void;
+  onSeeAll?: () => void;
   colors: ColorPalette;
 }) {
   return (
@@ -122,18 +122,20 @@ function SectionHeader({
       >
         {title}
       </ThemedText>
-      <Pressable
-        onPress={() => {
-          haptics.light();
-          onSeeAll();
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={`See all ${title}`}
-      >
-        <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
-          See all
-        </ThemedText>
-      </Pressable>
+      {onSeeAll && (
+        <Pressable
+          onPress={() => {
+            haptics.light();
+            onSeeAll();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`See all ${title}`}
+        >
+          <ThemedText style={{ fontSize: FontSize.base }} color={colors.mutedForeground}>
+            See all
+          </ThemedText>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -208,7 +210,7 @@ function DreamBanner({
 }
 
 // ---------------------------------------------------------------------------
-// My Actions — 2x2 grid, uniform card bg with icon accent
+// Quick Start — 2x2 grid, uniform card bg with icon accent
 // ---------------------------------------------------------------------------
 type ActionItem = {
   id: string;
@@ -636,12 +638,8 @@ export default function TodayScreen() {
           />
         </View>
 
-        {/* ── My Actions — 2x2 grid ── */}
-        <SectionHeader
-          title="My Actions"
-          onSeeAll={() => router.push("/(app)/(tabs)/(dreams)")}
-          colors={colors}
-        />
+        {/* ── Quick Start — 2x2 grid ── */}
+        <SectionHeader title="Quick Start" colors={colors} />
         <ActionGrid colors={colors} />
 
         {/* ── My Journal — time-of-day cards ── */}

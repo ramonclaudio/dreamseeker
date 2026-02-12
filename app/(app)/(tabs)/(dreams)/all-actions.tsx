@@ -1,5 +1,5 @@
 import { View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { memo, useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 
@@ -176,15 +176,6 @@ const AllActionsRow = memo(function AllActionsRow({
 
 export default function AllActionsScreen() {
   const colors = useColors();
-  const { from } = useLocalSearchParams<{ from?: string }>();
-
-  const handleBack = useCallback(() => {
-    if (from === 'today') {
-      router.navigate('/(app)/(tabs)/today');
-    } else {
-      router.back();
-    }
-  }, [from]);
   const [refreshing, setRefreshing] = useState(false);
   const [editingAction, setEditingAction] = useState<Doc<'actions'> | null>(null);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
@@ -314,23 +305,7 @@ export default function AllActionsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Stack.Screen
-        options={{
-          headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable
-              onPress={handleBack}
-              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, paddingRight: Spacing.md }}
-              hitSlop={8}
-            >
-              <IconSymbol name="chevron.left" size={22} color={colors.primary} weight="medium" />
-              <ThemedText style={{ fontSize: 17 }} color={colors.primary}>
-                Back
-              </ThemedText>
-            </Pressable>
-          ),
-        }}
-      />
+      <Stack.Screen options={{}} />
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,

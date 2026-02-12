@@ -90,15 +90,15 @@ export default function AboutScreen() {
     : 'iOS';
 
   const handleOpenGitHub = () => {
-    Linking.openURL('https://github.com/ramonclaudio/dreamseeker');
+    Linking.openURL('https://github.com/ramonclaudio');
   };
 
   const handleOpenPrivacyPolicy = () => {
-    Linking.openURL('https://ramonclaudio.com/privacy');
+    Linking.openURL('https://ramonclaudio.com/apps/dreamseeker/privacy');
   };
 
   const handleOpenTerms = () => {
-    Linking.openURL('https://ramonclaudio.com/terms');
+    Linking.openURL('https://ramonclaudio.com/apps/dreamseeker/terms');
   };
 
   return (

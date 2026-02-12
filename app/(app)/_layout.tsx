@@ -58,7 +58,7 @@ export default function AppLayout() {
           animationDuration: 250,
         }}
       >
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
         <Stack.Screen
           name="dream/[id]"

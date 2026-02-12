@@ -22,7 +22,7 @@ type TabConfig = {
 
 const TAB_CONFIG: Record<string, TabConfig> = {
   today: { label: "Today", icon: "house", selectedIcon: "house.fill" },
-  "(dreams)": { label: "Dreams", icon: "star", selectedIcon: "star.fill" },
+  "(dreams)": { label: "Dreams", icon: "cloud", selectedIcon: "cloud.fill" },
   boards: { label: "Boards", icon: "square.grid.2x2", selectedIcon: "square.grid.2x2" },
   progress: { label: "Progress", icon: "flame", selectedIcon: "flame.fill" },
 };
