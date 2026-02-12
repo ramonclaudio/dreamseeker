@@ -89,7 +89,7 @@ Mindset shifts + micro-actions + gamification. That's the whole thesis.
 | :--- | :--- |
 | Framework | Expo SDK 55 · React 19 · React Compiler |
 | Backend | Convex (real-time queries, mutations, actions) |
-| Auth | Better Auth (email/password + Apple Sign-In) |
+| Auth | Better Auth (email/password) |
 | Payments | RevenueCat · `convex-revenuecat` |
 | Email | Resend via `@convex-dev/resend` |
 | Styling | React Native StyleSheet · Theme system (System/Light/Dark) |
@@ -206,9 +206,6 @@ Then re-run `npx convex dev` — it will push successfully.
 # Push notifications (requires physical device)
 npx convex env set EXPO_ACCESS_TOKEN=<from expo.dev → Access Tokens>
 
-# Apple Sign-In (optional)
-npx convex env set APPLE_CLIENT_ID=your-services-id
-npx convex env set APPLE_CLIENT_SECRET=your-jwt-secret
 ```
 
 ### 5. Run
@@ -256,13 +253,6 @@ npm run ios        # iOS Simulator
 3. Add to Convex Dashboard as `EXPO_ACCESS_TOKEN`
 
 > Push notifications require a physical device — iOS Simulator doesn't support them.
-
-### Apple Sign-In (Optional)
-
-1. Apple Developer Portal → Identifiers → Enable "Sign In with Apple"
-2. Create a Services ID for web auth
-3. Generate a private key and JWT client secret
-4. Set in Convex dashboard: `APPLE_CLIENT_ID` and `APPLE_CLIENT_SECRET`
 
 </details>
 
