@@ -1,11 +1,15 @@
-import { View, ScrollView, Pressable } from "react-native";
+import { View, ScrollView, Pressable, Alert, LayoutAnimation, UIManager, Platform } from "react-native";
 import { router } from "expo-router";
-import { useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useMutation } from "convex/react";
 
+import { api } from "@/convex/_generated/api";
+import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { TabHeader } from "@/components/ui/tab-header";
 import { TodayActionItem } from "@/components/today/action-item";
+import { EditActionModal } from "@/components/dream/edit-action-modal";
 import { GetStartedCards } from "@/components/today/get-started-cards";
 import { BadgeEarnedModal } from "@/components/engagement/badge-earned-modal";
 import { StreakMilestoneToast } from "@/components/engagement/streak-milestone-toast";
@@ -17,7 +21,10 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { Radius } from "@/constants/theme";
 import type { ColorPalette } from "@/constants/theme";
 import { Spacing, FontSize, MaxWidth, IconSize, TAB_BAR_CLEARANCE } from "@/constants/layout";
+import { Opacity } from "@/constants/ui";
 import { haptics } from "@/lib/haptics";
+import { timezone } from "@/lib/timezone";
+import { scheduleActionReminder, cancelActionReminder } from "@/lib/local-notifications";
 
 // ---------------------------------------------------------------------------
 // Week Calendar Strip
@@ -405,13 +412,92 @@ export default function TodayScreen() {
     setShowAllDone,
   } = useToday();
 
+  const updateAction = useMutation(api.actions.update);
+  const removeAction = useMutation(api.actions.remove);
+  const [editingAction, setEditingAction] = useState<Doc<"actions"> | null>(null);
+
+  const handleEditAction = useCallback((action: Doc<"actions">) => {
+    haptics.selection();
+    setEditingAction(action);
+  }, []);
+
+  const handleSaveAction = useCallback(
+    async (text: string, deadline?: number, clearDeadline?: boolean, reminder?: number, clearReminder?: boolean) => {
+      if (!editingAction) return;
+      try {
+        await updateAction({ id: editingAction._id, text, deadline, clearDeadline, reminder, clearReminder });
+
+        // Update local notification schedule
+        if (clearReminder) {
+          cancelActionReminder(editingAction._id);
+        } else if (reminder) {
+          const dreamTitle = (editingAction as { dreamTitle?: string }).dreamTitle ?? "your dream";
+          scheduleActionReminder({
+            actionId: editingAction._id,
+            actionText: text,
+            dreamTitle,
+            reminderMs: reminder,
+          });
+        }
+
+        haptics.success();
+        setEditingAction(null);
+      } catch {
+        haptics.error();
+      }
+    },
+    [editingAction, updateAction]
+  );
+
+  const handleDeleteAction = useCallback(
+    (actionId: Id<"actions">) => {
+      Alert.alert("Delete Action", "Are you sure? This will also deduct any XP earned from this action.", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeAction({ id: actionId, timezone });
+              cancelActionReminder(actionId);
+              haptics.warning();
+            } catch {
+              haptics.error();
+            }
+          },
+        },
+      ]);
+    },
+    [removeAction]
+  );
+
   const dateStr = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   });
 
-  const hasPendingActions = (pendingActions?.length ?? 0) > 0;
+  // Sort: deadline actions first (soonest first), then no-deadline in original order
+  const sortedPendingActions = useMemo(() => {
+    if (!pendingActions) return null;
+    const withDeadline = pendingActions
+      .filter((a) => a.deadline !== undefined)
+      .sort((a, b) => a.deadline! - b.deadline!);
+    const withoutDeadline = pendingActions.filter((a) => a.deadline === undefined);
+    return [...withDeadline, ...withoutDeadline];
+  }, [pendingActions]);
+
+  const hasPendingActions = (sortedPendingActions?.length ?? 0) > 0;
+  const totalActions = sortedPendingActions?.length ?? 0;
+  const COLLAPSED_COUNT = 3;
+  const [actionsExpanded, setActionsExpanded] = useState(false);
+  const hasHiddenActions = totalActions > COLLAPSED_COUNT;
+
+  const toggleActionsExpanded = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    haptics.light();
+    setActionsExpanded((prev) => !prev);
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -451,19 +537,22 @@ export default function TodayScreen() {
           />
         )}
 
-        {/* ── Today's Actions — pending actions checklist ── */}
+        {/* ── Today's Actions — collapsible checklist ── */}
         {hasPendingActions && (
           <View style={{ marginBottom: Spacing["3xl"] }}>
             <SectionHeader
               title="Knock these out"
-              onSeeAll={() => router.push("/(app)/(tabs)/(dreams)")}
+              onSeeAll={() => router.push("/(app)/(tabs)/(dreams)/all-actions?from=today")}
               colors={colors}
             />
-            {pendingActions!.map((action) => (
+            {/* Always-visible items */}
+            {sortedPendingActions!.slice(0, COLLAPSED_COUNT).map((action) => (
               <TodayActionItem
                 key={action._id}
                 action={action}
                 onToggle={() => handleToggleAction(action._id)}
+                onEdit={() => handleEditAction(action as Doc<"actions">)}
+                onDelete={() => handleDeleteAction(action._id as Id<"actions">)}
                 onFocus={() =>
                   router.push({
                     pathname: "/(app)/focus-timer" as const,
@@ -477,6 +566,56 @@ export default function TodayScreen() {
                 colors={colors}
               />
             ))}
+            {/* Overflow items — always mounted, container collapses */}
+            {hasHiddenActions && (
+              <View style={{ overflow: "hidden", maxHeight: actionsExpanded ? undefined : 0 }}>
+                {sortedPendingActions!.slice(COLLAPSED_COUNT).map((action) => (
+                  <TodayActionItem
+                    key={action._id}
+                    action={action}
+                    onToggle={() => handleToggleAction(action._id)}
+                    onEdit={() => handleEditAction(action as Doc<"actions">)}
+                    onDelete={() => handleDeleteAction(action._id as Id<"actions">)}
+                    onFocus={() =>
+                      router.push({
+                        pathname: "/(app)/focus-timer" as const,
+                        params: {
+                          dreamId: action.dreamId,
+                          actionId: action._id,
+                          actionText: action.text,
+                        },
+                      } as never)
+                    }
+                    colors={colors}
+                  />
+                ))}
+              </View>
+            )}
+            {hasHiddenActions && (
+              <Pressable
+                onPress={toggleActionsExpanded}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: Spacing.xs,
+                  paddingTop: Spacing.sm,
+                  opacity: pressed ? Opacity.pressed : 1,
+                })}
+              >
+                <ThemedText
+                  style={{ fontSize: FontSize.sm, fontWeight: "500" }}
+                  color={colors.primary}
+                >
+                  {actionsExpanded ? "Show less" : `Show all ${totalActions} actions`}
+                </ThemedText>
+                <IconSymbol
+                  name={actionsExpanded ? "chevron.up" : "chevron.down"}
+                  size={IconSize.sm}
+                  color={colors.primary}
+                />
+              </Pressable>
+            )}
           </View>
         )}
 
@@ -508,11 +647,20 @@ export default function TodayScreen() {
         {/* ── My Journal — time-of-day cards ── */}
         <SectionHeader
           title="My Journal"
-          onSeeAll={() => router.push("/(app)/(tabs)/(dreams)/journal")}
+          onSeeAll={() => router.push("/(app)/(tabs)/(dreams)/journal?from=today")}
           colors={colors}
         />
         <JournalCards colors={colors} />
       </ScrollView>
+
+      {/* Edit Action Modal */}
+      <EditActionModal
+        visible={editingAction !== null}
+        action={editingAction}
+        onClose={() => setEditingAction(null)}
+        onSave={handleSaveAction}
+        colors={colors}
+      />
 
       {/* First Action Modal (highest priority) */}
       <FirstActionModal visible={showFirstAction} onDismiss={() => setShowFirstAction(false)} />

@@ -26,6 +26,8 @@ export const SF_SYMBOLS = [
   "eye.fill", "eye.slash.fill", "person.2", "globe", "square.grid.2x2", "pin.fill",
   "cloud.fill", "sun.min.fill", "chevron.left", "medal.fill",
   "bookmark", "bookmark.fill", "flag.fill",
+  "clock", "exclamationmark.circle.fill",
+  "archivebox", "archivebox.fill",
 ] as const;
 
 export type IconSymbolName = (typeof SF_SYMBOLS)[number];

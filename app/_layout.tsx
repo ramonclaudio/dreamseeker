@@ -10,6 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useCallback } from "react";
 import { View, AppState, useWindowDimensions } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import "react-native-reanimated";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -102,6 +103,7 @@ function RootNavigator() {
   const colors = useColors();
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <KeyboardProvider>
       <NavigationThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -170,5 +172,6 @@ function RootNavigator() {
         </View>
       </NavigationThemeProvider>
     </KeyboardProvider>
+    </GestureHandlerRootView>
   );
 }

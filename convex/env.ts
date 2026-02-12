@@ -18,6 +18,7 @@ const optional = (key: string, fallback: string): string =>
 /* eslint-enable expo/no-dynamic-env-var */
 
 export const env = {
+  convexSiteUrl: optional('CONVEX_SITE_URL', ''),
   siteUrl: required('SITE_URL'),
   supportEmail: required('SUPPORT_EMAIL'),
   expo: {

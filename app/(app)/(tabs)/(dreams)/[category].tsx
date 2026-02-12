@@ -5,15 +5,17 @@ import {
   Pressable,
   ActivityIndicator,
   TextInput,
+  Alert,
   type ListRenderItem,
 } from "react-native";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { MaterialCard } from "@/components/ui/material-card";
 import { GlassControl } from "@/components/ui/glass-control";
+import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/hooks/use-color-scheme";
@@ -75,107 +77,124 @@ const DreamCard = memo(function DreamCard({
   dream,
   colors,
   categoryColor,
+  onComplete,
+  onArchive,
 }: {
   dream: Dream;
   colors: ColorPalette;
   categoryColor: string;
+  onComplete?: () => void;
+  onArchive?: () => void;
 }) {
   const catIcon = CATEGORY_ICONS[dream.category as DreamCategory] ?? "star.fill";
+  const isActive = dream.status === "active";
 
   return (
-    <Pressable
-      onPress={() => {
-        haptics.selection();
-        router.push(`/(app)/dream/${dream._id}`);
-      }}
-      style={({ pressed }) => ({
-        opacity: pressed ? Opacity.pressed : 1,
-        marginBottom: Spacing.sm,
-      })}
-      accessibilityRole="button"
-      accessibilityLabel={`Dream: ${dream.title}`}
+    <SwipeableRow
+      onComplete={isActive ? onComplete : undefined}
+      onEdit={() => router.push(`/(app)/dream/${dream._id}`)}
+      onDelete={isActive ? onArchive : undefined}
+      completeColor={colors.success}
+      editColor={colors.accent}
+      deleteColor={colors.mutedForeground}
+      deleteLabel="Archive"
+      deleteIcon="archivebox"
+      enabled={isActive}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          backgroundColor: colors.card,
-          borderRadius: Radius.lg,
-          borderCurve: "continuous",
-          borderWidth: 1,
-          borderColor: colors.borderAccent,
-          overflow: "hidden",
-          shadowColor: colors.glowShadow,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 1,
-          shadowRadius: 12,
-          elevation: 3,
+      <Pressable
+        onPress={() => {
+          haptics.selection();
+          router.push(`/(app)/dream/${dream._id}`);
         }}
+        style={({ pressed }) => ({
+          opacity: pressed ? Opacity.pressed : 1,
+          marginBottom: Spacing.sm,
+        })}
+        accessibilityRole="button"
+        accessibilityLabel={`Dream: ${dream.title}`}
       >
-        {/* Content */}
-        <View style={{ flex: 1, padding: Spacing.lg, gap: Spacing.sm }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: Spacing.sm,
-            }}
-          >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                borderCurve: "continuous",
-                backgroundColor: `${categoryColor}18`,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <IconSymbol
-                name={catIcon as never}
-                size={IconSize.md}
-                color={categoryColor}
-              />
-            </View>
-            <ThemedText
-              style={{
-                fontSize: FontSize.xl,
-                fontWeight: "700",
-                flex: 1,
-                letterSpacing: -0.3,
-              }}
-              color={colors.foreground}
-              numberOfLines={2}
-            >
-              {dream.title}
-            </ThemedText>
-          </View>
-          {dream.targetDate && (
-            <ThemedText
-              style={{ fontSize: FontSize.sm }}
-              color={colors.mutedForeground}
-            >
-              Target:{" "}
-              {new Date(dream.targetDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </ThemedText>
-          )}
-        </View>
-
-        {/* Status strip */}
         <View
           style={{
-            width: STRIP_WIDTH,
-            backgroundColor: getStripColor(dream.status, categoryColor, colors),
+            flexDirection: "row",
+            backgroundColor: colors.card,
+            borderRadius: Radius.lg,
+            borderCurve: "continuous",
+            borderWidth: 1,
+            borderColor: colors.borderAccent,
+            overflow: "hidden",
+            shadowColor: colors.glowShadow,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 1,
+            shadowRadius: 12,
+            elevation: 3,
           }}
         >
-          <VerticalLabel label={getStripLabel(dream.status)} color="#fff" />
+          {/* Content */}
+          <View style={{ flex: 1, padding: Spacing.lg, gap: Spacing.sm }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: Spacing.sm,
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  borderCurve: "continuous",
+                  backgroundColor: `${categoryColor}18`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <IconSymbol
+                  name={catIcon as never}
+                  size={IconSize.md}
+                  color={categoryColor}
+                />
+              </View>
+              <ThemedText
+                style={{
+                  fontSize: FontSize.xl,
+                  fontWeight: "700",
+                  flex: 1,
+                  letterSpacing: -0.3,
+                }}
+                color={colors.foreground}
+                numberOfLines={2}
+              >
+                {dream.title}
+              </ThemedText>
+            </View>
+            {dream.targetDate && (
+              <ThemedText
+                style={{ fontSize: FontSize.sm }}
+                color={colors.mutedForeground}
+              >
+                Target:{" "}
+                {new Date(dream.targetDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </ThemedText>
+            )}
+          </View>
+
+          {/* Status strip */}
+          <View
+            style={{
+              width: STRIP_WIDTH,
+              backgroundColor: getStripColor(dream.status, categoryColor, colors),
+            }}
+          >
+            <VerticalLabel label={getStripLabel(dream.status)} color="#fff" />
+          </View>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </SwipeableRow>
   );
 });
 
@@ -195,6 +214,60 @@ export default function CategoryDreamsScreen() {
   );
 
   const createDream = useMutation(api.dreams.create);
+  const completeDream = useMutation(api.dreams.complete);
+  const archiveDream = useMutation(api.dreamLifecycle.archive);
+
+  const handleCompleteDream = useCallback(
+    (dreamId: Id<"dreams">) => {
+      const doComplete = async () => {
+        try {
+          const result = await completeDream({ id: dreamId });
+          haptics.success();
+          const badgeParam = result?.newBadge
+            ? `?badge=${encodeURIComponent(JSON.stringify(result.newBadge))}`
+            : "";
+          router.push(`/(app)/dream-complete/${dreamId}${badgeParam}` as never);
+        } catch {
+          haptics.error();
+        }
+      };
+
+      Alert.alert(
+        "Complete Dream",
+        "Mark this dream as complete?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Complete", onPress: doComplete },
+        ]
+      );
+    },
+    [completeDream]
+  );
+
+  const handleArchiveDream = useCallback(
+    (dreamId: Id<"dreams">) => {
+      Alert.alert(
+        "Archive Dream",
+        "Are you sure? You can restore it later from the dream detail.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Archive",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await archiveDream({ id: dreamId });
+                haptics.warning();
+              } catch {
+                haptics.error();
+              }
+            },
+          },
+        ]
+      );
+    },
+    [archiveDream]
+  );
 
   const renderItem: ListRenderItem<Dream> = useCallback(
     ({ item }) => (
@@ -202,9 +275,11 @@ export default function CategoryDreamsScreen() {
         dream={item}
         colors={colors}
         categoryColor={categoryConfig?.color ?? colors.primary}
+        onComplete={() => handleCompleteDream(item._id)}
+        onArchive={() => handleArchiveDream(item._id)}
       />
     ),
-    [colors, categoryConfig]
+    [colors, categoryConfig, handleCompleteDream, handleArchiveDream]
   );
 
   const keyExtractor = useCallback((item: Dream) => item._id, []);

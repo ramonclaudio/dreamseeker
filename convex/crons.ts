@@ -7,6 +7,7 @@ const crons = cronJobs();
 crons.interval('Remove old emails from the resend component', { hours: 1 }, internal.crons.cleanupResend);
 crons.interval('Check push notification receipts', { minutes: 15 }, internal.notificationsReceipts.checkPushReceipts);
 crons.interval('Clean up old push receipts', { hours: 24 }, internal.notificationsReceipts.cleanupOldReceipts);
+crons.interval('Check action reminders and notify', { minutes: 15 }, internal.deadlines.checkReminders);
 crons.interval('Clean up stale push tokens', { hours: 24 }, internal.notificationsTokens.cleanupStaleTokens);
 crons.interval('Clean up old rate limit records', { hours: 24 }, internal.crons.cleanupRateLimits);
 crons.interval('Prune old feed events', { hours: 24 }, internal.crons.pruneFeedEvents);

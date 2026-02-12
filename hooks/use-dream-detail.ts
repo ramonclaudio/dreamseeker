@@ -8,6 +8,7 @@ import type { Id, Doc } from "@/convex/_generated/dataModel";
 import type { DreamCategory } from "@/constants/dreams";
 import { haptics } from "@/lib/haptics";
 import { timezone } from "@/lib/timezone";
+import { scheduleActionReminder, cancelActionReminder } from "@/lib/local-notifications";
 
 type Action = Doc<"actions">;
 export type DreamWithActions = Doc<"dreams"> & { actions: Action[] };
@@ -60,6 +61,39 @@ export function useDreamDetail(id: string) {
 
   const handleAddAction = async () => {
     if (!newActionText.trim() || !dream) return;
+
+    if (dream.status === "completed") {
+      haptics.warning();
+      Alert.alert(
+        "Dream Completed",
+        "Reopen this dream to add new actions.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Reopen Dream",
+            onPress: () => handleReopenDream(),
+          },
+        ]
+      );
+      return;
+    }
+
+    if (dream.status === "archived") {
+      haptics.warning();
+      Alert.alert(
+        "Dream Archived",
+        "Restore this dream to add new actions.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Restore Dream",
+            onPress: () => handleRestoreDream(),
+          },
+        ]
+      );
+      return;
+    }
+
     try {
       await createAction({ dreamId: dream._id, text: newActionText.trim() });
       haptics.success();
@@ -81,8 +115,9 @@ export function useDreamDetail(id: string) {
       try {
         const result = await toggleAction({ id: actionId, timezoneOffsetMinutes: new Date().getTimezoneOffset(), timezone });
 
-        // Add success haptic when completing (not uncompleting)
+        // Cancel local reminder when completing
         if (!wasCompleted) {
+          cancelActionReminder(actionId);
           haptics.success();
         }
         if (result?.newBadge) setNewBadge(result.newBadge);
@@ -99,17 +134,31 @@ export function useDreamDetail(id: string) {
   }, []);
 
   const handleSaveAction = useCallback(
-    async (text: string) => {
+    async (text: string, deadline?: number, clearDeadline?: boolean, reminder?: number, clearReminder?: boolean) => {
       if (!editingAction) return;
       try {
-        await updateAction({ id: editingAction._id, text });
+        await updateAction({ id: editingAction._id, text, deadline, clearDeadline, reminder, clearReminder });
+
+        // Update local notification schedule
+        if (clearReminder) {
+          cancelActionReminder(editingAction._id);
+        } else if (reminder) {
+          const dreamTitle = dream?.title ?? "your dream";
+          scheduleActionReminder({
+            actionId: editingAction._id,
+            actionText: text,
+            dreamTitle,
+            reminderMs: reminder,
+          });
+        }
+
         haptics.success();
         setEditingAction(null);
       } catch {
         haptics.error();
       }
     },
-    [editingAction, updateAction]
+    [editingAction, updateAction, dream?.title]
   );
 
   const handleDeleteAction = useCallback(
@@ -120,6 +169,7 @@ export function useDreamDetail(id: string) {
         async () => {
           try {
             await removeAction({ id: actionId, timezone });
+            cancelActionReminder(actionId);
             haptics.warning();
           } catch {
             haptics.error();

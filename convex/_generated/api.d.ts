@@ -20,6 +20,7 @@ import type * as communityRateLimit from "../communityRateLimit.js";
 import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
 import type * as dates from "../dates.js";
+import type * as deadlines from "../deadlines.js";
 import type * as dreamGuards from "../dreamGuards.js";
 import type * as dreamLifecycle from "../dreamLifecycle.js";
 import type * as dreams from "../dreams.js";
@@ -72,6 +73,7 @@ declare const fullApi: ApiFromModules<{
   constants: typeof constants;
   crons: typeof crons;
   dates: typeof dates;
+  deadlines: typeof deadlines;
   dreamGuards: typeof dreamGuards;
   dreamLifecycle: typeof dreamLifecycle;
   dreams: typeof dreams;

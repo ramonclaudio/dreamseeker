@@ -18,6 +18,7 @@ const ONE_DAY = ONE_HOUR * 24;
 const SEVEN_DAYS = ONE_DAY * 7;
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth({
+  baseURL: env.convexSiteUrl || undefined,
   trustedOrigins: ['dreamseeker://', 'exp://', 'http://localhost:8081', env.siteUrl],
   database: authComponent.adapter(ctx),
   user: { changeEmail: { enabled: true, updateEmailWithoutVerification: false } },

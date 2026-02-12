@@ -1,10 +1,11 @@
 import { memo } from "react";
 import { View, Pressable } from "react-native";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import type { Doc } from "@/convex/_generated/dataModel";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/ui/themed-text";
+import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { type ColorPalette, Radius } from "@/constants/theme";
 import { Spacing, FontSize, IconSize } from "@/constants/layout";
 import { Opacity } from "@/constants/ui";
@@ -74,9 +75,15 @@ const STRIP_WIDTH = 44;
 export const CompactDreamRow = memo(function CompactDreamRow({
   dream,
   colors,
+  onComplete,
+  onEdit,
+  onArchive,
 }: {
   dream: DreamWithCounts;
   colors: ColorPalette;
+  onComplete?: () => void;
+  onEdit?: () => void;
+  onArchive?: () => void;
 }) {
   const config = getCategoryConfig(dream);
   const hasSteps = dream.totalActions > 0;
@@ -95,10 +102,22 @@ export const CompactDreamRow = memo(function CompactDreamRow({
 
   const catIcon = CATEGORY_ICONS[dream.category as DreamCategory] ?? "star.fill";
   const strip = getStripConfig(dream, config.label, colors);
+  const isActive = dream.status === "active";
 
   return (
-    <Link href={`/(app)/dream/${dream._id}`} asChild>
+    <SwipeableRow
+      onComplete={isActive ? onComplete : undefined}
+      onEdit={onEdit}
+      onDelete={isActive ? onArchive : undefined}
+      completeColor={colors.success}
+      editColor={colors.accent}
+      deleteColor={colors.mutedForeground}
+      deleteLabel="Archive"
+      deleteIcon="archivebox"
+      enabled={isActive}
+    >
       <Pressable
+        onPress={() => router.push(`/(app)/dream/${dream._id}`)}
         style={({ pressed }) => ({ opacity: pressed ? Opacity.pressed : 1 })}
         accessibilityRole="button"
         accessibilityLabel={`${dream.title}, ${stepsLabel}`}
@@ -210,13 +229,13 @@ export const CompactDreamRow = memo(function CompactDreamRow({
           <View
             style={{
               width: STRIP_WIDTH,
-              backgroundColor: strip.color,
+              backgroundColor: config.color,
             }}
           >
             <VerticalLabel label={strip.label} color="#fff" />
           </View>
         </View>
       </Pressable>
-    </Link>
+    </SwipeableRow>
   );
 });
