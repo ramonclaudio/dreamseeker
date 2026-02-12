@@ -1,9 +1,11 @@
-import { View, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, ScrollView, Pressable, ActivityIndicator, Alert } from "react-native";
 import { useLocalSearchParams, router, Stack } from "expo-router";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
+import { useCallback } from "react";
 import ViewShot from "react-native-view-shot";
 
 import { api } from "@/convex/_generated/api";
+import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { getCategoryConfig } from "@/constants/dreams";
 import { GradientProgressBar } from "@/components/ui/gradient-progress-bar";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -26,6 +28,7 @@ import { useShareCapture } from "@/hooks/use-share-capture";
 import { Spacing, FontSize, IconSize, HitSlop, MaxWidth } from "@/constants/layout";
 import { Opacity } from "@/constants/ui";
 import { haptics } from "@/lib/haptics";
+import { timezone } from "@/lib/timezone";
 
 export default function DreamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,6 +36,36 @@ export default function DreamDetailScreen() {
   const detail = useDreamDetail(id);
   const user = useQuery(api.auth.getCurrentUser);
   const { viewShotRef, capture, isSharing } = useShareCapture();
+  const removeJournal = useMutation(api.journal.remove);
+
+  const handleEditJournal = useCallback((entry: Doc<"journalEntries">) => {
+    haptics.selection();
+    router.push({
+      pathname: "/(app)/journal-entry" as const,
+      params: { id: entry._id },
+    } as never);
+  }, []);
+
+  const handleDeleteJournal = useCallback(
+    (entryId: Id<"journalEntries">) => {
+      Alert.alert("Delete Journal Entry", "Are you sure you want to delete this journal entry?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeJournal({ id: entryId, timezone });
+              haptics.warning();
+            } catch {
+              haptics.error();
+            }
+          },
+        },
+      ]);
+    },
+    [removeJournal]
+  );
 
   const { dream, authLoading } = detail;
 
@@ -165,6 +198,8 @@ export default function DreamDetailScreen() {
           entries={detail.journalEntries}
           categoryColor={categoryColor}
           colors={colors}
+          onEdit={handleEditJournal}
+          onDelete={handleDeleteJournal}
         />
 
         {dream.status === "active" && (

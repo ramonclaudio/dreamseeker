@@ -1,11 +1,12 @@
-import { View, ScrollView, RefreshControl } from "react-native";
-import { useQuery, useConvexAuth } from "convex/react";
+import { View, ScrollView, RefreshControl, Alert } from "react-native";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import ViewShot from "react-native-view-shot";
 
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { SkeletonDreamCard } from "@/components/ui/skeleton";
 import { TabHeader } from "@/components/ui/tab-header";
 import { ProgressSummaryCard } from "@/components/dreams/progress-summary-card";
@@ -48,6 +49,9 @@ export default function DreamsScreen() {
     isAuthenticated && isFocused ? {} : "skip"
   );
 
+  const completeDream = useMutation(api.dreams.complete);
+  const archiveDream = useMutation(api.dreamLifecycle.archive);
+
   const isLoading = authLoading || dreams === undefined || progress === undefined;
   const hasDreams = !isLoading && dreams.length > 0;
 
@@ -59,6 +63,62 @@ export default function DreamsScreen() {
     }
     router.push("/(app)/create-dream/");
   };
+
+  const handleCompleteDream = useCallback(
+    (dreamId: Id<"dreams">, hasIncomplete: boolean) => {
+      const doComplete = async () => {
+        try {
+          const result = await completeDream({ id: dreamId });
+          haptics.success();
+          const badgeParam = result?.newBadge
+            ? `?badge=${encodeURIComponent(JSON.stringify(result.newBadge))}`
+            : "";
+          router.push(`/(app)/dream-complete/${dreamId}${badgeParam}` as never);
+        } catch {
+          haptics.error();
+        }
+      };
+
+      if (hasIncomplete) {
+        Alert.alert(
+          "Incomplete Actions",
+          "You still have incomplete actions. Are you sure you want to mark this dream as complete?",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Complete Anyway", onPress: doComplete },
+          ]
+        );
+        return;
+      }
+      doComplete();
+    },
+    [completeDream]
+  );
+
+  const handleArchiveDream = useCallback(
+    (dreamId: Id<"dreams">) => {
+      Alert.alert(
+        "Archive Dream",
+        "Are you sure? You can restore it later from the dream detail.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Archive",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await archiveDream({ id: dreamId });
+                haptics.warning();
+              } catch {
+                haptics.error();
+              }
+            },
+          },
+        ]
+      );
+    },
+    [archiveDream]
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -119,6 +179,14 @@ export default function DreamsScreen() {
                 key={dream._id}
                 dream={dream}
                 colors={colors}
+                onComplete={() =>
+                  handleCompleteDream(
+                    dream._id,
+                    dream.completedActions < dream.totalActions
+                  )
+                }
+                onEdit={() => router.push(`/(app)/dream/${dream._id}`)}
+                onArchive={() => handleArchiveDream(dream._id)}
               />
             ))}
 
