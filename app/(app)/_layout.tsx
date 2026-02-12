@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Stack, Redirect, useSegments } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import { useQuery } from 'convex/react';
@@ -20,12 +21,19 @@ export default function AppLayout() {
   const onboardingStatus = useQuery(api.userPreferences.getOnboardingStatus);
   const user = useQuery(api.auth.getCurrentUser);
   const { showLevelUpModal, level, levelTitle, dismissLevelUpModal } = useLevelUp();
+  const [ready, setReady] = useState(false);
 
   // Check if we're already on the onboarding route
   const isOnboardingRoute = segments.some((s) => s === 'onboarding');
 
-  // Show loading while checking onboarding status
-  if (onboardingStatus === undefined) {
+  // Mark ready once onboarding status resolves — never go back to loading
+  // so the Stack stays mounted through query re-evaluations
+  useEffect(() => {
+    if (onboardingStatus !== undefined) setReady(true);
+  }, [onboardingStatus]);
+
+  // Block only on initial load — never unmount the Stack after first render
+  if (!ready) {
     return (
       <View
         style={{
@@ -41,7 +49,7 @@ export default function AppLayout() {
   }
 
   // Redirect to onboarding if not completed (and not already there)
-  if (!onboardingStatus.completed && !isOnboardingRoute) {
+  if (onboardingStatus && !onboardingStatus.completed && !isOnboardingRoute) {
     return <Redirect href="/(app)/onboarding" />;
   }
 
@@ -58,7 +66,7 @@ export default function AppLayout() {
           animationDuration: 250,
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '' }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
         <Stack.Screen
           name="dream/[id]"
