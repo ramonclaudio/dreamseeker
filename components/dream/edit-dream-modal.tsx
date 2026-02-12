@@ -82,7 +82,7 @@ export function EditDreamModal({
     try {
       await onSave({
         title: title.trim(),
-        whyItMatters: whyItMatters.trim() || undefined,
+        whyItMatters: whyItMatters.trim(),
         targetDate: targetDate?.getTime(),
         category,
         customCategoryName: category === 'custom' ? customName : undefined,

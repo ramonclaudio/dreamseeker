@@ -70,10 +70,10 @@ export function useCreateDream() {
     setState((prev) => ({ ...prev, actions }));
   }, []);
 
-  const addAction = useCallback((action: string) => {
+  const addAction = useCallback((action: string, maxActions = 10) => {
     setState((prev) => ({
       ...prev,
-      actions: prev.actions.length < 10 ? [...prev.actions, action] : prev.actions,
+      actions: prev.actions.length < maxActions ? [...prev.actions, action] : prev.actions,
     }));
   }, []);
 

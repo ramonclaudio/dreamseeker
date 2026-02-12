@@ -280,7 +280,7 @@ export const update = authMutation({
 
     if (args.whyItMatters !== undefined) {
       checkLength(args.whyItMatters, MAX_WHY_LENGTH, '"Why it matters"');
-      updates.whyItMatters = args.whyItMatters.trim();
+      updates.whyItMatters = args.whyItMatters.trim() || undefined;
     }
 
     checkLength(args.customCategoryName, MAX_CUSTOM_CATEGORY_NAME_LENGTH, 'Custom category name');

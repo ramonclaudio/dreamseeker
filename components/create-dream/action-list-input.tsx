@@ -8,14 +8,13 @@ import { Radius } from '@/constants/theme';
 import { Opacity } from '@/constants/ui';
 import { haptics } from '@/lib/haptics';
 
-const MAX_ACTIONS = 10;
-
 interface ActionListInputProps {
   actions: string[];
   onChange: (actions: string[]) => void;
+  maxActions: number;
 }
 
-export function ActionListInput({ actions, onChange }: ActionListInputProps) {
+export function ActionListInput({ actions, onChange, maxActions }: ActionListInputProps) {
   const colors = useColors();
 
   const displayActions = actions.length === 0 ? [''] : actions;
@@ -76,7 +75,7 @@ export function ActionListInput({ actions, onChange }: ActionListInputProps) {
         </MaterialCard>
       ))}
 
-      {displayActions.length < MAX_ACTIONS && (
+      {displayActions.length < maxActions && (
         <Pressable
           onPress={handleAdd}
           style={({ pressed }) => ({

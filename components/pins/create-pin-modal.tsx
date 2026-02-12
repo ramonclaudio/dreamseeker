@@ -154,9 +154,9 @@ export function CreatePinModal({ visible, onClose, defaultPersonalOnly, editPin,
     } catch (e: any) {
       haptics.error();
       if (e.message?.includes('FREE_PIN_LIMIT') || e.message?.includes('FREE_COMMUNITY_PIN_LIMIT')) {
+        await showUpgrade();
         reset();
         onClose();
-        showUpgrade();
       }
     } finally {
       setIsSubmitting(false);

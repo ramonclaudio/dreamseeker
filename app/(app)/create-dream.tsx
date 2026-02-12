@@ -23,6 +23,7 @@ import { haptics } from '@/lib/haptics';
 import { Spacing, MaxWidth } from '@/constants/layout';
 import { Confetti } from '@/constants/ui';
 import { formatDuration } from '@/constants/dream-suggestions';
+import { FREE_MAX_ACTIONS_PER_DREAM } from '@/convex/constants';
 
 const CELEBRATION_STEP = 5;
 
@@ -31,7 +32,7 @@ export default function CreateDreamScreen() {
   const insets = useSafeAreaInsets();
   const confettiRef = useRef<ConfettiCannon>(null);
   const createdDreamId = useRef<string | null>(null);
-  const { canCreateDream, showUpgrade } = useSubscription();
+  const { canCreateDream, isPremium, showUpgrade } = useSubscription();
 
   // Redirect to paywall if at dream limit
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function CreateDreamScreen() {
             actions={state.actions}
             onChange={setActions}
             category={state.category}
+            maxActions={isPremium ? 50 : FREE_MAX_ACTIONS_PER_DREAM}
           />
         );
       case 5:

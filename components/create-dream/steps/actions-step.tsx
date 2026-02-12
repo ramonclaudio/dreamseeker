@@ -12,10 +12,12 @@ export function ActionsStep({
   actions,
   onChange,
   category,
+  maxActions,
 }: {
   actions: string[];
   onChange: (actions: string[]) => void;
   category: DreamCategory | null;
+  maxActions: number;
 }) {
   const colors = useColors();
   const suggestions = category ? ACTION_SUGGESTIONS[category] : [];
@@ -30,7 +32,7 @@ export function ActionsStep({
         const updated = [...actions];
         updated[emptyIndex] = option;
         onChange(updated);
-      } else {
+      } else if (actions.length < maxActions) {
         onChange([...actions, option]);
       }
     }
@@ -53,7 +55,7 @@ export function ActionsStep({
         />
       )}
 
-      <ActionListInput actions={actions} onChange={onChange} />
+      <ActionListInput actions={actions} onChange={onChange} maxActions={maxActions} />
     </View>
   );
 }
