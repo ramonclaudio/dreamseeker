@@ -16,8 +16,9 @@ export default function DreamsLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false, title: 'Dreams' }} />
+      <Stack.Screen name="all-actions" options={{ title: 'All Actions' }} />
       <Stack.Screen name="[category]" options={{ headerBackTitle: 'Dreams', title: '' }} />
-      <Stack.Screen name="journal" options={{ headerBackTitle: 'Dreams', title: 'Journal' }} />
+      <Stack.Screen name="journal" options={{ title: 'Journal' }} />
     </Stack>
   );
 }
