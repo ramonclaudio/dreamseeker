@@ -202,7 +202,7 @@ function DreamBanner({
             marginLeft: Spacing.lg,
           }}
         >
-          <IconSymbol name="cloud.fill" size={IconSize["3xl"]} color={colors.primary} />
+          <IconSymbol name="plus" size={IconSize["3xl"]} color={colors.primary} />
         </View>
       </View>
     </Pressable>
