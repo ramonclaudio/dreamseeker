@@ -79,7 +79,7 @@ export function StreakHeatmap({ activityData, currentStreak, longestStreak, colo
 
     // Calculate start date: go back enough days to fill 16 complete weeks
     // We want the grid to start on Monday, so find the Monday of the first week
-    const daysToSubtract = DAYS_TO_SHOW - 1 + todayWeekday;
+    const daysToSubtract = DAYS_TO_SHOW - DAYS_PER_WEEK + todayWeekday;
     const startDate = addDays(today, -daysToSubtract);
 
     const weeksData: WeekColumn[] = [];

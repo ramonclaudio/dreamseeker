@@ -246,8 +246,8 @@ export default function ProgressScreen() {
             totalXp={progress.totalXp}
             level={currentLevel.level}
             levelTitle={currentLevel.title}
-            currentStreak={progress.currentStreak}
-            longestStreak={progress.longestStreak}
+            currentStreak={activityHeatmap.currentStreak}
+            longestStreak={activityHeatmap.longestStreak}
             badgeCount={badges?.length ?? 0}
             activityData={activityHeatmap?.activityData}
           />

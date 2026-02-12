@@ -30,6 +30,53 @@ function validateCurrentStreak(
   return progress.currentStreak;
 }
 
+/** Return the next calendar day as YYYY-MM-DD. */
+function nextDay(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y!, m! - 1, d!);
+  date.setDate(date.getDate() + 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/** Compute current and longest streak from actual activity dates. */
+function computeStreaksFromActivity(
+  activityData: Record<string, number>,
+  timezone: string,
+): { currentStreak: number; longestStreak: number } {
+  const dates = Object.keys(activityData).sort();
+  if (dates.length === 0) return { currentStreak: 0, longestStreak: 0 };
+
+  // Find longest consecutive run
+  let longestStreak = 1;
+  let run = 1;
+  for (let i = 1; i < dates.length; i++) {
+    if (nextDay(dates[i - 1]!) === dates[i]!) {
+      run++;
+      if (run > longestStreak) longestStreak = run;
+    } else {
+      run = 1;
+    }
+  }
+
+  // Current streak: count backwards from last date, but only if it's today or yesterday
+  const today = getTodayString(timezone);
+  const yesterday = getYesterdayString(timezone);
+  const lastDate = dates[dates.length - 1]!;
+  let currentStreak = 0;
+  if (lastDate === today || lastDate === yesterday) {
+    currentStreak = 1;
+    for (let i = dates.length - 2; i >= 0; i--) {
+      if (nextDay(dates[i]!) === dates[i + 1]!) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return { currentStreak, longestStreak };
+}
+
 // ── Progress Utilities (moved from helpers.ts) ──────────────────────────────
 
 export function createDefaultProgress(
@@ -110,11 +157,11 @@ function addToActivity(activity: Record<string, number>, date: string) {
 
 /** Tally all activity types into a single date-keyed map. */
 async function tallyActivity(
-  ctx: QueryCtx,
+  ctx: { db: QueryCtx['db'] },
   userId: string,
   timezone: string,
   cutoffMs: number,
-  _cutoffStr: string,
+  cutoffStr: string,
 ) {
   const activity: Record<string, number> = {};
 
@@ -132,11 +179,9 @@ async function tallyActivity(
   // Journal entries (date-indexed)
   const journals = await ctx.db
     .query('journalEntries')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffStr))
     .collect();
-  for (const j of journals) {
-    if (j.createdAt >= cutoffMs) addToActivity(activity, timestampToDateString(j.createdAt, timezone));
-  }
+  for (const j of journals) addToActivity(activity, j.date);
 
   // Focus sessions (timestamp-based)
   const sessions = await ctx.db
@@ -161,6 +206,13 @@ async function tallyActivity(
     if (d.createdAt >= cutoffMs) addToActivity(activity, timestampToDateString(d.createdAt, timezone));
     if (d.completedAt && d.completedAt >= cutoffMs) addToActivity(activity, timestampToDateString(d.completedAt, timezone));
   }
+
+  // Check-ins (date-indexed)
+  const checkIns = await ctx.db
+    .query('checkIns')
+    .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', cutoffStr))
+    .collect();
+  for (const c of checkIns) addToActivity(activity, c.date);
 
   // Pin creation
   const pins = await ctx.db
@@ -265,15 +317,13 @@ export const getActivityHeatmap = authQuery({
 
     const activityData = await tallyActivity(ctx, userId, args.timezone, cutoffMs, cutoffStr);
 
-    const progress = await ctx.db
-      .query('userProgress')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .first();
+    // Derive streaks from actual activity data so they always match the heatmap
+    const streaks = computeStreaksFromActivity(activityData, args.timezone);
 
     return {
       activityData,
-      currentStreak: validateCurrentStreak(progress, args.timezone, todayStr),
-      longestStreak: progress?.longestStreak ?? 0,
+      currentStreak: streaks.currentStreak,
+      longestStreak: streaks.longestStreak,
     };
   },
 });
@@ -389,27 +439,6 @@ async function countAndSumProgress(ctx: MutationCtx, userId: string) {
   return { totalXp, counts, hasAnyData, userBadges };
 }
 
-/** Validate streak and reset if no activity data remains. */
-function validateAndResetStreak(
-  progress: Doc<'userProgress'>,
-  hasAnyData: boolean,
-  timezone: string,
-) {
-  const today = getTodayString(timezone);
-  const yesterday = getYesterdayString(timezone);
-  let currentStreak = progress.currentStreak;
-  let longestStreak = progress.longestStreak;
-
-  if (!hasAnyData) {
-    currentStreak = 0;
-    longestStreak = 0;
-  } else if (progress.lastActiveDate !== today && progress.lastActiveDate !== yesterday) {
-    currentStreak = 0;
-  }
-
-  return { currentStreak, longestStreak };
-}
-
 /** Clean up orphaned feed events and badges when all activity is deleted. */
 async function cleanupOrphans(
   ctx: MutationCtx,
@@ -442,7 +471,10 @@ export async function recalculateUserProgress(
   if (!progress) return null;
 
   const { totalXp, counts, hasAnyData, userBadges } = await countAndSumProgress(ctx, userId);
-  const { currentStreak, longestStreak } = validateAndResetStreak(progress, hasAnyData, timezone);
+
+  // Recompute streaks from actual activity data instead of using stored values
+  const allActivity = await tallyActivity(ctx, userId, timezone, 0, '1970-01-01');
+  const { currentStreak, longestStreak } = computeStreaksFromActivity(allActivity, timezone);
 
   await ctx.db.patch(progress._id, {
     totalXp,
@@ -633,3 +665,4 @@ export const getActivityFeed = authQuery({
     return events.slice(0, limit);
   },
 });
+
