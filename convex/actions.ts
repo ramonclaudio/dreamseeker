@@ -153,6 +153,8 @@ export const create = authMutation({
   args: {
     dreamId: v.id('dreams'),
     text: v.string(),
+    deadline: v.optional(v.number()),
+    reminder: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = ctx.user;
@@ -188,6 +190,8 @@ export const create = authMutation({
       dreamId: args.dreamId,
       text: trimmedText,
       isCompleted: false,
+      deadline: args.deadline,
+      reminder: args.reminder,
       order: maxOrder + 1,
       status: 'active',
       createdAt: Date.now(),
@@ -262,6 +266,10 @@ export const update = authMutation({
   args: {
     id: v.id('actions'),
     text: v.string(),
+    deadline: v.optional(v.number()),
+    clearDeadline: v.optional(v.boolean()),
+    reminder: v.optional(v.number()),
+    clearReminder: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = ctx.user;
@@ -272,7 +280,22 @@ export const update = authMutation({
 
     const trimmedText = requireText(args.text, MAX_ACTION_TEXT_LENGTH, 'Action text');
 
-    await ctx.db.patch(args.id, { text: trimmedText });
+    const patch: Record<string, unknown> = { text: trimmedText };
+    if (args.clearDeadline) {
+      patch.deadline = undefined;
+    } else if (args.deadline !== undefined) {
+      patch.deadline = args.deadline;
+    }
+
+    if (args.clearReminder) {
+      patch.reminder = undefined;
+      patch.reminderSentAt = undefined;
+    } else if (args.reminder !== undefined) {
+      patch.reminder = args.reminder;
+      patch.reminderSentAt = undefined; // reset so it fires again
+    }
+
+    await ctx.db.patch(args.id, patch);
   },
 });
 
