@@ -10,6 +10,7 @@ import { useGetStarted } from "@/hooks/use-get-started";
 import { haptics } from "@/lib/haptics";
 import { shootConfetti } from "@/lib/confetti";
 import { timezone } from "@/lib/timezone";
+import { cancelActionReminder } from "@/lib/local-notifications";
 
 export function useToday() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -110,6 +111,8 @@ export function useToday() {
           timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           timezone,
         });
+        // Cancel local reminder when completing
+        cancelActionReminder(id);
         // Haptic already fires in TodayActionItem — no duplicate here
         if (result?.isFirstAction) setShowFirstAction(true);
         if (result?.newBadge) setNewBadge(result.newBadge);
