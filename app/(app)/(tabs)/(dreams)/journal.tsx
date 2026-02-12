@@ -1,6 +1,6 @@
 import { View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { useState, useCallback } from 'react';
+import { Stack, router } from 'expo-router';
+import { useState } from 'react';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import { SkeletonJournalEntry } from '@/components/ui/skeleton';
@@ -33,15 +33,6 @@ function formatDate(dateString: string): string {
 
 export default function JournalListScreen() {
   const colors = useColors();
-  const { from } = useLocalSearchParams<{ from?: string }>();
-
-  const handleBack = useCallback(() => {
-    if (from === 'today') {
-      router.navigate('/(app)/(tabs)/today');
-    } else {
-      router.back();
-    }
-  }, [from]);
   const [refreshing, setRefreshing] = useState(false);
   const { entries, isLoading, remove } = useJournal();
 
@@ -86,23 +77,7 @@ export default function JournalListScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Stack.Screen
-        options={{
-          headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable
-              onPress={handleBack}
-              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, paddingRight: Spacing.md }}
-              hitSlop={8}
-            >
-              <IconSymbol name="chevron.left" size={22} color={colors.primary} weight="medium" />
-              <ThemedText style={{ fontSize: 17 }} color={colors.primary}>
-                Back
-              </ThemedText>
-            </Pressable>
-          ),
-        }}
-      />
+      <Stack.Screen options={{}} />
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: Spacing.lg,
