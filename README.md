@@ -1,6 +1,12 @@
 # DreamSeeker
 
-**From Dreaming to Doing.** Goal-achievement app for ambitious women. Break big dreams into daily micro-actions, then keep going with streaks, XP, and daily challenges.
+Goal-achievement app for ambitious women. Break big dreams into daily micro-actions, then keep going with streaks, XP, and daily challenges.
+
+---
+
+![DreamSeeker](assets/images/dreamseeker-promo.jpg)
+
+---
 
 Built for [Gabby Beckford](https://instagram.com/packslight) (@packslight) · [RevenueCat Shipyard Hackathon 2026](https://revenuecat-shipyard-2026.devpost.com)
 
@@ -74,14 +80,6 @@ XP drives progression: +10 per action, +100 per dream, +15 per focus session, +1
 - Home screen widgets
 - Confidence meter and deeper progress analytics
 - Integration with Gabby's content calendar and SeekPTO community perks
-
-## Developer
-
-**Ray Claudio** · [@ramonclaudio](https://github.com/ramonclaudio) · Brooklyn, NY
-
-Senior software engineer, 13+ years, CS degree. 4,300+ GitHub contributions across 45 public repos (334 stars). Open source contributor.
-
-Built `convex-revenuecat` for this exact stack (Expo + Convex + RevenueCat). Real app, real monetization, real stack I know inside out.
 
 ---
 
